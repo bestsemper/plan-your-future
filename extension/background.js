@@ -38,8 +38,12 @@ async function getSubdepartmentId(mnemonic) {
 
 // Fetch course data
 async function getCourseData(mnemonic, number) {
+  console.log(`TCF Background: Request received for ${mnemonic} ${number}`);
   const subdeptId = await getSubdepartmentId(mnemonic);
-  if (!subdeptId) return null;
+  if (!subdeptId) {
+    console.warn(`TCF Background: Could not find subdepartment ID for ${mnemonic}`);
+    return null;
+  }
 
   const storageKey = `courses_${subdeptId}`;
   
@@ -48,7 +52,7 @@ async function getCourseData(mnemonic, number) {
   
   // If not in storage, fetch from API
   if (!coursesMap) {
-    console.log(`Fetching courses for subdept ${subdeptId}...`);
+    console.log(`TCF Background: Fetching courses for subdept ${subdeptId} from API...`);
     try {
       const endpoint = `${TCF_BASE_URL}/api/courses/?subdepartment=${subdeptId}&simplestats&page_size=500`;
       const response = await fetch(endpoint);

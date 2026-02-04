@@ -90,7 +90,7 @@ async function scanAndOverlay() {
       
       // Add click/hover listener to show overlay
       span.addEventListener("mouseenter", (e) => showOverlay(e, mnemonic, number));
-      span.addEventListener("mouseleave", hideOverlay);
+      span.addEventListener("mouseleave", handleMouseLeave);
       
       fragment.appendChild(span);
       
@@ -106,6 +106,7 @@ async function scanAndOverlay() {
 }
 
 let tooltip = null;
+let activeTrigger = null;
 
 function createTooltip() {
   if (tooltip) return;
@@ -122,16 +123,27 @@ function createTooltip() {
   tooltip.style.maxWidth = "300px";
   tooltip.style.fontSize = "14px";
   tooltip.style.color = "#333";
+  
+  // Close when leaving tooltip, unless moving back to trigger
+  tooltip.addEventListener("mouseleave", (e) => {
+    if (activeTrigger && e.relatedTarget && (activeTrigger === e.relatedTarget || activeTrigger.contains(e.relatedTarget))) {
+      return;
+    }
+    hideOverlay();
+  });
+
   document.body.appendChild(tooltip);
 }
 
 // Request Data from Background Script
 async function showOverlay(event, mnemonic, number) {
+  activeTrigger = event.currentTarget;
   createTooltip();
   
   const rect = event.target.getBoundingClientRect();
   tooltip.style.left = `${window.scrollX + rect.left}px`;
-  tooltip.style.top = `${window.scrollY + rect.bottom + 5}px`;
+  // Remove gap so mouse can transition instantly
+  tooltip.style.top = `${window.scrollY + rect.bottom}px`;
   tooltip.style.display = "block";
   tooltip.innerHTML = `Loading data for ${mnemonic} ${number}...`;
   
@@ -166,6 +178,14 @@ async function showOverlay(event, mnemonic, number) {
   );
 }
 
+function handleMouseLeave(event) {
+  // Check if moving to tooltip
+  if (tooltip && event.relatedTarget && (tooltip === event.relatedTarget || tooltip.contains(event.relatedTarget))) {
+    return;
+  }
+  hideOverlay();
+}
+
 function hideOverlay() {
   if (tooltip) {
     tooltip.style.display = "none";
@@ -175,15 +195,34 @@ function hideOverlay() {
 
 // Helper to handle Stellic's sidebar specifically
 function handleStellicSidebar() {
-  const sidebarCodeEl = document.querySelector('[data-testid="course-sidebar-code"]');
-  if (!sidebarCodeEl) return;
+  // console.log("TCF Extension: handleStellicSidebar checking...");
   
-  if (sidebarCodeEl.classList.contains("tcf-processed")) return;
+  // Try finding via ID first
+  let sidebarCodeEl = document.getElementById("course-sidebar-container")?.querySelector('[data-testid="course-sidebar-code"]');
+  
+  if (!sidebarCodeEl) {
+    // Fallback: try finding via class or just querySelector globally if ID is dynamic
+    sidebarCodeEl = document.querySelector('[data-testid="course-sidebar-code"]');
+  }
+
+  if (!sidebarCodeEl) {
+    // console.log("TCF Extension: Sidebar element [data-testid='course-sidebar-code'] not found in DOM.");
+    return;
+  }
+  
+  if (sidebarCodeEl.classList.contains("tcf-processed")) {
+    return;
+  }
+
+  console.log("TCF Extension: Found Stellic sidebar course element!", sidebarCodeEl.textContent);
   sidebarCodeEl.classList.add("tcf-processed");
 
   const text = sidebarCodeEl.textContent.trim();
   const match = text.match(/([A-Z]{2,4})\s?(\d{4})/);
-  if (!match) return;
+  if (!match) {
+    console.log("TCF Extension: Course code regex did not match text:", text);
+    return;
+  }
 
   const mnemonic = match[1];
   const number = match[2];
@@ -209,11 +248,21 @@ function handleStellicSidebar() {
   sidebarCodeEl.parentNode.insertBefore(container, sidebarCodeEl.nextSibling);
 
   // Fetch data
+  console.log(`TCF Extension: Sending message to background for ${mnemonic} ${number}`);
   chrome.runtime.sendMessage(
     { action: "GET_COURSE", mnemonic: mnemonic, number: number },
     (response) => {
+      console.log("TCF Extension: Received response from background:", response);
       const ratingSpan = container.querySelector("#tcf-stellic-rating");
-      if (chrome.runtime.lastError || !response || !response.data) {
+      
+      if (chrome.runtime.lastError) {
+        console.error("TCF Extension: Runtime error:", chrome.runtime.lastError);
+        ratingSpan.textContent = "Err";
+        return;
+      }
+
+      if (!response || !response.data) {
+        console.warn("TCF Extension: No data in response.");
         ratingSpan.textContent = "N/A";
         return;
       }
@@ -228,7 +277,7 @@ function handleStellicSidebar() {
       });
       // Also setup tooltip
       container.addEventListener("mouseenter", (e) => showOverlay(e, mnemonic, number));
-      container.addEventListener("mouseleave", hideOverlay);
+      container.addEventListener("mouseleave", handleMouseLeave);
     }
   );
 }
