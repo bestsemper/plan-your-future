@@ -1,0 +1,134 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String            @id @default(cuid())
+  computingId     String            @unique
+  displayName     String
+  major           String?
+  gradYear        Int?
+  bio             String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  courses         CompletedCourse[]
+  plans           Plan[]
+  posts           ForumPost[]
+  answers         ForumAnswer[]
+  votes           Vote[]
+  badges          UserBadge[]
+  goalProfile     GoalProfile?
+}
+
+model CompletedCourse {
+  id            String  @id @default(cuid())
+  userId        String
+  courseCode    String  // e.g. CS 1110
+  title         String?
+  sourceType    String  // UVA, AP, TRANSFER
+  semesterTaken String?
+  user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model GoalProfile {
+  id              String  @id @default(cuid())
+  userId          String  @unique
+  studyAbroad     Boolean @default(false)
+  doubleMajor     Boolean @default(false)
+  earlyGraduation Boolean @default(false)
+  gapYear         Boolean @default(false)
+  notes           String?
+  user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Plan {
+  id          String         @id @default(cuid())
+  userId      String
+  title       String
+  isPublished Boolean        @default(false)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  semesters   Semester[]
+  forumPosts  ForumPost[]
+}
+
+model Semester {
+  id        String          @id @default(cuid())
+  planId    String
+  termName  String          // Fall, Spring, Summer, J-Term
+  termOrder Int
+  year      Int
+  plan      Plan            @relation(fields: [planId], references: [id], onDelete: Cascade)
+  courses   PlannedCourse[]
+}
+
+model PlannedCourse {
+  id         String   @id @default(cuid())
+  semesterId String
+  courseCode String
+  title      String?
+  credits    Int?
+  locked     Boolean  @default(false)
+  notes      String?
+  semester   Semester @relation(fields: [semesterId], references: [id], onDelete: Cascade)
+}
+
+model ForumPost {
+  id             String        @id @default(cuid())
+  authorId       String
+  title          String
+  body           String
+  attachedPlanId String?
+  viewCount      Int           @default(0)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  author         User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  attachedPlan   Plan?         @relation(fields: [attachedPlanId], references: [id], onDelete: SetNull)
+  answers        ForumAnswer[]
+  votes          Vote[]
+}
+
+model ForumAnswer {
+  id        String    @id @default(cuid())
+  postId    String
+  authorId  String
+  body      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  post      ForumPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  votes     Vote[]
+}
+
+model Vote {
+  id       String       @id @default(cuid())
+  userId   String
+  answerId String?
+  postId   String?
+  value    Int          // -1 or 1
+  user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answer   ForumAnswer? @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  post     ForumPost?   @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
+
+model Badge {
+  id          String      @id @default(cuid())
+  name        String
+  description String
+  users       UserBadge[]
+}
+
+model UserBadge {
+  id       String   @id @default(cuid())
+  userId   String
+  badgeId  String
+  earnedAt DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge    Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+}
