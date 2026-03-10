@@ -39,7 +39,7 @@ export default function LoginPage() {
         </div>
 
         <Link href="/">
-          <button className="w-full bg-uva-blue hover:bg-uva-blue-dark text-white font-bold py-3 rounded-md shadow-sm transition-colors text-lg">
+          <button className="w-full bg-uva-blue hover:bg-uva-blue-dark text-white font-bold py-3 rounded-md shadow-sm transition-colors text-lg cursor-pointer">
             Sign In with NetBadge
           </button>
         </Link>

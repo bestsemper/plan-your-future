@@ -9,7 +9,7 @@ export default function Home() {
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border-t-4 border-uva-orange">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-800">
           <h2 className="text-2xl font-semibold mb-3 text-uva-blue dark:text-white">Your Plan</h2>
           <p className="text-gray-600 dark:text-gray-300 mb-6">
             You haven't generated a plan yet. Keep your academic journey on track!
@@ -19,7 +19,7 @@ export default function Home() {
           </Link>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border-t-4 border-uva-blue flex flex-col justify-between">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-800 flex flex-col justify-between">
           <div>
             <h2 className="text-2xl font-semibold mb-3 text-uva-blue dark:text-white">Recent Forum Activity</h2>
             <p className="text-gray-600 dark:text-gray-300 mb-6">

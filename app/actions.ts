@@ -2,6 +2,9 @@
 
 import { PrismaClient } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
+import fs from 'fs';
+import path from 'path';
+import { parse } from 'csv-parse/sync';
 
 const prisma = new PrismaClient();
 
@@ -94,3 +97,156 @@ export async function generatePreliminaryPlan(userId: string, major: string, goa
   revalidatePath('/plan');
   return plan;
 }
+
+export async function addCourseToSemester(semesterId: string, courseCode: string, credits: number) {
+  if (!courseCode || !credits) throw new Error("Course details missing");
+  await prisma.plannedCourse.create({
+    data: {
+      semesterId,
+      courseCode,
+      credits
+    }
+  });
+  revalidatePath('/plan');
+}
+
+export async function removeCourseFromSemester(courseId: string) {
+  await prisma.plannedCourse.delete({
+    where: { id: courseId }
+  });
+  revalidatePath('/plan');
+}
+
+export async function getAllPossibleCoursesFromCSV(): Promise<string[]> {
+  try {
+    const csvFilePath = path.join(process.cwd(), 'public', 'audit_requirements.csv');
+    const data = fs.readFileSync(csvFilePath, 'utf-8');
+    const records = parse(data, { columns: true, skip_empty_lines: true });
+
+    const courses = new Set<string>();
+    const courseRegex = /^([A-Z]{2,4})\s(\d{4})/;
+
+    for (const reqObj of records) {
+      const req: any = reqObj;
+      const reqName = (req['Requirement Name'] || '');
+      const constraint = req['Constraint'] || '';
+      
+      const reqNameMatch = reqName.match(courseRegex);
+      if (reqNameMatch) {
+        courses.add(reqNameMatch[0]);
+      }
+      
+      if (constraint.includes('Course within this set of courses:')) {
+        const parts = constraint.split('Course within this set of courses:');
+        if (parts.length > 1) {
+          const coursesList = parts[1].trim().split(',').map((s: string) => s.trim().substring(0, 7)).filter((s: string) => courseRegex.test(s));
+          for (const c of coursesList) {
+            courses.add(c);
+          }
+        }
+      }
+    }
+    
+    return Array.from(courses).sort();
+  } catch (err) {
+    console.error("Error reading CSV for all courses:", err);
+    return [];
+  }
+}
+
+export async function getCourseInfoFromCSV(courseCode: string) {
+  try {
+    const csvFilePath = path.join(process.cwd(), 'public', 'audit_requirements.csv');
+    const data = fs.readFileSync(csvFilePath, 'utf-8');
+    const records = parse(data, { columns: true, skip_empty_lines: true });
+
+    const programs = new Set<string>();
+    const fulfills = new Set<string>();
+
+    for (const reqObj of records) {
+      const req: any = reqObj;
+      const cnstr = req['Constraint'] || '';
+      const reqName = req['Requirement Name'] || '';
+      const progName = req['Program Name'] || '';
+      const parentName = req['Parent Requirement Name'] || '';
+
+      if (reqName.includes(courseCode) || cnstr.includes(courseCode)) {
+        if (progName) programs.add(progName);
+        if (reqName && !reqName.includes(courseCode)) fulfills.add(reqName);
+        else if (reqName && reqName.length > courseCode.length) fulfills.add(reqName);
+        
+        if (parentName) fulfills.add(parentName);
+      }
+    }
+
+    return {
+      courseCode,
+      programs: Array.from(programs).slice(0, 10),
+      fulfills: Array.from(fulfills).slice(0, 10)
+    };
+  } catch (err) {
+    console.error("Error reading CSV for course info:", err);
+    return { courseCode, programs: [], fulfills: [] };
+  }
+}
+
+export async function getCourseCreditsFromCSV(courseCode: string): Promise<string> {
+  try {
+    const csvFilePath = path.join(process.cwd(), 'public', 'audit_requirements.csv');
+    const data = fs.readFileSync(csvFilePath, 'utf-8');
+    const records = parse(data, { columns: true, skip_empty_lines: true });
+    
+    let possibleUnits: number[] = [];
+    for (const reqObj of records) {
+      const req: any = reqObj;
+      const constraint = (req['Constraint'] || '') as string;
+      if (constraint.includes(` ${courseCode}`) || constraint.includes(`${courseCode},`)) {
+        const match = constraint.match(/([0-9.]+)\s*units/i);
+        if (match) {
+          let val = parseFloat(match[1]);
+          if (val <= 6) possibleUnits.push(val);
+        }
+      }
+    }
+
+    const parentIds = new Set<string>();
+    for (const reqObj of records) {
+      const req: any = reqObj;
+      const reqName = (req['Requirement Name'] || '') as string;
+      const constraint = (req['Constraint'] || '') as string;
+      if (reqName === courseCode || (constraint.includes(` ${courseCode}`) && !constraint.includes('Course within one of these ranges'))) {
+        if (req['Parent Requirement ID']) parentIds.add(req['Parent Requirement ID'] as string);
+      }
+    }
+
+    for (const reqObj of records) {
+      const req: any = reqObj;
+      if (parentIds.has(req['Requirement ID'] as string)) {
+        const constraint = (req['Constraint'] || '') as string;
+        const match = constraint.match(/([0-9.]+)\s*units/i);
+        if (match) {
+          let val = parseFloat(match[1]);
+          if (val <= 6) possibleUnits.push(val);
+        }
+      }
+    }
+
+    if (possibleUnits.length > 0) {
+      const counts: Record<number, number> = {};
+      let maxCount = 0;
+      let mostFrequent = 3;
+      for (const u of possibleUnits) {
+         counts[u] = (counts[u] || 0) + 1;
+         if (counts[u] > maxCount) {
+           maxCount = counts[u];
+           mostFrequent = u;
+         }
+      }
+      return mostFrequent.toString();
+    }
+  } catch(e) {
+    console.error("Error reading CSV for credits:", e);
+  }
+  return '3'; // Default fallback
+}
+

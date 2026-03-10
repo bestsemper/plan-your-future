@@ -1,29 +1,119 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f9fafb;
+  --foreground: #111827;
+
+  /* layout / panels */
+  --panel-bg: #ffffff;
+  --panel-bg-alt: #f9fafb;
+  --panel-border: #e5e7eb;
+  --panel-border-strong: #d1d5db;
+  
+  /* general text */
+  --text-primary: #111827;
+  --text-secondary: #1f2937;
+  --text-muted: #4b5563;
+  --text-tertiary: #6b7280;
+  --heading-text: #232D4B;
+
+  /* interaction */
+  --hover-bg: #f3f4f6;
+  --hover-text: #111827;
+
+  /* inputs */
+  --input-bg: #ffffff;
+  --input-border: #d1d5db;
+  --input-bg-disabled: #f3f4f6;
+  
+  /* semantic */
+  --danger-bg-hover: #fef2f2;
+  --danger-text: rgba(239, 68, 68, 0.8);
+  --danger-text-hover: #dc2626;
+  
+  --success-text: rgba(34, 197, 94, 0.8);
+  --success-text-hover: #16a34a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #111827;
+    --foreground: #f9fafb;
+
+    /* layout / panels */
+    --panel-bg: #1f2937;
+    --panel-bg-alt: #1f2937; /* Used for sub-panels in dark mode */
+    --panel-border: #374151;
+    --panel-border-strong: #4b5563;
+    
+    /* general text */
+    --text-primary: #ffffff;
+    --text-secondary: #e5e7eb;
+    --text-muted: #d1d5db;
+    --text-tertiary: #9ca3af;
+  --heading-text: #f3f4f6;
+
+    /* interaction */
+    --hover-bg: #374151;
+    --hover-text: #e5e7eb;
+
+    /* inputs */
+    --input-bg: #1f2937;
+    --input-border: #4b5563;
+    --input-bg-disabled: #374151;
+
+    /* semantic */
+    --danger-bg-hover: rgba(127, 29, 29, 0.3);
+    --danger-text: #ef4444;
+    --danger-text-hover: #f87171;
+    
+    --success-text: #22c55e;
+    --success-text-hover: #4ade80;
+  }
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-panel-bg: var(--panel-bg);
+  --color-panel-bg-alt: var(--panel-bg-alt);
+  --color-panel-border: var(--panel-border);
+  --color-panel-border-strong: var(--panel-border-strong);
+  
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-text-tertiary: var(--text-tertiary);
+  
+  --color-hover-bg: var(--hover-bg);
+  --color-hover-text: var(--hover-text);
+  
+  --color-input-bg: var(--input-bg);
+  --color-input-border: var(--input-border);
+  --color-input-disabled: var(--input-bg-disabled);
+  
+  --color-danger-bg-hover: var(--danger-bg-hover);
+  --color-danger-text: var(--danger-text);
+  --color-danger-text-hover: var(--danger-text-hover);
+  
+  --color-success-text: var(--success-text);
+  --color-success-text-hover: var(--success-text-hover);
+  
   --color-uva-blue: #232D4B;
   --color-uva-orange: #E57200;
   --color-uva-blue-dark: #1b233a;
+  
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* add to end of globals just to be safe */
+@theme {
+  --color-heading: var(--heading-text);
 }
