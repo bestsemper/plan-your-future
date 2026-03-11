@@ -2,6 +2,7 @@
 
 import { PrismaClient } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
+import { cookies } from 'next/headers';
 import fs from 'fs';
 import path from 'path';
 import { parse } from 'csv-parse/sync';
@@ -33,8 +34,33 @@ export async function mockLogin(computingId: string, password: string) {
   }
 
   // Set session cookie mock here if needed
+  const cookieStore = await cookies();
+  cookieStore.set('computingId', user.computingId, { 
+    httpOnly: true, 
+    secure: process.env.NODE_ENV === 'production', 
+    path: '/' 
+  });
   
   return user;
+}
+
+export async function getCurrentUser() {
+  const cookieStore = await cookies();
+  const computingId = cookieStore.get('computingId')?.value;
+  
+  if (!computingId) return null;
+  
+  return await prisma.user.findUnique({
+    where: { computingId }
+  });
+}
+
+import { redirect } from 'next/navigation';
+
+export async function logout() {
+  const cookieStore = await cookies();
+  cookieStore.delete('computingId');
+  redirect('/login');
 }
 
 export async function generatePreliminaryPlan(userId: string, major: string, goals: string[]) {

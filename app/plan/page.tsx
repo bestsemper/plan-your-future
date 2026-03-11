@@ -1,20 +1,15 @@
 import { PrismaClient } from '@prisma/client';
 import PlanView from './PlanView';
-import { getAllPossibleCoursesFromCSV } from '../actions';
+import { getAllPossibleCoursesFromCSV, getCurrentUser } from '../actions';
+import { redirect } from 'next/navigation';
 
 const prisma = new PrismaClient();
 
 export default async function PlanBuilder() {
-  // Mock auth for now
-  let user = await prisma.user.findFirst({ where: { computingId: 'wahoo99' } });
+  const user = await getCurrentUser();
+  
   if (!user) {
-    user = await prisma.user.create({
-      data: {
-        computingId: 'wahoo99',
-        displayName: 'wahoo99',
-        major: 'Computer Science (BA)'
-      }
-    });
+    redirect('/login');
   }
 
   const plans = await prisma.plan.findMany({

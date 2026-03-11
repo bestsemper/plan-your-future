@@ -1,9 +1,18 @@
-import Link from 'next/link';
+import { mockLogin } from '../actions';
+import { redirect } from 'next/navigation';
 
 export default function LoginPage() {
+  async function handleLogin(formData: FormData) {
+    "use server"
+    const computingId = formData.get('computingId') as string;
+    const password = formData.get('password') as string;
+    await mockLogin(computingId, password);
+    redirect('/');
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-black flex flex-col justify-center items-center p-4">
-      <div className="max-w-md w-full bg-white dark:bg-gray-900 rounded-lg shadow-md border-t-8 border-uva-blue p-8 text-center border-x border-b border-gray-200 dark:border-gray-800">
+      <form action={handleLogin} className="max-w-md w-full bg-white dark:bg-gray-900 rounded-lg shadow-md border-t-8 border-uva-blue p-8 text-center border-x border-b border-gray-200 dark:border-gray-800">
         <div className="mb-6">
           <div className="w-16 h-16 bg-uva-orange text-white text-2xl font-bold rounded-full flex items-center justify-center mx-auto shadow-sm mb-4">
             U
@@ -22,31 +31,33 @@ export default function LoginPage() {
             <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Computing ID</label>
             <input 
               type="text" 
+              name="computingId"
               placeholder="e.g. mst3k" 
-              defaultValue="wahoo99"
+              defaultValue=""
               className="w-full p-3 border border-gray-300 dark:border-gray-700 rounded-md focus:border-uva-blue focus:ring-uva-blue bg-white dark:bg-black text-gray-800 dark:text-gray-200 shadow-sm"
+              required
             />
           </div>
           <div>
             <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Password</label>
             <input 
               type="password" 
+              name="password"
               placeholder="••••••••" 
-              defaultValue="mockpassword"
+              defaultValue=""
               className="w-full p-3 border border-gray-300 dark:border-gray-700 rounded-md focus:border-uva-blue focus:ring-uva-blue bg-white dark:bg-black text-gray-800 dark:text-gray-200 shadow-sm"
+              required
             />
           </div>
         </div>
 
-        <Link href="/">
-          <button className="w-full bg-uva-blue hover:bg-uva-blue-dark text-white font-bold py-3 rounded-md shadow-sm transition-colors text-lg cursor-pointer">
-            Sign In with NetBadge
-          </button>
-        </Link>
-      </div>
+        <button type="submit" className="w-full bg-uva-blue hover:bg-uva-blue-dark text-white font-bold py-3 rounded-md shadow-sm transition-colors text-lg cursor-pointer">
+          Sign In with NetBadge
+        </button>
+      </form>
       
       <p className="mt-8 text-sm font-medium text-gray-500 dark:text-gray-500">
-        This is a mock application. Do not enter real credentials.
+        This is a mock application. You can enter any mock Computing ID.
       </p>
     </div>
   );

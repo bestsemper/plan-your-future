@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { logout } from "../actions";
 
-export default function Sidebar() {
+export default function Sidebar({ user }: { user: { computingId: string, displayName: string } | null }) {
   const pathname = usePathname();
 
   if (pathname === '/login') {
@@ -56,18 +57,28 @@ export default function Sidebar() {
       </div>
       
       <div className="bg-uva-blue-dark p-4 flex flex-col gap-2">
-        <Link href="/profile" className="flex items-center space-x-3 rounded hover:bg-black/20 p-2 transition-colors">
-          <div className="w-8 h-8 rounded-full bg-uva-orange flex items-center justify-center text-white font-bold">
-            U
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-medium text-white">Mock User</p>
-            <p className="text-xs text-white/70">View Profile</p>
-          </div>
-        </Link>
-        <Link href="/login" className="block text-center text-xs text-white/50 hover:text-white pb-1 transition-colors">
-          Sign Out
-        </Link>
+        {user ? (
+          <>
+            <Link href="/profile" className="flex items-center space-x-3 rounded hover:bg-black/20 p-2 transition-colors">
+              <div className="w-8 h-8 rounded-full bg-uva-orange flex items-center justify-center text-white font-bold uppercase">
+                {user.displayName.charAt(0)}
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <p className="text-sm font-medium text-white truncate">{user.displayName}</p>
+                <p className="text-xs text-white/70 truncate">{user.computingId}</p>
+              </div>
+            </Link>
+            <form action={logout}>
+              <button type="submit" className="w-full text-center text-xs text-white/50 hover:text-white pb-1 transition-colors cursor-pointer block">
+                Sign Out
+              </button>
+            </form>
+          </>
+        ) : (
+          <Link href="/login" className="block text-center text-sm text-white hover:text-white/80 pb-1 pt-2 transition-colors font-semibold">
+            Sign In
+          </Link>
+        )}
       </div>
     </aside>
   );
