@@ -12,7 +12,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
   }
 
   return (
-    <aside className="w-64 h-screen bg-uva-blue text-white flex flex-col justify-between sticky top-0 shadow-lg shrink-0">
+    <aside className="w-64 h-screen bg-uva-blue text-white flex flex-col justify-between sticky top-0 shrink-0">
       <div className="p-6">
         <Link href="/" className="block mb-8">
           <svg role="img" width="100%" height="auto" viewBox="0 0 223 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="block mb-3 w-full">

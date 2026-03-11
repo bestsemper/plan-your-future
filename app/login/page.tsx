@@ -1,13 +1,24 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { mockLogin, mockSignUp } from '../actions';
 import { useRouter } from 'next/navigation';
+import { useTheme } from 'next-themes';
 
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [isSignUp, setIsSignUp] = useState(false);
   const router = useRouter();
+  const { setTheme } = useTheme();
+
+  useEffect(() => {
+    const currentTheme = window.localStorage.getItem('theme');
+    const stashed = window.localStorage.getItem('stashed-theme');
+    if (currentTheme && currentTheme !== 'light' && !stashed) {
+      window.localStorage.setItem('stashed-theme', currentTheme);
+    }
+    setTheme('light');
+  }, [setTheme]);
 
   async function handleAction(formData: FormData) {
     const res = isSignUp
@@ -24,6 +35,11 @@ export default function LoginPage() {
     if (res?.error) {
       setError(res.error);
     } else {
+      const stashedTheme = window.localStorage.getItem('stashed-theme');
+      if (stashedTheme) {
+        setTheme(stashedTheme);
+        window.localStorage.removeItem('stashed-theme');
+      }
       router.push('/');
     }
   }
@@ -50,7 +66,7 @@ export default function LoginPage() {
 
   return (
     <div className="max-w-4xl mx-auto py-8">
-      <div className="max-w-md mx-auto mt-12 bg-panel-bg border border-panel-border p-8 rounded-lg shadow-sm">
+      <div className="max-w-md mx-auto mt-12 bg-panel-bg border border-panel-border p-8 rounded-lg">
         <div className="flex flex-col mb-6 border-b border-panel-border pb-6">
           <div className="flex justify-between items-center mb-2">
             <h1 className="text-3xl font-bold text-heading">{isSignUp ? 'Create Account' : 'Sign In'}</h1>
@@ -79,7 +95,7 @@ export default function LoginPage() {
                 <input 
                   type="text" 
                   name="displayName"
-                  className="w-full p-3 border border-panel-border rounded-md shadow-sm focus:border-uva-blue focus:ring-1 focus:ring-uva-blue bg-input-bg text-text-primary outline-none transition-all"
+                  className="w-full p-3 border border-panel-border rounded-md bg-input-bg text-text-primary outline-none transition-all"
                   required
                 />
               </div>
@@ -89,7 +105,7 @@ export default function LoginPage() {
               <input 
                 type="text" 
                 name="computingId"
-                className="w-full p-3 border border-panel-border rounded-md shadow-sm focus:border-uva-blue focus:ring-1 focus:ring-uva-blue bg-input-bg text-text-primary outline-none transition-all"
+                className="w-full p-3 border border-panel-border rounded-md bg-input-bg text-text-primary outline-none transition-all"
                 required
               />
             </div>
@@ -98,7 +114,7 @@ export default function LoginPage() {
               <input 
                 type="password" 
                 name="password"
-                className="w-full p-3 border border-panel-border rounded-md shadow-sm focus:border-uva-blue focus:ring-1 focus:ring-uva-blue bg-input-bg text-text-primary outline-none transition-all"
+                className="w-full p-3 border border-panel-border rounded-md bg-input-bg text-text-primary outline-none transition-all"
                 required
               />
             </div>
@@ -108,7 +124,7 @@ export default function LoginPage() {
                 <input 
                   type="password" 
                   name="confirmPassword"
-                  className="w-full p-3 border border-panel-border rounded-md shadow-sm focus:border-uva-blue focus:ring-1 focus:ring-uva-blue bg-input-bg text-text-primary outline-none transition-all"
+                  className="w-full p-3 border border-panel-border rounded-md bg-input-bg text-text-primary outline-none transition-all"
                   required
                 />
               </div>
@@ -118,7 +134,7 @@ export default function LoginPage() {
           <div className="flex flex-col gap-4 mt-8">
             <button 
               type="submit" 
-              className="w-full bg-uva-blue text-white px-5 py-3 rounded-md hover:bg-uva-blue-dark font-bold shadow-sm transition-colors cursor-pointer flex justify-center items-center gap-2"
+              className="w-full bg-uva-blue text-white px-5 py-3 rounded-md hover:bg-uva-blue-dark font-bold transition-colors cursor-pointer flex justify-center items-center gap-2"
             >
               {isSignUp ? 'Create Account' : 'Log In'}
               {!isSignUp && <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>}
@@ -135,7 +151,7 @@ export default function LoginPage() {
                 setIsSignUp(!isSignUp);
                 setError(null);
               }}
-              className="w-full bg-panel-bg-alt border border-panel-border text-text-primary px-5 py-3 rounded-md hover:bg-hover-bg font-bold shadow-sm transition-colors cursor-pointer"
+              className="w-full bg-panel-bg-alt border border-panel-border text-text-primary px-5 py-3 rounded-md hover:bg-hover-bg font-bold transition-colors cursor-pointer"
             >
               {isSignUp ? 'Already have an account? Log In' : "Don't have an account? Sign Up"}
             </button>

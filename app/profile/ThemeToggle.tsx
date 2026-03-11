@@ -19,7 +19,7 @@ export default function ThemeToggle() {
   return (
     <button 
       onClick={toggleTheme}
-      className="flex items-center gap-2 px-4 py-2 bg-panel-bg-alt border border-panel-border-strong rounded-md hover:bg-hover-bg transition-colors text-text-primary font-semibold cursor-pointer shadow-sm"
+      className="flex items-center gap-2 px-4 py-2 bg-panel-bg-alt border border-panel-border-strong rounded-md hover:bg-hover-bg transition-colors text-text-primary font-semibold cursor-pointer"
     >
       {(!mounted ? false : !isDark) ? (
         <>

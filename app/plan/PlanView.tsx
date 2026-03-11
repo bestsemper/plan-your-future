@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { generatePreliminaryPlan, addCourseToSemester, removeCourseFromSemester, getCourseInfoFromCSV, getCourseCreditsFromCSV } from '../actions';
 
 interface CourseInfo {
@@ -9,7 +9,13 @@ interface CourseInfo {
 }
 
 export default function PlanView({ userId, plans, allCourses = [] }: { userId: string, plans: any[], allCourses?: string[] }) {
-  const activePlan = plans[0]; // Just showing the first plan for MVP
+  const [optimisticPlans, setOptimisticPlans] = useState(plans);
+
+  useEffect(() => {
+    setOptimisticPlans(plans);
+  }, [plans]);
+
+  const activePlan = optimisticPlans[0]; // Just showing the first plan for MVP
   const [loading, setLoading] = useState(false);
   const [newCourseSem, setNewCourseSem] = useState<string | null>(null);
   const [courseCode, setCourseCode] = useState('');
@@ -41,9 +47,36 @@ export default function PlanView({ userId, plans, allCourses = [] }: { userId: s
 
   const handleAddCourse = async (semesterId: string) => {
     if (!courseCode) return;
-    await addCourseToSemester(semesterId, courseCode, parseInt(credits));
+    const code = courseCode;
+    const cr = parseInt(credits);
+    
+    // Optimistic UI update
+    setOptimisticPlans(prev => prev.map(p => ({
+      ...p,
+      semesters: p.semesters.map((s: any) => 
+        s.id === semesterId 
+          ? { ...s, courses: [...s.courses, { id: `temp-${Date.now()}`, courseCode: code, credits: cr }] }
+          : s
+      )
+    })));
+
     setNewCourseSem(null);
     setCourseCode('');
+
+    await addCourseToSemester(semesterId, code, cr);
+  };
+
+  const handleRemoveCourse = async (courseId: string) => {
+    // Optimistic UI update
+    setOptimisticPlans(prev => prev.map(p => ({
+      ...p,
+      semesters: p.semesters.map((s: any) => ({
+        ...s,
+        courses: s.courses.filter((c: any) => c.id !== courseId)
+      }))
+    })));
+
+    await removeCourseFromSemester(courseId);
   };
 
   const handleCourseClick = async (code: string) => {
@@ -65,12 +98,12 @@ export default function PlanView({ userId, plans, allCourses = [] }: { userId: s
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="bg-panel-bg-alt border border-panel-border p-6 rounded-lg lg:col-span-1 shadow-sm h-fit">
+        <div className="bg-panel-bg-alt border border-panel-border p-6 rounded-lg lg:col-span-1 h-fit">
           <h2 className="font-bold text-xl mb-4 text-heading ">Settings</h2>
           <button 
             onClick={handleGenerate} 
             disabled={loading}
-            className="w-full bg-uva-blue flex justify-center text-white py-2.5 rounded font-bold hover:bg-uva-blue-dark transition-colors mt-2 shadow-sm disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+            className="w-full bg-uva-blue flex justify-center text-white py-2.5 rounded font-bold hover:bg-uva-blue-dark transition-colors mt-2 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
           >
             {loading ? 'Generating...' : 'Auto-Generate CSV Plan'}
           </button>
@@ -82,7 +115,7 @@ export default function PlanView({ userId, plans, allCourses = [] }: { userId: s
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {activePlan.semesters.map((sem: any) => (
-                <div key={sem.id} className="bg-panel-bg border border-panel-border rounded-lg p-5 shadow-sm min-h-[150px]">
+                <div key={sem.id} className="bg-panel-bg border border-panel-border rounded-lg p-5 min-h-[150px]">
                   <div className="flex justify-between items-center border-b border-panel-border pb-2 mb-3">
                     <h3 className="font-bold text-lg text-heading ">
                       {sem.termName} {sem.year}
@@ -97,7 +130,7 @@ export default function PlanView({ userId, plans, allCourses = [] }: { userId: s
                         <span className="font-medium text-text-primary">{course.courseCode}</span>
                         <div className="flex items-center space-x-2">
                           <span className="text-gray-500 font-semibold">{course.credits} cr</span>
-                          <button onClick={(e) => { e.stopPropagation(); removeCourseFromSemester(course.id); }} className="text-red-500 opacity-0 group-hover:opacity-100 font-bold px-1 transition-opacity cursor-pointer hover:bg-danger-bg-hover rounded">
+                          <button onClick={(e) => { e.stopPropagation(); handleRemoveCourse(course.id); }} className="text-red-500 opacity-0 group-hover:opacity-100 font-bold px-1 transition-opacity cursor-pointer hover:bg-danger-bg-hover rounded">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                           </button>
                         </div>
@@ -117,7 +150,7 @@ export default function PlanView({ userId, plans, allCourses = [] }: { userId: s
                             className="w-full px-3 border border-panel-border-strong rounded-md text-sm bg-panel-bg text-text-primary focus:outline-none focus:ring-1 focus:ring-uva-blue h-full"
                           />
                           {showDropdown && filteredCourses.length > 0 && (
-                            <div className="absolute z-10 w-full mt-1 bg-panel-bg border border-panel-border-strong rounded-md shadow-lg max-h-48 overflow-y-auto">
+                            <div className="absolute z-10 w-full mt-1 bg-panel-bg border border-panel-border-strong rounded-md max-h-48 overflow-y-auto">
                               {filteredCourses.map(c => (
                                 <div 
                                   key={c} 
@@ -165,7 +198,7 @@ export default function PlanView({ userId, plans, allCourses = [] }: { userId: s
 
       {loadingInfo && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-panel-bg p-6 rounded-lg shadow-xl flex items-center space-x-3">
+          <div className="bg-panel-bg p-6 rounded-lg flex items-center space-x-3">
             <svg className="animate-spin h-5 w-5 text-uva-blue" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
             <span className="font-medium text-text-primary">Loading course info...</span>
           </div>
@@ -174,7 +207,7 @@ export default function PlanView({ userId, plans, allCourses = [] }: { userId: s
 
       {selectedCourseInfo && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setSelectedCourseInfo(null)}>
-          <div className="bg-panel-bg p-6 rounded-lg shadow-xl max-w-md w-full max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+          <div className="bg-panel-bg p-6 rounded-lg max-w-md w-full max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex justify-between items-start mb-4">
               <h2 className="text-2xl font-bold text-heading">{selectedCourseInfo.courseCode}</h2>
               <button onClick={() => setSelectedCourseInfo(null)} className="text-text-muted hover:text-text-secondary cursor-pointer">

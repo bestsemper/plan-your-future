@@ -12,7 +12,7 @@ export default function Forum() {
     <div className="max-w-5xl mx-auto py-8">
       <div className="flex justify-between items-center mb-6 border-b border-panel-border pb-4">
         <h1 className="text-3xl font-bold text-heading">Community Forum</h1>
-        <button className="px-4 py-2 bg-uva-orange text-white rounded hover:bg-[#cc6600] font-semibold transition-colors shadow-sm cursor-pointer">
+        <button className="px-4 py-2 bg-uva-orange text-white rounded hover:bg-[#cc6600] font-semibold transition-colors cursor-pointer">
           New Post
         </button>
       </div>
@@ -21,13 +21,13 @@ export default function Forum() {
         <input 
           type="text" 
           placeholder="Search by major, topic, or tag..." 
-          className="flex-1 p-3 border border-panel-border rounded-md shadow-sm focus:border-uva-blue focus:ring-uva-blue bg-input-bg"
+          className="flex-1 p-3 border border-panel-border rounded-md focus:border-uva-blue focus:ring-uva-blue bg-input-bg"
         />
         
         <div className="relative">
           <button 
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="h-full border border-panel-border rounded-md px-4 py-3 shadow-sm hover:border-uva-blue focus:border-uva-blue focus:ring-1 focus:ring-uva-blue bg-input-bg cursor-pointer flex items-center justify-between min-w-[200px]"
+            className="h-full border border-panel-border rounded-md px-4 py-3 hover:border-uva-blue focus:border-uva-blue focus:ring-1 focus:ring-uva-blue bg-input-bg cursor-pointer flex items-center justify-between min-w-[200px]"
           >
             <span>{selectedMajor}</span>
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`w-4 h-4 ml-2 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}>
@@ -36,7 +36,7 @@ export default function Forum() {
           </button>
           
           {isDropdownOpen && (
-            <div className="absolute top-full left-0 mt-1 w-full bg-panel-bg border border-panel-border rounded-md shadow-lg z-10 overflow-hidden">
+            <div className="absolute top-full left-0 mt-1 w-full bg-panel-bg border border-panel-border rounded-md z-10 overflow-hidden">
               {majors.map((major) => (
                 <div 
                   key={major}
@@ -56,7 +56,7 @@ export default function Forum() {
 
       <div className="space-y-4">
         {[1, 2, 3].map((post) => (
-          <div key={post} className="bg-panel-bg border border-panel-border p-5 rounded-md shadow-sm hover:shadow-md transition-all cursor-pointer flex gap-4">
+          <div key={post} className="bg-panel-bg border border-panel-border p-5 rounded-md transition-all cursor-pointer flex gap-4">
             <div className="flex flex-col items-center justify-center min-w-[60px] text-gray-500 bg-panel-bg-alt rounded-md border border-panel-border h-16 w-16 my-auto">
               <span className="font-bold text-lg text-text-secondary">{post * 5}</span>
               <span className="text-[10px] uppercase font-bold text-gray-500">votes</span>
