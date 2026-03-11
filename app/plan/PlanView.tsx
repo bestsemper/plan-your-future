@@ -18,9 +18,10 @@ export default function PlanView({ userId, plans, allCourses = [] }: { userId: s
   const [selectedCourseInfo, setSelectedCourseInfo] = useState<CourseInfo | null>(null);
   const [loadingInfo, setLoadingInfo] = useState(false);
 
-  const filteredCourses = courseCode 
+  const tempFilteredCourses = courseCode 
     ? allCourses.filter(c => c.toLowerCase().includes(courseCode.toLowerCase()))
     : [];
+  const filteredCourses = [...tempFilteredCourses.filter(c => c.toLowerCase().slice(0, courseCode.length) == courseCode.toLowerCase()), ...tempFilteredCourses.filter(c => c.toLowerCase().slice(0, courseCode.length) != courseCode.toLowerCase())]
 
   const handleGenerate = async () => {
     setLoading(true);
