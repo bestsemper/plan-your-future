@@ -11,6 +11,7 @@ model User {
   id          String            @id @default(cuid())
   computingId String            @unique
   displayName String
+  password    String?
   major       String?
   gradYear    Int?
   bio         String?

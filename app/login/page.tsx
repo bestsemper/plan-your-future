@@ -6,13 +6,21 @@ import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
+  const [isSignUp, setIsSignUp] = useState(false);
   const router = useRouter();
 
-  async function handleLogin(formData: FormData) {
-    const computingId = formData.get('computingId') as string;
-    const password = formData.get('password') as string;
-    setError(null);
-    const res = await mockLogin(computingId, password);
+  async function handleAction(formData: FormData) {
+    const res = isSignUp
+      ? await mockSignUp(
+          formData.get('computingId') as string,
+          formData.get('password') as string,
+          formData.get('displayName') as string
+        )
+      : await mockLogin(
+          formData.get('computingId') as string,
+          formData.get('password') as string
+        );
+
     if (res?.error) {
       setError(res.error);
     } else {
@@ -20,86 +28,126 @@ export default function LoginPage() {
     }
   }
 
-  async function handleSignUp(formData: FormData) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
     const computingId = formData.get('computingId') as string;
     const password = formData.get('password') as string;
     setError(null);
-    const res = await mockSignUp(computingId, password);
-    if (res?.error) {
-      setError(res.error);
-    } else {
-      router.push('/');
+
+    if (isSignUp) {
+      const displayName = formData.get('displayName') as string;
+      const confirmPassword = formData.get('confirmPassword') as string;
+
+      if (password !== confirmPassword) {
+        setError("Passwords do not match");
+        return;
+      }
     }
+    
+    await handleAction(formData);
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-black flex flex-col justify-center items-center p-4">
-      <form className="max-w-md w-full bg-white dark:bg-gray-900 rounded-lg shadow-md border-t-8 border-uva-blue p-8 text-center border-x border-b border-gray-200 dark:border-gray-800">
-        <div className="mb-6">
-          <div className="w-16 h-16 bg-uva-orange text-white text-2xl font-bold rounded-full flex items-center justify-center mx-auto shadow-sm mb-4">
-            U
+    <div className="max-w-4xl mx-auto py-8">
+      <div className="max-w-md mx-auto mt-12 bg-panel-bg border border-panel-border p-8 rounded-lg shadow-sm">
+        <div className="flex flex-col mb-6 border-b border-panel-border pb-6">
+          <div className="flex justify-between items-center mb-2">
+            <h1 className="text-3xl font-bold text-heading">{isSignUp ? 'Create Account' : 'Sign In'}</h1>
+            <span className="bg-badge-orange-bg text-uva-orange border border-uva-orange px-2.5 py-1 rounded text-xs font-semibold flex items-center gap-1">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              NetBadge
+            </span>
           </div>
-          <h1 className="text-3xl font-bold text-uva-blue dark:text-gray-100">NetBadge Sign In</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2 text-sm font-medium">
-            Log in or sign up to access your account.
+          <p className="text-text-secondary text-sm font-medium">
+            {isSignUp ? 'Join Hoos Plan to build and track your 4-year academic journey.' : 'Log in to keep your 4-year academic journey on track.'}
           </p>
         </div>
 
-        <div className="space-y-4 text-left border-y border-gray-100 dark:border-gray-800 py-6 mb-6">
+        <form className="space-y-6" onSubmit={handleSubmit}>
           {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative text-sm" role="alert">
-              <span className="block sm:inline">{error}</span>
+            <div className="bg-red-500/10 border border-red-500/50 text-red-500 px-4 py-3 rounded-md text-sm font-semibold flex items-center gap-2" role="alert">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <span>{error}</span>
             </div>
           )}
-          <p className="text-sm text-uva-orange font-bold text-center block mb-2">
-            (Mock NetBadge Authorization)
-          </p>
-          <div>
-            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Computing ID</label>
-            <input 
-              type="text" 
-              name="computingId"
-              placeholder="e.g. mst3k" 
-              defaultValue=""
-              className="w-full p-3 border border-gray-300 dark:border-gray-700 rounded-md focus:border-uva-blue focus:ring-uva-blue bg-white dark:bg-black text-gray-800 dark:text-gray-200 shadow-sm"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Password</label>
-            <input 
-              type="password" 
-              name="password"
-              placeholder="••••••••" 
-              defaultValue=""
-              className="w-full p-3 border border-gray-300 dark:border-gray-700 rounded-md focus:border-uva-blue focus:ring-uva-blue bg-white dark:bg-black text-gray-800 dark:text-gray-200 shadow-sm"
-              required
-            />
-          </div>
-        </div>
 
-        <div className="flex flex-col gap-3">
-          <button 
-            formAction={handleLogin}
-            type="submit" 
-            className="w-full bg-uva-blue hover:bg-uva-blue-dark text-white font-bold py-3 rounded-md shadow-sm transition-colors text-lg cursor-pointer"
-          >
-            Log In
-          </button>
-          
-          <button 
-            formAction={handleSignUp}
-            type="submit" 
-            className="w-full bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-uva-blue dark:text-uva-orange border-2 border-uva-blue dark:border-uva-orange font-bold py-3 rounded-md shadow-sm transition-colors text-lg cursor-pointer"
-          >
-            Sign Up
-          </button>
-        </div>
-      </form>
-      
-      <p className="mt-8 text-sm font-medium text-gray-500 dark:text-gray-500">
-        This is a mock application. You can enter any mock Computing ID.
-      </p>
+          <div className="space-y-4">
+            {isSignUp && (
+              <div>
+                <label className="block text-sm font-bold text-heading mb-1.5 uppercase tracking-wide text-text-secondary w-fit text-[11px]">Display Name</label>
+                <input 
+                  type="text" 
+                  name="displayName"
+                  className="w-full p-3 border border-panel-border rounded-md shadow-sm focus:border-uva-blue focus:ring-1 focus:ring-uva-blue bg-input-bg text-text-primary outline-none transition-all"
+                  required
+                />
+              </div>
+            )}
+            <div>
+              <label className="block text-sm font-bold text-heading mb-1.5 uppercase tracking-wide text-text-secondary w-fit text-[11px]">Computing ID</label>
+              <input 
+                type="text" 
+                name="computingId"
+                className="w-full p-3 border border-panel-border rounded-md shadow-sm focus:border-uva-blue focus:ring-1 focus:ring-uva-blue bg-input-bg text-text-primary outline-none transition-all"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-heading mb-1.5 uppercase tracking-wide text-text-secondary w-fit text-[11px]">Password</label>
+              <input 
+                type="password" 
+                name="password"
+                className="w-full p-3 border border-panel-border rounded-md shadow-sm focus:border-uva-blue focus:ring-1 focus:ring-uva-blue bg-input-bg text-text-primary outline-none transition-all"
+                required
+              />
+            </div>
+            {isSignUp && (
+              <div>
+                <label className="block text-sm font-bold text-heading mb-1.5 uppercase tracking-wide text-text-secondary w-fit text-[11px]">Confirm Password</label>
+                <input 
+                  type="password" 
+                  name="confirmPassword"
+                  className="w-full p-3 border border-panel-border rounded-md shadow-sm focus:border-uva-blue focus:ring-1 focus:ring-uva-blue bg-input-bg text-text-primary outline-none transition-all"
+                  required
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-4 mt-8">
+            <button 
+              type="submit" 
+              className="w-full bg-uva-blue text-white px-5 py-3 rounded-md hover:bg-uva-blue-dark font-bold shadow-sm transition-colors cursor-pointer flex justify-center items-center gap-2"
+            >
+              {isSignUp ? 'Create Account' : 'Log In'}
+              {!isSignUp && <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>}
+            </button>
+            
+            <div className="relative flex items-center justify-center py-2">
+              <div className="border-t border-panel-border w-full absolute"></div>
+              <span className="bg-panel-bg px-3 text-text-secondary text-xs font-semibold relative uppercase tracking-wider">or</span>
+            </div>
+
+            <button 
+              type="button"
+              onClick={() => {
+                setIsSignUp(!isSignUp);
+                setError(null);
+              }}
+              className="w-full bg-panel-bg-alt border border-panel-border text-text-primary px-5 py-3 rounded-md hover:bg-hover-bg font-bold shadow-sm transition-colors cursor-pointer"
+            >
+              {isSignUp ? 'Already have an account? Log In' : "Don't have an account? Sign Up"}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div className="text-center mt-6">
+        <p className="text-sm font-medium text-text-secondary">
+          This is a mock application. You can enter any mock Computing ID.
+        </p>
+      </div>
     </div>
   );
 }

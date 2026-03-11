@@ -6,20 +6,45 @@ import { cookies } from 'next/headers';
 import fs from 'fs';
 import path from 'path';
 import { parse } from 'csv-parse/sync';
+import { scryptSync, randomBytes, timingSafeEqual } from 'crypto';
 
 const prisma = new PrismaClient();
+
+function hashPassword(password: string): string {
+  const salt = randomBytes(16).toString('hex');
+  const derivedKey = scryptSync(password, salt, 64).toString('hex');
+  return `${salt}:${derivedKey}`;
+}
+
+function verifyPassword(password: string, hash: string): boolean {
+  if (!hash || !hash.includes(':')) return false;
+  const [salt, key] = hash.split(':');
+  try {
+    const keyBuffer = Buffer.from(key, 'hex');
+    const derivedKey = scryptSync(password, salt, 64);
+    return timingSafeEqual(keyBuffer, derivedKey);
+  } catch (error) {
+    return false;
+  }
+}
 
 // MOCK AUTH: In a real app, this would integrate with NetBadge/SSO
 // For MVP, we'll just find or create a user by computingId
 export async function mockLogin(computingId: string, password: string) {
   if (!computingId) return { error: "Computing ID is required" };
+  if (!password) return { error: "Password is required" };
 
   let user = await prisma.user.findUnique({
     where: { computingId }
   });
 
-  if (!user) {
-    return { error: "Account not found. Please sign up first." };
+  if (!user || !user.password) {
+    return { error: "Incorrect login info." };
+  }
+
+  // Secure password verification
+  if (!verifyPassword(password, user.password)) {
+    return { error: "Incorrect login info." };
   }
 
   // Set session cookie mock here if needed
@@ -33,8 +58,9 @@ export async function mockLogin(computingId: string, password: string) {
   return { success: true, user };
 }
 
-export async function mockSignUp(computingId: string, password: string) {
+export async function mockSignUp(computingId: string, password: string, displayName?: string) {
   if (!computingId) return { error: "Computing ID is required" };
+  if (!password) return { error: "Password is required" };
 
   let user = await prisma.user.findUnique({
     where: { computingId }
@@ -44,10 +70,13 @@ export async function mockSignUp(computingId: string, password: string) {
     return { error: "Account already exists. Please log in." };
   }
 
+  const hashedPassword = hashPassword(password);
+
   user = await prisma.user.create({
     data: {
       computingId,
-      displayName: computingId,
+      displayName: displayName || computingId,
+      password: hashedPassword,
       major: 'Undeclared'
     }
   });
