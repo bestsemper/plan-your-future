@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import ConfirmModal from '../components/ConfirmModal';
 import {
   addCourseToSemester,
   createNewPlan,
@@ -60,6 +61,7 @@ export default function PlanBuilderPage() {
   const [selectedCourseInfo, setSelectedCourseInfo] = useState<CourseInfo | null>(null);
   const [loadingInfo, setLoadingInfo] = useState(false);
   const [deletingPlan, setDeletingPlan] = useState(false);
+  const [isDeletePlanConfirmOpen, setIsDeletePlanConfirmOpen] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
@@ -138,11 +140,15 @@ export default function PlanBuilderPage() {
     await loadData();
   };
 
+  const requestDeletePlan = () => {
+    if (!activePlan?.id) return;
+    setIsDeletePlanConfirmOpen(true);
+  };
+
   const handleDeletePlan = async () => {
     if (!activePlan?.id) return;
-    const confirmed = window.confirm(`Delete "${activePlan.title}"? This cannot be undone.`);
-    if (!confirmed) return;
 
+    setIsDeletePlanConfirmOpen(false);
     setDeletingPlan(true);
     await deletePlan(activePlan.id);
     setDeletingPlan(false);
@@ -214,13 +220,13 @@ export default function PlanBuilderPage() {
         <div className="mb-6 border-b border-panel-border pb-4 space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="h-9 w-56 rounded bg-input-disabled" />
-            <div className="h-10 w-full sm:w-[260px] rounded bg-input-disabled" />
+            <div className="h-[42px] w-full sm:w-[260px] rounded bg-input-disabled" />
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <div className="h-10 w-24 rounded bg-input-disabled" />
-            <div className="h-10 w-28 rounded bg-input-disabled" />
-            <div className="h-10 w-24 rounded bg-input-disabled" />
-            <div className="h-10 w-28 rounded bg-input-disabled" />
+            <div className="h-[42px] w-24 rounded bg-input-disabled" />
+            <div className="h-[42px] w-28 rounded bg-input-disabled" />
+            <div className="h-[42px] w-24 rounded bg-input-disabled" />
+            <div className="h-[42px] w-28 rounded bg-input-disabled" />
           </div>
         </div>
 
@@ -297,7 +303,7 @@ export default function PlanBuilderPage() {
           </button>
 
           <button
-            onClick={handleDeletePlan}
+            onClick={requestDeletePlan}
             disabled={!activePlan || deletingPlan}
             className="px-4 py-2 border border-red-400 text-red-500 rounded hover:bg-red-500/10 font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -441,6 +447,16 @@ export default function PlanBuilderPage() {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={isDeletePlanConfirmOpen}
+        title="Delete Plan"
+        message={`Delete "${activePlan?.title ?? 'this plan'}"? This cannot be undone.`}
+        confirmLabel="Delete"
+        isConfirming={deletingPlan}
+        onCancel={() => setIsDeletePlanConfirmOpen(false)}
+        onConfirm={() => void handleDeletePlan()}
+      />
 
       {loadingInfo && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">

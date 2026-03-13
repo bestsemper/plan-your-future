@@ -82,6 +82,7 @@ model PlannedCourse {
 
 model ForumPost {
   id             String        @id @default(cuid())
+  postNumber     Int           @unique @default(autoincrement())
   authorId       String
   title          String
   body           String

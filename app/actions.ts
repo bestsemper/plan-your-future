@@ -206,6 +206,33 @@ export async function createForumPost(title: string, body: string, attachedPlanI
   return { success: true };
 }
 
+export async function deleteForumPost(postId: string) {
+  const user = await getCurrentUser();
+  if (!user) {
+    return { error: 'You must be logged in to delete posts.' };
+  }
+
+  const post = await prisma.forumPost.findUnique({
+    where: { id: postId },
+    select: { id: true, authorId: true },
+  });
+
+  if (!post) {
+    return { error: 'Post not found.' };
+  }
+
+  if (post.authorId !== user.id) {
+    return { error: 'You can only delete your own posts.' };
+  }
+
+  await prisma.forumPost.delete({
+    where: { id: post.id },
+  });
+
+  revalidatePath('/forum');
+  return { success: true };
+}
+
 export async function addForumReply(postId: string, body: string) {
   const user = await getCurrentUser();
   if (!user) {
@@ -270,6 +297,47 @@ export async function voteOnForumReply(answerId: string, value: 1 | -1) {
   return { success: true };
 }
 
+export async function voteOnForumPost(postId: string, value: 1 | -1) {
+  const user = await getCurrentUser();
+  if (!user) {
+    return { error: 'You must be logged in to vote.' };
+  }
+
+  if (value !== 1 && value !== -1) {
+    return { error: 'Invalid vote value.' };
+  }
+
+  const existingVote = await prisma.vote.findFirst({
+    where: {
+      userId: user.id,
+      postId,
+    },
+  });
+
+  if (!existingVote) {
+    await prisma.vote.create({
+      data: {
+        userId: user.id,
+        postId,
+        value,
+      },
+    });
+  } else if (existingVote.value === value) {
+    await prisma.vote.delete({
+      where: { id: existingVote.id },
+    });
+  } else {
+    await prisma.vote.update({
+      where: { id: existingVote.id },
+      data: { value },
+    });
+  }
+
+  revalidatePath('/forum');
+  revalidatePath(`/forum/${postId}`);
+  return { success: true };
+}
+
 export async function getForumPageData() {
   const currentUser = await getCurrentUser();
 
@@ -284,6 +352,12 @@ export async function getForumPageData() {
   const posts = await prisma.forumPost.findMany({
     orderBy: { createdAt: 'desc' },
     include: {
+      votes: {
+        select: {
+          value: true,
+          userId: true,
+        },
+      },
       attachedPlan: {
         select: {
           id: true,
@@ -316,10 +390,14 @@ export async function getForumPageData() {
 
   const normalizedPosts = posts.map((post) => ({
     id: post.id,
+    postNumber: post.postNumber,
     title: post.title,
     body: post.body,
+    voteScore: post.votes.reduce((sum, vote) => sum + vote.value, 0),
+    viewCount: post.viewCount,
     createdAt: post.createdAt.toISOString(),
     authorDisplayName: post.author.displayName,
+    canDelete: currentUser?.id === post.authorId,
     attachedPlan: post.attachedPlan,
     answers: post.answers.map((answer) => {
       const userVote = answer.votes.find((vote) => vote.userId === currentUser?.id)?.value;
@@ -338,6 +416,105 @@ export async function getForumPageData() {
 
   return {
     posts: normalizedPosts,
+    plans: userPlans,
+    canPost: Boolean(currentUser),
+  };
+}
+
+export async function getForumPostPageData(postNumber: number) {
+  const currentUser = await getCurrentUser();
+
+  const userPlans = currentUser
+    ? await prisma.plan.findMany({
+        where: { userId: currentUser.id },
+        select: { id: true, title: true },
+        orderBy: { createdAt: 'desc' },
+      })
+    : [];
+
+  const existingPost = await prisma.forumPost.findFirst({
+    where: { postNumber },
+    select: { id: true },
+  });
+
+  if (!existingPost) {
+    return { error: 'not_found' as const };
+  }
+
+  const post = await prisma.forumPost.update({
+    where: { id: existingPost.id },
+    data: {
+      viewCount: { increment: 1 },
+    },
+    include: {
+      votes: {
+        select: {
+          value: true,
+          userId: true,
+        },
+      },
+      attachedPlan: {
+        select: {
+          id: true,
+          title: true,
+        },
+      },
+      author: {
+        select: {
+          displayName: true,
+        },
+      },
+      answers: {
+        orderBy: { createdAt: 'asc' },
+        include: {
+          author: {
+            select: {
+              displayName: true,
+            },
+          },
+          votes: {
+            select: {
+              value: true,
+              userId: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const postUserVote = post.votes.find((vote) => vote.userId === currentUser?.id)?.value;
+  const currentUserPostVote: 1 | -1 | 0 = postUserVote === 1 ? 1 : postUserVote === -1 ? -1 : 0;
+
+  const normalizedPost = {
+    id: post.id,
+    postNumber: post.postNumber,
+    title: post.title,
+    body: post.body,
+    voteScore: post.votes.reduce((sum, vote) => sum + vote.value, 0),
+    currentUserVote: currentUserPostVote,
+    viewCount: post.viewCount,
+    createdAt: post.createdAt.toISOString(),
+    authorDisplayName: post.author.displayName,
+    canDelete: currentUser?.id === post.authorId,
+    attachedPlan: post.attachedPlan,
+    answers: post.answers.map((answer) => {
+      const userVote = answer.votes.find((vote) => vote.userId === currentUser?.id)?.value;
+      const currentUserVote: 1 | -1 | 0 = userVote === 1 ? 1 : userVote === -1 ? -1 : 0;
+
+      return {
+        id: answer.id,
+        body: answer.body,
+        createdAt: answer.createdAt.toISOString(),
+        authorDisplayName: answer.author.displayName,
+        voteScore: answer.votes.reduce((sum, vote) => sum + vote.value, 0),
+        currentUserVote,
+      };
+    }),
+  };
+
+  return {
+    post: normalizedPost,
     plans: userPlans,
     canPost: Boolean(currentUser),
   };
