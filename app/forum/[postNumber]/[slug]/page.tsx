@@ -131,41 +131,41 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
   const handleVote = (answerId: string, value: 1 | -1) => {
     setError(null);
 
-    startTransition(async () => {
+    (async () => {
       const res = await voteOnForumReply(answerId, value);
       if (res?.error) {
         setError(res.error);
         return;
       }
       await loadData();
-    });
+    })();
   };
 
   const handlePostVote = (value: 1 | -1) => {
     if (!postData) return;
     setError(null);
 
-    startTransition(async () => {
+    (async () => {
       const res = await voteOnForumPost(postData.post.id, value);
       if (res?.error) {
         setError(res.error);
         return;
       }
       await loadData();
-    });
+    })();
   };
 
   const handleDeletePost = () => {
     if (!postData) return;
 
-    startTransition(async () => {
+    (async () => {
       const res = await deleteForumPost(postData.post.id);
       if (res?.error) {
         setError(res.error);
         return;
       }
       router.push('/forum');
-    });
+    })();
   };
 
   const handleOpenAttachedPlan = () => {
