@@ -16,6 +16,7 @@ type ParsedStellicCourse = {
   termName: 'Fall' | 'Winter' | 'Spring' | 'Summer' | null;
   year: number | null;
   status: 'taken' | 'planned';
+  credits: number | null;
 };
 
 function parseStellicCoursesFromText(text: string): ParsedStellicCourse[] {
@@ -62,15 +63,35 @@ function parseStellicCoursesFromText(text: string): ParsedStellicCourse[] {
     const matches = Array.from(line.matchAll(courseCodeRegex));
     for (const match of matches) {
       const code = `${match[1]} ${match[2]}`.toUpperCase();
-      const dedupeKey = `${code}|${currentTerm ?? 'none'}|${currentYear ?? 'none'}|${sectionMode}`;
+
+      const statusFromLine: ParsedStellicCourse['status'] | null = /\bTaken\s*$/i.test(line)
+        ? 'taken'
+        : /\bPlanned\s*$/i.test(line)
+          ? 'planned'
+          : null;
+      const courseStatus = statusFromLine ?? sectionMode;
+
+      const dedupeKey = `${code}|${currentTerm ?? 'none'}|${currentYear ?? 'none'}|${courseStatus}`;
       if (seen.has(dedupeKey)) continue;
       seen.add(dedupeKey);
+
+      // Planned rows usually end with "<credits>Planned" (no grade),
+      // while taken rows usually include a grade token before "Taken".
+      const plannedCreditMatch = line.match(/(\d+(?:\.\d+)?)\s*Planned\s*$/i);
+      const takenCreditMatch = line.match(/(\d+(?:\.\d+)?)\s*(?:[A-F][+-]?|CR|NC|P|S|U|W)?\s*Taken\s*$/i);
+      const genericCreditMatch = line.match(/\b(\d+(?:\.\d+)?)\s*(?:credits?|cr)\b/i);
+      const creditMatch = courseStatus === 'planned'
+        ? plannedCreditMatch ?? takenCreditMatch ?? genericCreditMatch
+        : takenCreditMatch ?? plannedCreditMatch ?? genericCreditMatch;
+      const parsedCredits = creditMatch ? Number.parseFloat(creditMatch[1]) : Number.NaN;
+      const credits = Number.isNaN(parsedCredits) ? null : Math.round(parsedCredits);
 
       results.push({
         courseCode: code,
         termName: currentTerm,
         year: currentYear,
-        status: sectionMode,
+        status: courseStatus,
+        credits,
       });
     }
   }
@@ -1210,7 +1231,7 @@ export async function importPlanFromStellicPdf(input: {
           courses: {
             create: sem.courses.map((course) => ({
               courseCode: course.courseCode,
-              credits: null,
+              credits: course.credits,
               locked: course.status === 'taken',
               notes: course.status === 'taken' ? 'Imported as completed from Stellic PDF' : null,
             })),
@@ -1241,7 +1262,7 @@ export async function importPlanFromStellicPdf(input: {
             courses: {
               create: buckets[i].map((course) => ({
                 courseCode: course.courseCode,
-                credits: null,
+                credits: course.credits,
                 locked: course.status === 'taken',
                 notes: course.status === 'taken' ? 'Imported as completed from Stellic PDF' : null,
               })),
