@@ -888,10 +888,17 @@ export async function getPlanBuilderData() {
 
   const allCourses = await getAllPossibleCoursesFromCSV();
 
+  // Get completed courses for prerequisite checking
+  const completedCourses = await prisma.completedCourse.findMany({
+    where: { userId: user.id },
+    select: { courseCode: true },
+  });
+
   return {
     userId: user.id,
     plans,
     allCourses,
+    completedCourses: completedCourses.map((c) => c.courseCode),
   };
 }
 
@@ -1658,5 +1665,46 @@ function loadCourseDetailsFromJSON(): {
   const sortedCourseCodes = Array.from(courseDetailsByCode.keys()).sort();
   cachedCourseDetailsData = { courseDetailsByCode, sortedCourseCodes };
   return cachedCourseDetailsData;
+}
+
+export async function checkCoursePrerequisites(input: {
+  courseCode: string;
+  completedCourses: string[];
+  planSemesters: Array<{
+    id: string;
+    termName: string;
+    year: number;
+    termOrder: number;
+    courses: Array<{ courseCode: string }>;
+  }>;
+  currentSemesterTermOrder: number;
+}) {
+  'use server';
+
+  try {
+    const { checkPrerequisites } = await import('./utils/prerequisiteChecker');
+    
+    // Get courses from past semesters (earlier termOrder)
+    const pastCourseCodes = input.planSemesters
+      .filter((sem) => sem.termOrder < input.currentSemesterTermOrder)
+      .flatMap((sem) => sem.courses.map((c) => c.courseCode));
+
+    const result = checkPrerequisites(
+      input.courseCode,
+      input.completedCourses,
+      pastCourseCodes
+    );
+
+    return result;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Prerequisite check error:', message);
+    return {
+      isSatisfied: true,
+      hasNoPrerequisites: true,
+      missingCourses: [],
+      hasUnknownPrerequisites: false,
+    };
+  }
 }
 

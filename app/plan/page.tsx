@@ -18,6 +18,7 @@ import {
   importPlanFromStellicPdf,
   removeCourseFromSemester,
   renamePlan,
+  checkCoursePrerequisites,
 } from '../actions';
 
 interface CourseInfo {
@@ -115,6 +116,14 @@ export default function PlanBuilderPage() {
   const [isImportPlanDropdownOpen, setIsImportPlanDropdownOpen] = useState(false);
   const [importingPdf, setImportingPdf] = useState(false);
 
+  // Prerequisite tracking
+  const [completedCourses, setCompletedCourses] = useState<string[]>([]);
+  const [prereqWarning, setPrereqWarning] = useState<{ type: 'info' | 'warning' | 'error'; message: string; missingCourses?: string[] } | null>(null);
+  const [showPrereqConfirm, setShowPrereqConfirm] = useState(false);
+  const [pendingCourseAdd, setPendingCourseAdd] = useState<{ semesterId: string; courseCode: string; credits: number } | null>(null);
+  // Map of semesterId -> Set of problematic course codes
+  const [semestersProblematicCourses, setSemestersProblematicCourses] = useState<Map<string, Set<string>>>(new Map());
+
   const loadData = async (preferredPlanId?: string) => {
     const res = await getPlanBuilderData();
 
@@ -132,6 +141,7 @@ export default function PlanBuilderPage() {
       setUserId(res.userId ?? '');
       setOptimisticPlans(nextPlans);
       setAllCourses(res.allCourses ?? []);
+      setCompletedCourses(res.completedCourses ?? []);
 
       const preferredSelection = preferredPlanId ? nextPlans.find((p) => p.id === preferredPlanId)?.id : undefined;
       const validSelection = nextPlans.find((p) => p.id === selectedPlanId)?.id;
@@ -181,10 +191,23 @@ export default function PlanBuilderPage() {
   }, [activePlan]);
 
   const filteredCourses = courseCode
-    ? allCourses.filter((course) =>
-        course.code.toLowerCase().includes(courseCode.toLowerCase()) ||
-        (course.title ?? '').toLowerCase().includes(courseCode.toLowerCase())
-      )
+    ? allCourses
+        .filter((course) =>
+          course.code.toLowerCase().includes(courseCode.toLowerCase()) ||
+          (course.title ?? '').toLowerCase().includes(courseCode.toLowerCase())
+        )
+        .sort((a, b) => {
+          const lowerSearch = courseCode.toLowerCase();
+          const aStartsWith = a.code.toLowerCase().startsWith(lowerSearch);
+          const bStartsWith = b.code.toLowerCase().startsWith(lowerSearch);
+
+          // If one starts with search and the other doesn't, put the one that starts first
+          if (aStartsWith && !bStartsWith) return -1;
+          if (!aStartsWith && bStartsWith) return 1;
+
+          // Both start with search or neither does - sort alphabetically
+          return a.code.localeCompare(b.code);
+        })
     : [];
 
   const handleGenerate = async () => {
@@ -230,6 +253,7 @@ export default function PlanBuilderPage() {
   const handleCourseSearchChange = (value: string) => {
     setCourseCode(value);
     setShowDropdown(true);
+    setPrereqWarning(null); // Clear any previous prerequisite warnings
 
     if (allCourses.some((course) => course.code === value)) {
       getCourseCreditsFromCSV(value).then((res) => setCredits(res));
@@ -237,10 +261,49 @@ export default function PlanBuilderPage() {
   };
 
   const handleAddCourse = async (semesterId: string) => {
-    if (!courseCode) return;
-    const code = courseCode;
+    if (!courseCode || !activePlan) return;
+    
+    const code = courseCode.toUpperCase();
     const cr = Number.parseInt(credits, 10);
 
+    // Find the current semester to get termOrder
+    const currentSem = activePlan.semesters.find((s) => s.id === semesterId);
+    if (!currentSem) return;
+
+    // Check prerequisites
+    const result = await checkCoursePrerequisites({
+      courseCode: code,
+      completedCourses,
+      planSemesters: activePlan.semesters,
+      currentSemesterTermOrder: currentSem.termOrder,
+    });
+
+    // Handle the prerequisite result
+    if (result.isSatisfied) {
+      // Prerequisites are satisfied, proceed with adding course
+      setPrereqWarning(null);
+      addCourseOptimistically(semesterId, code, cr);
+    } else if (result.hasNoPrerequisites && result.hasUnknownPrerequisites) {
+      // No prerequisites found but not 1000-level - show soft warning
+      setPrereqWarning({
+        type: 'info',
+        message: `${code} might have prerequisites we don't have in our system (it's not a 1000-level course). It's been added anyway.`,
+      });
+      addCourseOptimistically(semesterId, code, cr);
+    } else {
+      // Prerequisites not satisfied - show hard warning and ask for confirmation
+      setPrereqWarning({
+        type: 'error',
+        message: `${code} requires: ${result.missingCourses.join(', ')}. These courses are not marked as completed or planned in an earlier semester.`,
+        missingCourses: result.missingCourses,
+      });
+      setShowPrereqConfirm(true);
+      setPendingCourseAdd({ semesterId, courseCode: code, credits: cr });
+      return;
+    }
+  };
+
+  const addCourseOptimistically = (semesterId: string, code: string, cr: number) => {
     setOptimisticPlans((prev) =>
       prev.map((p) => ({
         ...p,
@@ -257,12 +320,53 @@ export default function PlanBuilderPage() {
 
     setNewCourseSem(null);
     setCourseCode('');
+    setCredits('3');
+    setPrereqWarning(null);
 
+    void addCourseToSemesterAsync(semesterId, code, cr);
+  };
+
+  const addCourseToSemesterAsync = async (semesterId: string, code: string, cr: number) => {
     await addCourseToSemester(semesterId, code, cr);
     void loadData();
   };
 
+  const handleProceedWithWarning = () => {
+    if (!pendingCourseAdd || !prereqWarning?.missingCourses) return;
+    
+    // Add the course despite the warning
+    setShowPrereqConfirm(false);
+    
+    // Track this course as problematic in the semester
+    setSemestersProblematicCourses((prev) => {
+      const updated = new Map(prev);
+      const current = updated.get(pendingCourseAdd.semesterId) || new Set<string>();
+      current.add(pendingCourseAdd.courseCode);
+      updated.set(pendingCourseAdd.semesterId, current);
+      return updated;
+    });
+    
+    addCourseOptimistically(pendingCourseAdd.semesterId, pendingCourseAdd.courseCode, pendingCourseAdd.credits);
+    setPendingCourseAdd(null);
+  };
+
   const handleRemoveCourse = async (courseId: string) => {
+    // Find which semester and course this is before updating state
+    let semesterIdToUpdate: string | null = null;
+    let removedCourseCode: string | null = null;
+
+    // Search through current plan to find the course being removed
+    if (activePlan) {
+      for (const sem of activePlan.semesters) {
+        const courseToRemove = sem.courses.find((c) => c.id === courseId);
+        if (courseToRemove) {
+          semesterIdToUpdate = sem.id;
+          removedCourseCode = courseToRemove.courseCode;
+          break;
+        }
+      }
+    }
+
     setOptimisticPlans((prev) =>
       prev.map((p) => ({
         ...p,
@@ -272,6 +376,21 @@ export default function PlanBuilderPage() {
         })),
       }))
     );
+
+    // Update problematic courses tracking
+    if (semesterIdToUpdate && removedCourseCode) {
+      setSemestersProblematicCourses((prev) => {
+        const updated = new Map(prev);
+        const problematicInSem = updated.get(semesterIdToUpdate);
+        if (problematicInSem) {
+          problematicInSem.delete(removedCourseCode);
+          if (problematicInSem.size === 0) {
+            updated.delete(semesterIdToUpdate);
+          }
+        }
+        return updated;
+      });
+    }
 
     await removeCourseFromSemester(courseId);
     void loadData();
@@ -798,8 +917,18 @@ export default function PlanBuilderPage() {
                       return (
                         <div key={sem.id} className="bg-panel-bg border border-panel-border rounded-xl p-5">
                           <div className="flex justify-between items-center border-b border-panel-border pb-2 mb-3">
-                            <h3 className="font-bold text-lg text-heading">
+                            <h3 className="font-bold text-lg text-heading flex items-center gap-2">
                               {sem.termName} {sem.year}
+                              {semestersProblematicCourses.has(sem.id) && (
+                                <div className="group relative">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-yellow-500 cursor-help hover:text-yellow-600 transition-colors" aria-label="Contains course(s) with unsatisfied prerequisites">
+                                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3.05h16.94a2 2 0 0 0 1.71-3.05l-8.47-14.14a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                                  </svg>
+                                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900/90 text-white text-xs rounded-lg whitespace-nowrap pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                    Unsatisfied prereqs: {Array.from(semestersProblematicCourses.get(sem.id) || new Set()).join(', ')}
+                                  </div>
+                                </div>
+                              )}
                             </h3>
                             <div className="flex items-center gap-2">
                               <span className="text-xs font-semibold bg-input-disabled px-2 py-1 rounded-lg text-text-secondary">
@@ -830,6 +959,7 @@ export default function PlanBuilderPage() {
                             ))}
 
                             {newCourseSem === sem.id ? (
+                              <>
                               <div className="flex space-x-2 mt-2 relative h-[46px] items-stretch">
                                 <div className="flex-1 relative h-full">
                                   <div className="h-full px-3 bg-panel-bg-alt border border-panel-border-strong rounded-xl text-sm flex items-center justify-between gap-2">
@@ -873,13 +1003,37 @@ export default function PlanBuilderPage() {
                                   <button onClick={() => void handleAddCourse(sem.id)} className="text-success-text hover:text-success-text-hover p-2 cursor-pointer disabled:cursor-not-allowed flex items-center justify-center transition-all hover:scale-110">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><polyline points="20 6 9 17 4 12"/></svg>
                                   </button>
-                                  <button onClick={() => setNewCourseSem(null)} className="text-danger-text hover:text-danger-text-hover p-2 cursor-pointer disabled:cursor-not-allowed flex items-center justify-center transition-all hover:scale-110">
+                                  <button onClick={() => { setNewCourseSem(null); setPrereqWarning(null); }} className="text-danger-text hover:text-danger-text-hover p-2 cursor-pointer disabled:cursor-not-allowed flex items-center justify-center transition-all hover:scale-110">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                                   </button>
                                 </div>
                               </div>
+
+                              {prereqWarning && (
+                                <div className={`mt-2 p-3 rounded-lg text-sm ${
+                                  prereqWarning.type === 'error'
+                                    ? 'bg-red-500/10 border border-red-500/30 text-red-600'
+                                    : 'bg-blue-500/10 border border-blue-500/30 text-blue-600'
+                                }`}>
+                                  {prereqWarning.type === 'error' && (
+                                    <div className="flex items-start gap-2">
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 mt-0.5 flex-shrink-0"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3.05h16.94a2 2 0 0 0 1.71-3.05l-8.47-14.14a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                      <div>
+                                        <p className="font-semibold">{prereqWarning.message}</p>
+                                      </div>
+                                    </div>
+                                  )}
+                                  {prereqWarning.type === 'info' && (
+                                    <div className="flex items-start gap-2">
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 mt-0.5 flex-shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                                      <p>{prereqWarning.message}</p>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                              </>
                             ) : (
-                              <button onClick={() => setNewCourseSem(sem.id)} className="mt-2 text-sm font-semibold text-gray-500 hover:text-uva-orange hover:border-uva-orange hover:bg-hover-bg hover:text-uva-orange hover:border-uva-orange w-full text-center px-3 border border-dashed border-panel-border-strong rounded-xl transition-all cursor-pointer disabled:cursor-not-allowed h-[46px] flex items-center justify-center">
+                              <button onClick={() => { setNewCourseSem(sem.id); setPrereqWarning(null); }} className="mt-2 text-sm font-semibold text-gray-500 hover:text-uva-orange hover:border-uva-orange hover:bg-hover-bg hover:text-uva-orange hover:border-uva-orange w-full text-center px-3 border border-dashed border-panel-border-strong rounded-xl transition-all cursor-pointer disabled:cursor-not-allowed h-[46px] flex items-center justify-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 mr-1"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Course
                               </button>
                             )}
@@ -1114,6 +1268,21 @@ export default function PlanBuilderPage() {
           setYearToDelete(null);
         }}
         onConfirm={() => void handleDeleteYear()}
+      />
+
+      <ConfirmModal
+        isOpen={showPrereqConfirm}
+        title="Missing Prerequisites"
+        message={`${pendingCourseAdd?.courseCode} requires: ${prereqWarning?.missingCourses?.join(', ') || 'unknown courses'}. Are you sure you want to add this course anyway? A warning indicator will appear on this semester.`}
+        confirmLabel="Add Anyway"
+        cancelLabel="Cancel"
+        isConfirming={false}
+        onCancel={() => {
+          setShowPrereqConfirm(false);
+          setPendingCourseAdd(null);
+          setPrereqWarning(null);
+        }}
+        onConfirm={() => void handleProceedWithWarning()}
       />
 
       {loadingInfo && (
