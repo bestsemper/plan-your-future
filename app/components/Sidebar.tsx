@@ -56,10 +56,10 @@ export default function Sidebar({ user }: { user: { computingId: string, display
         </nav>
       </div>
       
-      <div className="bg-uva-blue-dark p-4 flex flex-col gap-2">
+      <div className="bg-uva-blue-dark/90 border-t border-white/10 p-4 flex flex-col gap-2">
         {user ? (
           <>
-            <Link href="/profile" className="flex items-center space-x-3 rounded hover:bg-black/20 p-2 transition-colors">
+            <Link href="/profile" className="flex items-center space-x-3 rounded-xl hover:bg-black/20 p-2.5 transition-colors border border-transparent hover:border-white/10">
               <div className="w-8 h-8 rounded-full bg-uva-orange flex items-center justify-center text-white font-bold uppercase">
                 {user.displayName.charAt(0)}
               </div>
@@ -69,7 +69,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
               </div>
             </Link>
             <form action={logout} className="mt-2">
-              <button type="submit" className="w-full text-center text-sm text-white bg-white/10 hover:bg-white/20 py-2 rounded transition-colors font-semibold cursor-pointer block">
+              <button type="submit" className="w-full text-center text-sm text-white border border-white/25 bg-transparent hover:bg-white/10 py-2.5 rounded-xl transition-colors font-semibold cursor-pointer block">
                 Sign Out
               </button>
             </form>
