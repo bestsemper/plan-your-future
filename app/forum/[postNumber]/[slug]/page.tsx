@@ -441,7 +441,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                 <button
                   type="button"
                   onClick={() => handleVote(answer.id, 1)}
-                  disabled={!canPost || isPending}
+                  disabled={!canPost || isPending || answer.isDeleted}
                   aria-label="Like reply"
                   className={`inline-flex items-center justify-center w-8 h-8 rounded-full border transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                     answer.currentUserVote === 1
@@ -459,7 +459,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                 <button
                   type="button"
                   onClick={() => handleVote(answer.id, -1)}
-                  disabled={!canPost || isPending}
+                  disabled={!canPost || isPending || answer.isDeleted}
                   aria-label="Unlike reply"
                   className={`inline-flex items-center justify-center w-8 h-8 rounded-full border transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                     answer.currentUserVote === -1
@@ -503,7 +503,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                       setActiveReplyEditorId(answer.id);
                       setInlineReplyDraft('');
                     }}
-                    disabled={!canPost || isPending}
+                    disabled={!canPost || isPending || answer.isDeleted}
                     className="px-3 py-1.5 rounded-xl border border-panel-border-strong text-text-primary hover:bg-hover-bg text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Reply
@@ -535,7 +535,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                       <button
                         type="button"
                         onClick={() => handleReplyToReply(answer.id)}
-                        disabled={!canPost || isPending}
+                        disabled={!canPost || isPending || answer.isDeleted}
                         className="px-3 py-1.5 bg-uva-blue/90 text-white rounded-xl text-xs font-semibold hover:bg-uva-blue transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {isPending ? 'Posting...' : 'Post Reply'}
