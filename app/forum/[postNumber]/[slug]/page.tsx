@@ -22,6 +22,8 @@ type ForumAnswerItem = {
   canDelete: boolean;
   createdAt: string;
   authorDisplayName: string;
+  authorId: string;
+  authorComputingId: string;
   voteScore: number;
   currentUserVote: 1 | -1 | 0;
 };
@@ -36,6 +38,8 @@ type ForumPostItem = {
   viewCount: number;
   createdAt: string;
   authorDisplayName: string;
+  authorId: string;
+  authorComputingId: string;
   canDelete: boolean;
   attachedPlan: { id: string; title: string } | null;
   answers: ForumAnswerItem[];
@@ -133,6 +137,8 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
     canDelete: true,
     createdAt: new Date().toISOString(),
     authorDisplayName: 'You',
+    authorId: 'temp-user-id',
+    authorComputingId: '',
     voteScore: 1,
     currentUserVote: 1,
   });
@@ -477,6 +483,8 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                 <p className="text-xs text-text-tertiary mb-2">
                   {answer.isDeleted ? (
                     <>deleted {formatRelativeTime(answer.createdAt)}</>
+                  ) : answer.authorComputingId ? (
+                    <><Link href={`/profile/${answer.authorComputingId}`} className="text-uva-blue font-semibold hover:underline">{answer.authorDisplayName}</Link> replied {formatRelativeTime(answer.createdAt)}</>
                   ) : (
                     <><span className="text-uva-blue font-semibold">{answer.authorDisplayName}</span> replied {formatRelativeTime(answer.createdAt)}</>
                   )}
@@ -585,7 +593,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
             </div>
 
             <p className="text-xs text-text-tertiary mb-4">
-              <span className="text-uva-blue font-semibold">{post.authorDisplayName}</span> asked {formatRelativeTime(post.createdAt)} | {post.viewCount} views
+              <Link href={`/profile/${post.authorComputingId}`} className="text-uva-blue font-semibold hover:underline">{post.authorDisplayName}</Link> asked {formatRelativeTime(post.createdAt)} | {post.viewCount} views
             </p>
 
             <div className="border-t border-panel-border pt-5">

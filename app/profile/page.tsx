@@ -34,6 +34,7 @@ export default async function Profile() {
             <div>
               <h1 className="text-3xl font-bold mb-1 text-heading">Hi, {user.displayName}</h1>
               <p className="text-text-secondary text-lg font-medium">{user.major || 'Undeclared'} • Class of {user.gradYear || '2026'}</p>
+              {user.bio && <p className="text-text-secondary text-base mt-2">{user.bio}</p>}
             </div>
           </div>
 

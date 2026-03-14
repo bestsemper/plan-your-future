@@ -70,72 +70,105 @@ export default function EditProfileForm({
   }
 
   return (
-    <div className="w-full max-w-md border border-panel-border rounded-xl p-4 bg-panel-bg-alt">
-      <div className="space-y-3">
-        <div>
-          <label className="block text-xs font-semibold uppercase tracking-wide text-text-secondary mb-1">Display Name</label>
-          <input
-            type="text"
-            value={formDisplayName}
-            onChange={(e) => setFormDisplayName(e.target.value)}
-            className="w-full p-2.5 border border-panel-border rounded-xl bg-input-bg text-text-primary outline-none"
-            required
-          />
-        </div>
+    <>
+      {/* Backdrop overlay */}
+      <div
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+        onClick={handleCancel}
+      />
 
-        <div>
-          <label className="block text-xs font-semibold uppercase tracking-wide text-text-secondary mb-1">Major</label>
-          <input
-            type="text"
-            value={formMajor}
-            onChange={(e) => setFormMajor(e.target.value)}
-            className="w-full p-2.5 border border-panel-border rounded-xl bg-input-bg text-text-primary outline-none"
-          />
-        </div>
+      {/* Modal */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="bg-panel-bg rounded-2xl border border-panel-border shadow-2xl max-w-2xl w-full max-h-screen overflow-y-auto">
+          {/* Header */}
+          <div className="sticky top-0 bg-panel-bg border-b border-panel-border px-8 py-6 flex justify-between items-center">
+            <h2 className="text-2xl font-bold text-heading">Edit Profile</h2>
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="text-text-tertiary hover:text-text-primary transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
 
-        <div>
-          <label className="block text-xs font-semibold uppercase tracking-wide text-text-secondary mb-1">Graduation Year</label>
-          <input
-            type="number"
-            value={formGradYear}
-            onChange={(e) => setFormGradYear(e.target.value)}
-            className="w-full p-2.5 border border-panel-border rounded-xl bg-input-bg text-text-primary outline-none"
-          />
-        </div>
+          {/* Form Content */}
+          <div className="px-8 py-6 space-y-6">
+            <div>
+              <label className="block text-sm font-semibold text-text-secondary mb-2">Display Name</label>
+              <input
+                type="text"
+                value={formDisplayName}
+                onChange={(e) => setFormDisplayName(e.target.value)}
+                className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary outline-none focus:border-uva-blue focus:ring-2 focus:ring-uva-blue/20 transition-all"
+                required
+              />
+            </div>
 
-        <div>
-          <label className="block text-xs font-semibold uppercase tracking-wide text-text-secondary mb-1">Bio</label>
-          <textarea
-            value={formBio}
-            onChange={(e) => setFormBio(e.target.value)}
-            rows={3}
-            className="w-full p-2.5 border border-panel-border rounded-xl bg-input-bg text-text-primary outline-none"
-          />
+            <div>
+              <label className="block text-sm font-semibold text-text-secondary mb-2">Major</label>
+              <input
+                type="text"
+                value={formMajor}
+                onChange={(e) => setFormMajor(e.target.value)}
+                placeholder="e.g., Computer Science"
+                className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary outline-none focus:border-uva-blue focus:ring-2 focus:ring-uva-blue/20 transition-all"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-text-secondary mb-2">Graduation Year</label>
+              <input
+                type="number"
+                value={formGradYear}
+                onChange={(e) => setFormGradYear(e.target.value)}
+                placeholder="e.g., 2026"
+                className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary outline-none focus:border-uva-blue focus:ring-2 focus:ring-uva-blue/20 transition-all"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-text-secondary mb-2">Bio</label>
+              <textarea
+                value={formBio}
+                onChange={(e) => setFormBio(e.target.value)}
+                placeholder="Tell others about yourself..."
+                rows={5}
+                className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary outline-none focus:border-uva-blue focus:ring-2 focus:ring-uva-blue/20 transition-all resize-none"
+              />
+            </div>
+
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3">
+                <p className="text-red-500 text-sm font-semibold">{error}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="sticky bottom-0 bg-panel-bg border-t border-panel-border px-8 py-6 flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={handleCancel}
+              disabled={isPending}
+              className="px-6 py-2.5 border border-panel-border-strong rounded-xl font-semibold text-text-primary hover:bg-hover-bg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={isPending}
+              className="px-6 py-2.5 bg-uva-blue/90 text-white rounded-xl font-semibold hover:bg-uva-blue transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isPending ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
         </div>
       </div>
-
-      {error && (
-        <p className="text-danger-text text-sm font-semibold mt-3">{error}</p>
-      )}
-
-      <div className="flex gap-3 mt-4">
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={isPending}
-          className="bg-uva-blue/90 text-white px-4 py-2 rounded-xl font-semibold hover:bg-uva-blue transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isPending ? 'Saving...' : 'Save'}
-        </button>
-        <button
-          type="button"
-          onClick={handleCancel}
-          disabled={isPending}
-          className="border border-panel-border-strong px-4 py-2 rounded-xl font-semibold text-text-primary hover:bg-hover-bg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
+    </>
   );
 }

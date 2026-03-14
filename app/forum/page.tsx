@@ -10,6 +10,8 @@ type ForumAnswerItem = {
   body: string;
   createdAt: string;
   authorDisplayName: string;
+  authorId: string;
+  authorComputingId: string;
   voteScore: number;
   currentUserVote: 1 | -1 | 0;
 };
@@ -24,6 +26,8 @@ type ForumPostItem = {
   viewCount: number;
   createdAt: string;
   authorDisplayName: string;
+  authorId: string;
+  authorComputingId: string;
   attachedPlan: { id: string; title: string } | null;
   answers: ForumAnswerItem[];
 };
@@ -163,7 +167,7 @@ export default function ForumPage() {
                       )}
                     </div>
                     <p className="text-xs text-text-tertiary whitespace-nowrap">
-                      <span className="text-uva-blue font-semibold">{post.authorDisplayName}</span> asked {formatRelativeTime(post.createdAt)}
+                      <Link href={`/profile/${post.authorComputingId}`} className="text-uva-blue font-semibold hover:underline">{post.authorDisplayName}</Link> asked {formatRelativeTime(post.createdAt)}
                     </p>
                   </div>
                 </div>

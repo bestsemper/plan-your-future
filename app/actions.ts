@@ -27,7 +27,9 @@ const forumPostDetailInclude = {
   },
   author: {
     select: {
+      id: true,
       displayName: true,
+      computingId: true,
     },
   },
   answers: {
@@ -35,7 +37,9 @@ const forumPostDetailInclude = {
     include: {
       author: {
         select: {
+          id: true,
           displayName: true,
+          computingId: true,
         },
       },
       votes: {
@@ -549,7 +553,9 @@ export async function getForumPageData() {
       },
       author: {
         select: {
+          id: true,
           displayName: true,
+          computingId: true,
         },
       },
       answers: {
@@ -557,7 +563,9 @@ export async function getForumPageData() {
         include: {
           author: {
             select: {
+              id: true,
               displayName: true,
+              computingId: true,
             },
           },
           votes: {
@@ -581,6 +589,8 @@ export async function getForumPageData() {
     viewCount: post.viewCount,
     createdAt: post.createdAt.toISOString(),
     authorDisplayName: post.author.displayName,
+    authorId: post.author.id,
+    authorComputingId: post.author.computingId,
     canDelete: currentUser?.id === post.authorId,
     attachedPlan: post.attachedPlan,
     answers: post.answers.map((answer) => {
@@ -595,6 +605,8 @@ export async function getForumPageData() {
         canDelete: currentUser?.id === answer.authorId && !answer.deletedAt,
         createdAt: answer.createdAt.toISOString(),
         authorDisplayName: answer.author.displayName,
+        authorId: answer.author.id,
+        authorComputingId: answer.author.computingId,
         voteScore: answer.votes.reduce((sum, vote) => sum + vote.value, 0),
         currentUserVote,
       };
@@ -738,6 +750,8 @@ export async function getForumPostPageData(postNumber: number) {
     viewCount: post.viewCount,
     createdAt: post.createdAt.toISOString(),
     authorDisplayName: post.author.displayName,
+    authorId: post.author.id,
+    authorComputingId: post.author.computingId,
     canDelete: currentUser?.id === post.authorId,
     attachedPlan: post.attachedPlan,
     answers: post.answers.map((answer) => {
@@ -752,6 +766,8 @@ export async function getForumPostPageData(postNumber: number) {
         canDelete: currentUser?.id === answer.authorId && !answer.deletedAt,
         createdAt: answer.createdAt.toISOString(),
         authorDisplayName: answer.author.displayName,
+        authorId: answer.author.id,
+        authorComputingId: answer.author.computingId,
         voteScore: answer.votes.reduce((sum, vote) => sum + vote.value, 0),
         currentUserVote,
       };
@@ -1714,6 +1730,38 @@ export async function checkCoursePrerequisites(input: {
       missingCourses: [],
       hasUnknownPrerequisites: false,
     };
+  }
+}
+
+export async function getUserProfile(computingId: string) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { computingId },
+      select: {
+        id: true,
+        computingId: true,
+        displayName: true,
+        major: true,
+        gradYear: true,
+        bio: true,
+      },
+    });
+
+    if (!user) {
+      return { error: 'User not found' };
+    }
+
+    const postCount = await prisma.forumPost.count({
+      where: { authorId: user.id },
+    });
+
+    return {
+      user,
+      postCount,
+    };
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    return { error: 'Failed to load user profile' };
   }
 }
 
