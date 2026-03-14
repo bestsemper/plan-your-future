@@ -1,40 +1,40 @@
 import { NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
-import { parse } from 'csv-parse/sync'
 
-// Cache the courses in memory so we don't parse the 10MB CSV on every request
+// Cache the courses in memory so we don't parse the CSV on every request
 let cachedCourses: { id: string, mnemonic: string, number: string, title: string }[] | null = null;
+
+function normalizeCourseCode(value: string): string {
+  return value.toUpperCase().replace(/\s+/g, ' ').trim();
+}
 
 function getCourses() {
   if (cachedCourses) return cachedCourses;
 
   try {
-    const filePath = path.join(process.cwd(), 'public', 'audit_requirements.csv');
-    const fileContent = fs.readFileSync(filePath, 'utf-8');
-    const records = parse(fileContent, { columns: true, skip_empty_lines: true }) as Record<string, string>[];
+    const filePath = path.join(process.cwd(), 'data', 'uva_course_details.json');
+    const records = JSON.parse(fs.readFileSync(filePath, 'utf-8')) as Record<string, string>[];
 
     const courseSet = new Set<string>();
     const courses: { id: string, mnemonic: string, number: string, title: string }[] = [];
 
     records.forEach((record) => {
-      const reqName = record['Requirement Name'];
-      // Match course format like "CS 1110"
-      if (reqName && /^[A-Z]{2,4}\s\d{4}$/.test(reqName)) {
-        if (!courseSet.has(reqName)) {
-          courseSet.add(reqName);
-          const [mnemonic, number] = reqName.split(' ');
-          courses.push({
-            id: reqName,
-            mnemonic,
-            number,
-            title: reqName, // We don't have full titles in this CSV format easily accessible
-          });
-        }
+      const rawCourseCode = record['course_code'] || '';
+      const courseCode = normalizeCourseCode(rawCourseCode);
+
+      if (courseCode && /^[A-Z]{2,6}\s\d{4}$/.test(courseCode) && !courseSet.has(courseCode)) {
+        courseSet.add(courseCode);
+        const [mnemonic, number] = courseCode.split(' ');
+        courses.push({
+          id: courseCode,
+          mnemonic,
+          number,
+          title: courseCode,
+        });
       }
     });
 
-    // Sort alphabetically
     courses.sort((a, b) => a.id.localeCompare(b.id));
     cachedCourses = courses;
     return courses;
@@ -52,15 +52,14 @@ export async function GET(request: Request) {
     const allCourses = getCourses();
 
     if (!query) {
-      return NextResponse.json(allCourses.slice(0, 50)); // Return first 50 if no query
+      return NextResponse.json(allCourses.slice(0, 50));
     }
 
-    // Filter courses based on query
-    const filteredCourses = allCourses.filter(course => 
-      course.id.toLowerCase().includes(query) || 
+    const filteredCourses = allCourses.filter(course =>
+      course.id.toLowerCase().includes(query) ||
       course.mnemonic.toLowerCase().includes(query) ||
       course.number.includes(query)
-    ).slice(0, 50); // Limit to 50 results
+    ).slice(0, 50);
 
     return NextResponse.json(filteredCourses);
   } catch (error) {

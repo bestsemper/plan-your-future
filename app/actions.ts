@@ -5,7 +5,6 @@ import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import fs from 'fs';
 import path from 'path';
-import { parse } from 'csv-parse/sync';
 import { scryptSync, randomBytes, timingSafeEqual } from 'crypto';
 
 const prisma = new PrismaClient();
@@ -1451,35 +1450,8 @@ export async function importPlanFromStellicPdf(input: {
 
 export async function getAllPossibleCoursesFromCSV(): Promise<string[]> {
   try {
-    const csvFilePath = path.join(process.cwd(), 'public', 'audit_requirements.csv');
-    const data = fs.readFileSync(csvFilePath, 'utf-8');
-    const records = parse(data, { columns: true, skip_empty_lines: true });
-
-    const courses = new Set<string>();
-    const courseRegex = /^([A-Z]{2,4})\s(\d{4})/;
-
-    for (const reqObj of records) {
-      const req: any = reqObj;
-      const reqName = (req['Requirement Name'] || '');
-      const constraint = req['Constraint'] || '';
-      
-      const reqNameMatch = reqName.match(courseRegex);
-      if (reqNameMatch) {
-        courses.add(reqNameMatch[0]);
-      }
-      
-      if (constraint.includes('Course within this set of courses:')) {
-        const parts = constraint.split('Course within this set of courses:');
-        if (parts.length > 1) {
-          const coursesList = parts[1].trim().split(',').map((s: string) => s.trim().substring(0, 7)).filter((s: string) => courseRegex.test(s));
-          for (const c of coursesList) {
-            courses.add(c);
-          }
-        }
-      }
-    }
-    
-    return Array.from(courses).sort();
+    const { sortedCourseCodes } = loadCourseDetailsFromJSON();
+    return sortedCourseCodes;
   } catch (err) {
     console.error("Error reading CSV for all courses:", err);
     return [];
@@ -1488,97 +1460,179 @@ export async function getAllPossibleCoursesFromCSV(): Promise<string[]> {
 
 export async function getCourseInfoFromCSV(courseCode: string) {
   try {
-    const csvFilePath = path.join(process.cwd(), 'public', 'audit_requirements.csv');
-    const data = fs.readFileSync(csvFilePath, 'utf-8');
-    const records = parse(data, { columns: true, skip_empty_lines: true });
-
-    const programs = new Set<string>();
-    const fulfills = new Set<string>();
-
-    for (const reqObj of records) {
-      const req: any = reqObj;
-      const cnstr = req['Constraint'] || '';
-      const reqName = req['Requirement Name'] || '';
-      const progName = req['Program Name'] || '';
-      const parentName = req['Parent Requirement Name'] || '';
-
-      if (reqName.includes(courseCode) || cnstr.includes(courseCode)) {
-        if (progName) programs.add(progName);
-        if (reqName && !reqName.includes(courseCode)) fulfills.add(reqName);
-        else if (reqName && reqName.length > courseCode.length) fulfills.add(reqName);
-        
-        if (parentName) fulfills.add(parentName);
-      }
-    }
+    const normalizedCode = normalizeCourseCode(courseCode);
+    const { courseDetailsByCode } = loadCourseDetailsFromJSON();
+    const details = courseDetailsByCode.get(normalizedCode);
 
     return {
-      courseCode,
-      programs: Array.from(programs).slice(0, 10),
-      fulfills: Array.from(fulfills).slice(0, 10)
+      courseCode: normalizedCode,
+      description: details?.description ?? null,
+      prerequisites: details?.prerequisites ?? [],
+      terms: details?.terms ?? [],
     };
   } catch (err) {
     console.error("Error reading CSV for course info:", err);
-    return { courseCode, programs: [], fulfills: [] };
+    return { courseCode, description: null, prerequisites: [], terms: [] };
   }
 }
 
 export async function getCourseCreditsFromCSV(courseCode: string): Promise<string> {
   try {
-    const csvFilePath = path.join(process.cwd(), 'public', 'audit_requirements.csv');
-    const data = fs.readFileSync(csvFilePath, 'utf-8');
-    const records = parse(data, { columns: true, skip_empty_lines: true });
-    
-    let possibleUnits: number[] = [];
-    for (const reqObj of records) {
-      const req: any = reqObj;
-      const constraint = (req['Constraint'] || '') as string;
-      if (constraint.includes(` ${courseCode}`) || constraint.includes(`${courseCode},`)) {
-        const match = constraint.match(/([0-9.]+)\s*units/i);
-        if (match) {
-          let val = parseFloat(match[1]);
-          if (val <= 6) possibleUnits.push(val);
-        }
-      }
-    }
-
-    const parentIds = new Set<string>();
-    for (const reqObj of records) {
-      const req: any = reqObj;
-      const reqName = (req['Requirement Name'] || '') as string;
-      const constraint = (req['Constraint'] || '') as string;
-      if (reqName === courseCode || (constraint.includes(` ${courseCode}`) && !constraint.includes('Course within one of these ranges'))) {
-        if (req['Parent Requirement ID']) parentIds.add(req['Parent Requirement ID'] as string);
-      }
-    }
-
-    for (const reqObj of records) {
-      const req: any = reqObj;
-      if (parentIds.has(req['Requirement ID'] as string)) {
-        const constraint = (req['Constraint'] || '') as string;
-        const match = constraint.match(/([0-9.]+)\s*units/i);
-        if (match) {
-          let val = parseFloat(match[1]);
-          if (val <= 6) possibleUnits.push(val);
-        }
-      }
-    }
-
-    if (possibleUnits.length > 0) {
-      const counts: Record<number, number> = {};
-      let maxCount = 0;
-      let mostFrequent = 3;
-      for (const u of possibleUnits) {
-         counts[u] = (counts[u] || 0) + 1;
-         if (counts[u] > maxCount) {
-           maxCount = counts[u];
-           mostFrequent = u;
-         }
-      }
-      return mostFrequent.toString();
-    }
-  } catch(e) {
-    console.error("Error reading CSV for credits:", e);
+    const normalizedCode = normalizeCourseCode(courseCode);
+    const { courseDetailsByCode } = loadCourseDetailsFromJSON();
+    return courseDetailsByCode.get(normalizedCode)?.credits ?? '3';
+  } catch (err) {
+    console.error('Error reading course details for credits:', err);
+    return '3';
   }
-  return '3'; // Default fallback
+}
+
+type CourseDetailsJsonRecord = {
+  course_code?: string;
+  credits?: string;
+  description?: string;
+  enrollment_requirements?: string;
+  term?: string;
+};
+
+type AggregatedCourseDetails = {
+  credits: string;
+  description: string | null;
+  prerequisites: string[];
+  terms: string[];
+};
+
+let cachedCourseDetailsData:
+  | {
+      courseDetailsByCode: Map<string, AggregatedCourseDetails>;
+      sortedCourseCodes: string[];
+    }
+  | null = null;
+
+function normalizeCourseCode(courseCode: string): string {
+  return courseCode.toUpperCase().replace(/\s+/g, ' ').trim();
+}
+
+function normalizeCsvText(value: string): string {
+  return value
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, '&')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function formatTermLabel(term: string): string {
+  const cleaned = term.trim();
+  if (!cleaned) {
+    return cleaned;
+  }
+
+  const match = cleaned.match(/^1(\d{2})(\d)$/);
+  if (!match) {
+    return cleaned;
+  }
+
+  const year = 2000 + Number.parseInt(match[1], 10);
+  const season = {
+    '0': 'Winter',
+    '2': 'Spring',
+    '4': 'Summer',
+    '6': 'Summer',
+    '8': 'Fall',
+  }[match[2]];
+
+  return season ? `${season} ${year}` : cleaned;
+}
+
+function getTermSortKey(termLabel: string): number {
+  const match = termLabel.match(/^(Winter|Spring|Summer|Fall) (\d{4})$/);
+  if (!match) {
+    return Number.MAX_SAFE_INTEGER;
+  }
+
+  const seasonOrder = {
+    Winter: 0,
+    Spring: 1,
+    Summer: 2,
+    Fall: 3,
+  } as const;
+
+  return Number.parseInt(match[2], 10) * 10 + seasonOrder[match[1] as keyof typeof seasonOrder];
+}
+
+function loadCourseDetailsFromJSON(): {
+  courseDetailsByCode: Map<string, AggregatedCourseDetails>;
+  sortedCourseCodes: string[];
+} {
+  if (cachedCourseDetailsData) {
+    return cachedCourseDetailsData;
+  }
+
+  const filePath = path.join(process.cwd(), 'data', 'uva_course_details.json');
+  const records = JSON.parse(fs.readFileSync(filePath, 'utf-8')) as CourseDetailsJsonRecord[];
+
+  const detailsMap = new Map<
+    string,
+    {
+      credits: string;
+      description: string | null;
+      prerequisites: Set<string>;
+      terms: Set<string>;
+    }
+  >();
+
+  for (const record of records) {
+    const courseCodeRaw = record.course_code ?? '';
+    const courseCode = normalizeCourseCode(courseCodeRaw);
+    if (!courseCode) {
+      continue;
+    }
+
+    const existing = detailsMap.get(courseCode) ?? {
+      credits: '3',
+      description: null,
+      prerequisites: new Set<string>(),
+      terms: new Set<string>(),
+    };
+
+    const credits = normalizeCsvText(record.credits ?? '');
+    if (credits) {
+      existing.credits = credits;
+    }
+
+    const description = normalizeCsvText(record.description ?? '');
+    if (description && (!existing.description || description.length > existing.description.length)) {
+      existing.description = description;
+    }
+
+    const prereqText = normalizeCsvText(record.enrollment_requirements ?? '');
+    if (prereqText) {
+      existing.prerequisites.add(prereqText);
+    }
+
+    const termLabel = formatTermLabel(record.term ?? '');
+    if (termLabel) {
+      existing.terms.add(termLabel);
+    }
+
+    detailsMap.set(courseCode, existing);
+  }
+
+  const courseDetailsByCode = new Map<string, AggregatedCourseDetails>();
+  for (const [code, detail] of detailsMap.entries()) {
+    courseDetailsByCode.set(code, {
+      credits: detail.credits,
+      description: detail.description,
+      prerequisites: Array.from(detail.prerequisites),
+      terms: Array.from(detail.terms).sort((left, right) => {
+        const keyDiff = getTermSortKey(left) - getTermSortKey(right);
+        return keyDiff !== 0 ? keyDiff : left.localeCompare(right);
+      }),
+    });
+  }
+
+  const sortedCourseCodes = Array.from(courseDetailsByCode.keys()).sort();
+  cachedCourseDetailsData = { courseDetailsByCode, sortedCourseCodes };
+  return cachedCourseDetailsData;
 }
 

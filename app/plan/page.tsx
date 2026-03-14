@@ -22,8 +22,9 @@ import {
 
 interface CourseInfo {
   courseCode: string;
-  programs: string[];
-  fulfills: string[];
+  description: string | null;
+  prerequisites: string[];
+  terms: string[];
 }
 
 type PlanCourse = {
@@ -1123,30 +1124,39 @@ export default function PlanBuilderPage() {
             </div>
 
             <div className="space-y-4">
-              {selectedCourseInfo.programs.length > 0 && (
+              {selectedCourseInfo.description && (
                 <div>
-                  <h3 className="font-semibold text-text-primary mb-2 border-b border-panel-border pb-1">Programs Requirements</h3>
+                  <h3 className="font-semibold text-text-primary mb-2 border-b border-panel-border pb-1">Description</h3>
+                  <p className="text-sm text-text-secondary leading-6">{selectedCourseInfo.description}</p>
+                </div>
+              )}
+
+              {selectedCourseInfo.prerequisites.length > 0 && (
+                <div>
+                  <h3 className="font-semibold text-text-primary mb-2 border-b border-panel-border pb-1">Prerequisites / Enrollment Requirements</h3>
                   <ul className="list-disc list-inside text-sm text-text-secondary space-y-1">
-                    {selectedCourseInfo.programs.map((p, i) => (
-                      <li key={i}>{p}</li>
+                    {selectedCourseInfo.prerequisites.map((requirement, i) => (
+                      <li key={i}>{requirement}</li>
                     ))}
                   </ul>
                 </div>
               )}
 
-              {selectedCourseInfo.fulfills.length > 0 && (
+              {selectedCourseInfo.terms.length > 0 && (
                 <div>
-                  <h3 className="font-semibold text-text-primary mb-2 border-b border-panel-border pb-1">Fulfills Attributes/Reqs</h3>
-                  <ul className="list-disc list-inside text-sm text-text-secondary space-y-1">
-                    {selectedCourseInfo.fulfills.map((f, i) => (
-                      <li key={i}>{f}</li>
+                  <h3 className="font-semibold text-text-primary mb-2 border-b border-panel-border pb-1">Available Terms</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedCourseInfo.terms.map((term, i) => (
+                      <span key={i} className="inline-flex items-center rounded-full border border-panel-border-strong px-2.5 py-1 text-xs font-medium text-text-secondary">
+                        {term}
+                      </span>
                     ))}
-                  </ul>
+                  </div>
                 </div>
               )}
 
-              {selectedCourseInfo.programs.length === 0 && selectedCourseInfo.fulfills.length === 0 && (
-                <p className="text-gray-500 italic text-sm">No specific requirement information found in audit data.</p>
+              {!selectedCourseInfo.description && selectedCourseInfo.prerequisites.length === 0 && selectedCourseInfo.terms.length === 0 && (
+                <p className="text-gray-500 italic text-sm">No course details were found for this code in uva_course_details.csv.</p>
               )}
             </div>
           </div>

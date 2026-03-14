@@ -1,10 +1,13 @@
+import asyncio
 import json
-import csv
-import time
-import requests
-from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
-from playwright.sync_api import sync_playwright
 import re
+from pathlib import Path
+import aiohttp
+from playwright.async_api import TimeoutError as PlaywrightTimeoutError
+from playwright.async_api import async_playwright
+
+OUTPUT_DIR = Path(__file__).parent.parent / "data"
+OUTPUT_DIR.mkdir(exist_ok=True)
 
 # URLs
 CATALOG_URL = "https://sisuva.admin.virginia.edu/psp/ihprd/UVSS/SA/s/WEBLIB_HCX_CM.H_COURSE_CATALOG.FieldFormula.IScript_Main?"
@@ -19,9 +22,15 @@ HEADERS = {
     "User-Agent": "Mozilla/5.0 (educational research)",
 }
 
+# Max simultaneous HTTP requests — raise for more speed, lower to be gentler on the server
+CONCURRENCY = 100
+
+
+# ---------------------------------------------------------------------------
+# Playwright helpers (async)
+# ---------------------------------------------------------------------------
 
 def extract_subjects(text: str) -> list[tuple[str, str]]:
-    """Extract all subject codes and names from catalog page"""
     subjects: list[tuple[str, str]] = []
     seen: set[tuple[str, str]] = set()
 
@@ -34,54 +43,54 @@ def extract_subjects(text: str) -> list[tuple[str, str]]:
     return subjects
 
 
-def get_catalog_text() -> str:
-    """Get rendered catalog page text using Playwright"""
-    with sync_playwright() as playwright:
-        browser = playwright.chromium.launch(headless=True)
-        page = browser.new_page()
+async def get_catalog_text() -> str:
+    async with async_playwright() as playwright:
+        browser = await playwright.chromium.launch(headless=True)
+        page = await browser.new_page()
         try:
-            page.goto(CATALOG_URL, wait_until="domcontentloaded", timeout=60000)
-            page.wait_for_selector("#main_iframe", timeout=60000)
+            await page.goto(CATALOG_URL, wait_until="domcontentloaded", timeout=60000)
+            await page.wait_for_selector("#main_iframe", timeout=60000)
 
-            iframe_element = page.locator("#main_iframe").element_handle()
+            iframe_element = await page.locator("#main_iframe").element_handle()
             if iframe_element is None:
                 raise RuntimeError("catalog iframe was not found")
 
-            frame = iframe_element.content_frame()
+            frame = await iframe_element.content_frame()
             if frame is None:
                 raise RuntimeError("catalog iframe did not load")
 
             try:
-                frame.wait_for_load_state("networkidle", timeout=60000)
+                await frame.wait_for_load_state("networkidle", timeout=60000)
             except PlaywrightTimeoutError:
                 pass
 
-            return frame.locator("body").inner_text(timeout=60000)
+            return await frame.locator("body").inner_text(timeout=60000)
         finally:
-            browser.close()
+            await browser.close()
 
 
-def get_courses_by_subject(subject: str) -> list[dict]:
-    """Get all courses for a subject"""
-    params = {
-        "institution": "UVA01",
-        "subject": subject,
-    }
+# ---------------------------------------------------------------------------
+# Async HTTP helpers
+# ---------------------------------------------------------------------------
 
-    try:
-        response = requests.get(SUBJECT_COURSES_URL, params=params, headers=HEADERS, timeout=10)
-        response.raise_for_status()
-        data = response.json()
-        if "courses" in data:
-            return data["courses"]
-        return []
-    except Exception as e:
-        print(f"  ✗ Error fetching courses for {subject}: {e}")
-        return []
+async def _get_json(session: aiohttp.ClientSession, sem: asyncio.Semaphore, url: str, params: dict) -> dict | list:
+    async with sem:
+        try:
+            async with session.get(url, params=params, timeout=aiohttp.ClientTimeout(total=15)) as resp:
+                resp.raise_for_status()
+                return await resp.json(content_type=None)
+        except Exception:
+            return {}
 
 
-def get_sections_for_course(course_id: str, term: str) -> list[dict]:
-    """Get sections for a course with specific term"""
+async def get_courses_by_subject_async(session: aiohttp.ClientSession, sem: asyncio.Semaphore, subject: str) -> list[dict]:
+    data = await _get_json(session, sem, SUBJECT_COURSES_URL, {"institution": "UVA01", "subject": subject})
+    if isinstance(data, dict):
+        return data.get("courses", [])
+    return []
+
+
+async def get_sections_async(session: aiohttp.ClientSession, sem: asyncio.Semaphore, course_id: str, term: str) -> list[dict]:
     params = {
         "institution": "UVA01",
         "campus": "",
@@ -91,67 +100,88 @@ def get_sections_for_course(course_id: str, term: str) -> list[dict]:
         "term": term,
         "crse_offer_nbr": "1",
     }
+    data = await _get_json(session, sem, BROWSE_SECTIONS_URL, params)
+    if isinstance(data, dict):
+        return data.get("sections", [])
+    return []
 
+
+async def get_class_details_async(session: aiohttp.ClientSession, sem: asyncio.Semaphore, class_nbr: str, term: str) -> dict:
+    params = {"institution": "UVA01", "term": term, "class_nbr": class_nbr}
+    data = await _get_json(session, sem, CLASS_DETAILS_URL, params)
+    return data if isinstance(data, dict) else {}
+
+
+# ---------------------------------------------------------------------------
+# Data extraction helpers (pure)
+# ---------------------------------------------------------------------------
+
+def format_credit_value(units_minimum, units_maximum) -> str:
+    if units_minimum in (None, "") and units_maximum in (None, ""):
+        return ""
+
+    minimum = str(units_minimum).strip()
+    maximum = str(units_maximum).strip()
+
+    if minimum and maximum:
+        return minimum if minimum == maximum else f"{minimum}-{maximum}"
+    return minimum or maximum
+
+
+def format_term_label(term: str | None) -> str | None:
+    if term is None:
+        return None
+
+    cleaned = str(term).strip()
+    match = re.fullmatch(r"1(\d{2})(\d)", cleaned)
+    if not match:
+        return cleaned or None
+
+    year = 2000 + int(match.group(1))
+    season_code = match.group(2)
+    season = {
+        "0": "Winter",
+        "2": "Spring",
+        "4": "Summer",
+        "6": "Summer",
+        "8": "Fall",
+    }.get(season_code)
+
+    return f"{season} {year}" if season else cleaned
+
+
+def extract_credits_from_class_details(class_details_data: dict) -> str:
     try:
-        response = requests.get(BROWSE_SECTIONS_URL, params=params, headers=HEADERS, timeout=10)
-        response.raise_for_status()
-        data = response.json()
-        
-        if "sections" in data:
-            return data["sections"]
-        return []
-    except Exception as e:
-        print(f"    ✗ Error fetching sections for course {course_id} (term {term}): {e}")
-        return []
-
-
-def get_class_details(class_nbr: str, term: str) -> dict:
-    """Get class details including description and enrollment requirements"""
-    params = {
-        "institution": "UVA01",
-        "term": term,
-        "class_nbr": class_nbr,
-    }
-
-    try:
-        response = requests.get(CLASS_DETAILS_URL, params=params, headers=HEADERS, timeout=10)
-        response.raise_for_status()
-        return response.json()
-    except Exception as e:
-        print(f"    ✗ Error fetching class details for {class_nbr}: {e}")
-        return {}
-
-
-def extract_description(class_details_data: dict) -> str:
-    """Extract course description from class details"""
-    try:
-        if "section_info" in class_details_data:
-            section_info = class_details_data["section_info"]
-            if "catalog_descr" in section_info:
-                catalog_descr = section_info["catalog_descr"]
-                if "crse_catalog_description" in catalog_descr:
-                    return catalog_descr["crse_catalog_description"]
-    except Exception as e:
-        print(f"      ✗ Error extracting description: {e}")
-    return ""
-
+        units = (
+            class_details_data
+            .get("section_info", {})
+            .get("class_details", {})
+            .get("units", "")
+        )
+        match = re.search(r"\d+(?:\.\d+)?(?:\s*-\s*\d+(?:\.\d+)?)?", str(units))
+        return match.group(0).replace(" ", "") if match else ""
+    except Exception:
+        return ""
 
 def extract_enrollment_requirements(class_details_data: dict) -> str:
-    """Extract enrollment requirements from class details"""
     try:
-        if "section_info" in class_details_data:
-            section_info = class_details_data["section_info"]
-            if "enrollment_information" in section_info:
-                enrollment_info = section_info["enrollment_information"]
-                if "enroll_requirements" in enrollment_info:
-                    return enrollment_info["enroll_requirements"]
-    except Exception as e:
-        print(f"      ✗ Error extracting enrollment requirements: {e}")
-    return ""
+        return (
+            class_details_data
+            .get("section_info", {})
+            .get("enrollment_information", {})
+            .get("enroll_requirements", "")
+        )
+    except Exception:
+        return ""
 
 
-def get_description_from_catalog(crse_id: str, subject: str, catalog_nbr: str) -> str:
-    """Fetch description from alternate catalog details endpoint"""
+async def get_catalog_details_async(
+    session: aiohttp.ClientSession,
+    sem: asyncio.Semaphore,
+    crse_id: str,
+    subject: str,
+    catalog_nbr: str,
+) -> dict[str, str]:
     params = {
         "institution": "UVA01",
         "course_id": crse_id,
@@ -161,168 +191,139 @@ def get_description_from_catalog(crse_id: str, subject: str, catalog_nbr: str) -
         "subject": subject,
         "catalog_nbr": catalog_nbr,
     }
-
-    try:
-        response = requests.get(CATALOG_COURSE_DETAILS_URL, params=params, headers=HEADERS, timeout=10)
-        response.raise_for_status()
-        data = response.json()
-
-        if "course_details" in data:
-            course_details = data["course_details"]
-            if "descrlong" in course_details:
-                return course_details["descrlong"]
-    except Exception as e:
-        print(f"      ✗ Error fetching alternate description: {e}")
-    return ""
-
-
-def process_course(subject: str, course: dict) -> dict | None:
-    """Process a single course and extract details"""
-    try:
-        crse_id = course.get("crse_id")
-        course_code = course.get("subject", subject)
-        catalog_nbr = course.get("catalog_nbr", "")
-        
-        if not crse_id:
-            print(f"    ✗ No crse_id found for {course_code} {catalog_nbr}")
-            return None
-        
-        full_course_code = f"{course_code} {catalog_nbr}"
-        print(f"    Processing {full_course_code} (id: {crse_id})...")
-
-        # Get description from catalog endpoint (independent, doesn't need sections)
-        description = get_description_from_catalog(crse_id, subject, catalog_nbr)
-
-        # Try to find sections and enrollment requirements
-        best_term = None
-        class_nbr = None
-        enrollment_reqs = ""
-        sections = get_sections_for_course(crse_id, "1268")
-        
-        if sections and len(sections) > 0:
-            best_term = "1268"
-        else:
-            sections = get_sections_for_course(crse_id, "1262")
-            if sections and len(sections) > 0:
-                best_term = "1262"
-        
-        # If we have sections, get enrollment requirements
-        if best_term and sections:
-            first_section = sections[0]
-            class_nbr = first_section.get("class_nbr")
-            
-            if class_nbr:
-                class_details_data = get_class_details(str(class_nbr), best_term)
-                enrollment_reqs = extract_enrollment_requirements(class_details_data) if class_details_data else ""
-        
-        result = {
-            "course_code": full_course_code,
-            "crse_id": crse_id,
-            "class_nbr": class_nbr,
-            "term": best_term,
-            "description": description,
-            "enrollment_requirements": enrollment_reqs,
+    data = await _get_json(session, sem, CATALOG_COURSE_DETAILS_URL, params)
+    if isinstance(data, dict):
+        course_details = data.get("course_details", {})
+        return {
+            "description": course_details.get("descrlong", ""),
+            "credits": format_credit_value(
+                course_details.get("units_minimum"),
+                course_details.get("units_maximum"),
+            ),
         }
-        
-        status_msg = "Successfully processed"
-        if not description:
-            status_msg += " (no description)"
-        if not enrollment_reqs:
-            status_msg += " (no requirements)"
-        print(f"      ✓ {status_msg}")
-        return result
+    return {"description": "", "credits": ""}
 
-    except Exception as e:
-        print(f"    ✗ Error processing course: {e}")
+
+# ---------------------------------------------------------------------------
+# Core async processing
+# ---------------------------------------------------------------------------
+
+async def process_course_async(session: aiohttp.ClientSession, sem: asyncio.Semaphore, subject: str, course: dict) -> dict | None:
+    crse_id = course.get("crse_id")
+    course_code = course.get("subject", subject)
+    catalog_nbr = course.get("catalog_nbr", "")
+
+    if not crse_id:
         return None
 
+    full_course_code = f"{course_code} {catalog_nbr}"
 
-def main() -> None:
-    """Main function to orchestrate the scraping"""
+    # fetch catalog details + both term sections in parallel
+    catalog_details, sections_1268, sections_1262 = await asyncio.gather(
+        get_catalog_details_async(session, sem, crse_id, subject, catalog_nbr),
+        get_sections_async(session, sem, crse_id, "1268"),
+        get_sections_async(session, sem, crse_id, "1262"),
+    )
+
+    description = catalog_details.get("description", "")
+    credits = catalog_details.get("credits", "")
+
+    if sections_1268:
+        best_term, sections = "1268", sections_1268
+    elif sections_1262:
+        best_term, sections = "1262", sections_1262
+    else:
+        best_term, sections = None, []
+
+    enrollment_reqs = ""
+    class_nbr = None
+    if best_term and sections:
+        class_nbr = sections[0].get("class_nbr")
+        if class_nbr:
+            class_details_data = await get_class_details_async(session, sem, str(class_nbr), best_term)
+            enrollment_reqs = extract_enrollment_requirements(class_details_data)
+            if not credits:
+                credits = extract_credits_from_class_details(class_details_data)
+
+    print(f"  ✓ {full_course_code}")
+    return {
+        "course_code": full_course_code,
+        "credits": credits,
+        "crse_id": crse_id,
+        "class_nbr": class_nbr,
+        "term": format_term_label(best_term),
+        "description": description,
+        "enrollment_requirements": enrollment_reqs,
+    }
+
+
+async def process_subject_async(session: aiohttp.ClientSession, sem: asyncio.Semaphore, subject_code: str, subject_name: str, idx: int, total: int) -> list[dict]:
+    print(f"[{idx}/{total}] {subject_code} ({subject_name})...")
+    courses = await get_courses_by_subject_async(session, sem, subject_code)
+
+    results = await asyncio.gather(
+        *[process_course_async(session, sem, subject_code, c) for c in courses],
+        return_exceptions=True,
+    )
+
+    return [r for r in results if isinstance(r, dict)]
+
+
+async def main_async() -> None:
     print("=" * 80)
-    print("UVA Course Details Scraper")
+    print("UVA Course Details Scraper (async)")
     print("=" * 80)
-    
-    # Step 1: Get all subjects
-    print("\n[Step 1] Fetching all subjects...")
-    try:
-        catalog_text = get_catalog_text()
-        subjects = extract_subjects(catalog_text)
-        print(f"Found {len(subjects)} subjects")
-    except Exception as e:
-        print(f"✗ Error getting subjects: {e}")
-        return
-    
-    # Step 2: Process each subject
-    all_courses_data = []
-    
-    for i, (subject_code, subject_name) in enumerate(subjects, 1):
-        print(f"\n[{i}/{len(subjects)}] Processing subject: {subject_code} ({subject_name})")
-        
-        # Get courses for this subject
-        courses = get_courses_by_subject(subject_code)
-        print(f"  Found {len(courses)} courses")
-        
-        # Process each course
-        for course in courses:
-            course_data = process_course(subject_code, course)
-            if course_data:
-                all_courses_data.append(course_data)
-        
-        time.sleep(0.5)  # Be respectful to the server
-    
-    # Step 3: Save to CSV
+
+    # Step 1: subjects via Playwright (async, one-time)
+    print("\n[Step 1] Fetching subjects via Playwright...")
+    catalog_text = await get_catalog_text()
+    subjects = extract_subjects(catalog_text)
+    print(f"  Found {len(subjects)} subjects\n")
+
+    # Step 2: all subjects + courses concurrently
+    print(f"[Step 2] Scraping all courses (concurrency={CONCURRENCY})...")
+    sem = asyncio.Semaphore(CONCURRENCY)
+    connector = aiohttp.TCPConnector(limit=CONCURRENCY)
+
+    async with aiohttp.ClientSession(headers=HEADERS, connector=connector) as session:
+        subject_results = await asyncio.gather(
+            *[
+                process_subject_async(session, sem, code, name, i, len(subjects))
+                for i, (code, name) in enumerate(subjects, 1)
+            ],
+            return_exceptions=True,
+        )
+
+    all_courses: list[dict] = []
+    for result in subject_results:
+        if isinstance(result, list):
+            all_courses.extend(result)
+
+    # Step 3: save
     print("\n" + "=" * 80)
-    print(f"[Step 2] Saving results...")
-    save_to_csv(all_courses_data, "uva_course_details.csv")
-    save_to_json(all_courses_data, "uva_course_details.json")
-    
+    print("[Step 3] Saving results...")
+    save_to_json(all_courses, OUTPUT_DIR / "uva_course_details.json")
+
     print("\n" + "=" * 80)
-    print(f"✅ Successfully processed {len(all_courses_data)} courses")
+    print(f"✅ Successfully processed {len(all_courses)} courses")
     print("=" * 80)
 
 
-def save_to_csv(courses: list[dict], filename: str) -> None:
-    """Save courses to CSV file"""
+# ---------------------------------------------------------------------------
+# Output helpers
+# ---------------------------------------------------------------------------
+
+def save_to_json(courses: list[dict], filename: Path) -> None:
     if not courses:
         print("No courses to save")
         return
-    
     try:
-        with open(filename, 'w', newline='', encoding='utf-8') as f:
-            fieldnames = ['course_code', 'description', 'enrollment_requirements', 'crse_id', 'class_nbr', 'term']
-            writer = csv.DictWriter(f, fieldnames=fieldnames)
-            writer.writeheader()
-            
-            for course in courses:
-                writer.writerow({
-                    'course_code': course['course_code'],
-                    'description': course['description'],
-                    'enrollment_requirements': course['enrollment_requirements'],
-                    'crse_id': course['crse_id'],
-                    'class_nbr': course['class_nbr'],
-                    'term': course['term'],
-                })
-        
-        print(f"✅ Saved {len(courses)} courses to {filename}")
-    except Exception as e:
-        print(f"✗ Error saving to CSV: {e}")
-
-
-def save_to_json(courses: list[dict], filename: str) -> None:
-    """Save courses to JSON file"""
-    if not courses:
-        print("No courses to save")
-        return
-    
-    try:
-        with open(filename, 'w', encoding='utf-8') as f:
+        with open(filename, "w", encoding="utf-8") as f:
             json.dump(courses, f, indent=2, ensure_ascii=False)
-        
-        print(f"✅ Saved {len(courses)} courses to {filename}")
+        print(f"\u2705 Saved {len(courses)} courses to {filename}")
     except Exception as e:
-        print(f"✗ Error saving to JSON: {e}")
+        print(f"\u2717 Error saving to JSON: {e}")
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main_async())
