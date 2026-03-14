@@ -633,7 +633,7 @@ export async function createNewPlan(title?: string) {
         planId: plan.id,
         termOrder,
         termName: termOrder % 2 === 1 ? 'Fall' : 'Spring',
-        year: baseYear + Math.floor((termOrder - 1) / 2),
+        year: baseYear + Math.floor(termOrder / 2),
       },
     });
   }
@@ -971,10 +971,6 @@ export async function deleteSemesterFromPlan(semesterId: string) {
 
   if (!semester) {
     return { error: 'Semester not found.' };
-  }
-
-  if (semester.termName === 'Fall' || semester.termName === 'Spring') {
-    return { error: 'Fall and Spring semesters cannot be deleted.' };
   }
 
   const semesterCount = await prisma.semester.count({

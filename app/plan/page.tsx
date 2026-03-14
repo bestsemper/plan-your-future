@@ -15,6 +15,7 @@ import {
   getCourseCreditsFromCSV,
   getCourseInfoFromCSV,
   getPlanBuilderData,
+  importPlanFromStellicPdf,
   removeCourseFromSemester,
   renamePlan,
 } from '../actions';
@@ -50,6 +51,22 @@ type SchoolYearRow = {
   terms: Partial<Record<'Fall' | 'Winter' | 'Spring' | 'Summer', PlanSemester>>;
 };
 
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      if (typeof result !== 'string') {
+        reject(new Error('Unable to read file as data URL.'));
+        return;
+      }
+      resolve(result);
+    };
+    reader.onerror = () => reject(new Error('Unable to read file.'));
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function PlanBuilderPage() {
   const router = useRouter();
   const isMountedRef = useRef(true);
@@ -58,6 +75,7 @@ export default function PlanBuilderPage() {
   const [allCourses, setAllCourses] = useState<string[]>([]);
   const [selectedPlanId, setSelectedPlanId] = useState('');
   const [isPlanDropdownOpen, setIsPlanDropdownOpen] = useState(false);
+  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const [hoveredPlanId, setHoveredPlanId] = useState<string | null>(null);
   const [planTitle, setPlanTitle] = useState('');
   const [savingTitle, setSavingTitle] = useState(false);
@@ -81,8 +99,16 @@ export default function PlanBuilderPage() {
   const [collapsedSchoolYears, setCollapsedSchoolYears] = useState<Record<number, boolean>>({});
   const [dataLoaded, setDataLoaded] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isRenamePlanOpen, setIsRenamePlanOpen] = useState(false);
+  const [importMode, setImportMode] = useState<'new' | 'overwrite'>('new');
+  const [importNewPlanTitle, setImportNewPlanTitle] = useState('');
+  const [importOverwritePlanId, setImportOverwritePlanId] = useState('');
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [isImportPlanDropdownOpen, setIsImportPlanDropdownOpen] = useState(false);
+  const [importingPdf, setImportingPdf] = useState(false);
 
-  const loadData = async () => {
+  const loadData = async (preferredPlanId?: string) => {
     const res = await getPlanBuilderData();
 
     if (!isMountedRef.current) {
@@ -100,9 +126,10 @@ export default function PlanBuilderPage() {
       setOptimisticPlans(nextPlans);
       setAllCourses(res.allCourses ?? []);
 
+      const preferredSelection = preferredPlanId ? nextPlans.find((p) => p.id === preferredPlanId)?.id : undefined;
       const validSelection = nextPlans.find((p) => p.id === selectedPlanId)?.id;
       const fallbackSelection = nextPlans[0]?.id ?? '';
-      const nextSelected = validSelection || fallbackSelection;
+      const nextSelected = preferredSelection || validSelection || fallbackSelection;
       setSelectedPlanId(nextSelected);
 
       const nextPlan = nextPlans.find((p) => p.id === nextSelected);
@@ -163,8 +190,7 @@ export default function PlanBuilderPage() {
     const res = await createNewPlan();
     setCreatingPlan(false);
     if (!res?.error && res?.planId) {
-      setSelectedPlanId(res.planId);
-      await loadData();
+      await loadData(res.planId);
     }
   };
 
@@ -314,6 +340,46 @@ export default function PlanBuilderPage() {
     await loadData();
   };
 
+  const handleImportFromPdf = async () => {
+    if (!importFile) {
+      setImportError('Please choose a Stellic PDF file.');
+      return;
+    }
+    if (importMode === 'overwrite' && !importOverwritePlanId) {
+      setImportError('Please choose a plan to overwrite.');
+      return;
+    }
+
+    setImportError(null);
+    setImportingPdf(true);
+    try {
+      const dataUrl = await fileToDataUrl(importFile);
+      const res = await importPlanFromStellicPdf({
+        pdfBase64: dataUrl,
+        mode: importMode,
+        overwritePlanId: importMode === 'overwrite' ? importOverwritePlanId : undefined,
+        newPlanTitle: importMode === 'new' ? importNewPlanTitle : undefined,
+      });
+
+      if (res?.error) {
+        setImportError(res.error);
+        setImportingPdf(false);
+        return;
+      }
+
+      setImportFile(null);
+      setImportNewPlanTitle('');
+      setImportOverwritePlanId('');
+      setImportMode('new');
+      setIsImportPlanDropdownOpen(false);
+      setImportingPdf(false);
+      await loadData(res?.planId);
+    } catch {
+      setImportError('Unable to read PDF file.');
+      setImportingPdf(false);
+    }
+  };
+
   const toggleSchoolYearCollapse = (startYear: number) => {
     setCollapsedSchoolYears((prev) => ({
       ...prev,
@@ -322,31 +388,62 @@ export default function PlanBuilderPage() {
   };
 
   const selectedPlanLabel = optimisticPlans.find((p) => p.id === selectedPlanId)?.title || 'Select plan';
+  const importPlanLabel = importOverwritePlanId
+    ? optimisticPlans.find((p) => p.id === importOverwritePlanId)?.title || 'Select plan to overwrite'
+    : 'Select plan to overwrite';
 
   if (!dataLoaded) {
     return (
       <div className="max-w-5xl mx-auto py-8 animate-pulse">
-        <div className="mb-6 border-b border-panel-border pb-4 space-y-3">
+        {/* Header */}
+        <div className="mb-6 border-b border-panel-border pb-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div className="h-9 w-56 rounded bg-input-disabled" />
-            <div className="h-[42px] w-full sm:w-[260px] rounded bg-input-disabled" />
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="h-[42px] w-24 rounded bg-input-disabled" />
-            <div className="h-[42px] w-28 rounded bg-input-disabled" />
-            <div className="h-[42px] w-24 rounded bg-input-disabled" />
-            <div className="h-[42px] w-28 rounded bg-input-disabled" />
+            <div className="h-[42px] w-48 rounded bg-input-disabled" />
+            <div className="flex items-center gap-2 w-full sm:w-auto sm:min-w-[320px]">
+              <div className="h-[38px] flex-1 rounded bg-input-disabled" />
+              <div className="h-10 w-10 rounded-full bg-input-disabled shrink-0" />
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="bg-panel-bg border border-panel-border rounded-lg p-5 min-h-[150px] space-y-3">
-              <div className="h-6 w-40 rounded bg-input-disabled" />
-              <div className="h-10 w-full rounded bg-input-disabled" />
-              <div className="h-10 w-full rounded bg-input-disabled" />
-              <div className="h-10 w-36 rounded bg-input-disabled" />
-            </div>
+        {/* School year sections */}
+        <div className="space-y-6">
+          {Array.from({ length: 4 }).map((_, yi) => (
+            <section key={yi} className="space-y-3">
+              {/* Year header row */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-8 rounded-full bg-input-disabled shrink-0" />
+                  <div className="space-y-1">
+                    <div className="h-3 w-20 rounded bg-input-disabled" />
+                    <div className="h-6 w-28 rounded bg-input-disabled" />
+                  </div>
+                </div>
+                <div className="h-7 w-24 rounded bg-input-disabled" />
+              </div>
+
+              {/* Semester cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {Array.from({ length: 2 }).map((_, si) => (
+                  <div key={si} className="bg-panel-bg border border-panel-border rounded-lg p-5 min-h-[180px]">
+                    {/* Card header */}
+                    <div className="flex justify-between items-center border-b border-panel-border pb-2 mb-3">
+                      <div className="h-6 w-28 rounded bg-input-disabled" />
+                      <div className="flex items-center gap-2">
+                        <div className="h-6 w-10 rounded bg-input-disabled" />
+                        <div className="h-7 w-7 rounded-full bg-input-disabled" />
+                      </div>
+                    </div>
+                    {/* Course rows */}
+                    <div className="space-y-2">
+                      <div className="h-[46px] w-full rounded-xl bg-input-disabled" />
+                      <div className="h-[46px] w-full rounded-xl bg-input-disabled" />
+                      <div className="h-[46px] w-3/4 rounded-xl bg-input-disabled" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
           ))}
         </div>
       </div>
@@ -358,91 +455,137 @@ export default function PlanBuilderPage() {
       <div className="mb-6 border-b border-panel-border pb-4 space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <h1 className="text-3xl font-bold text-heading">Plan Builder</h1>
-          <div className="relative w-full sm:w-auto sm:min-w-[260px]">
-            <button
-              type="button"
-              onClick={() => {
-                setIsPlanDropdownOpen((prev) => !prev);
-                setHoveredPlanId(null);
-              }}
-              onBlur={() =>
-                setTimeout(() => {
-                  setIsPlanDropdownOpen(false);
-                  setHoveredPlanId(null);
-                }, 150)
-              }
-              disabled={optimisticPlans.length === 0}
-              className="w-full px-3 py-2 border border-panel-border rounded bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <span>{selectedPlanLabel}</span>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`w-4 h-4 ml-2 transition-transform ${isPlanDropdownOpen ? 'rotate-180' : ''}`}>
-                <path d="m6 9 6 6 6-6" />
-              </svg>
-            </button>
 
-            {isPlanDropdownOpen && optimisticPlans.length > 0 && (
-              <div className="absolute z-10 w-full mt-1 bg-panel-bg border border-panel-border-strong rounded-md max-h-48 overflow-y-auto">
-                {optimisticPlans.map((p) => (
-                  <div
-                    key={p.id}
-                    onMouseEnter={() => setHoveredPlanId(p.id)}
-                    onMouseLeave={() => setHoveredPlanId(null)}
-                    className={`px-3 py-2 text-sm cursor-pointer transition-colors ${selectedPlanId === p.id && (hoveredPlanId === null || hoveredPlanId === p.id) ? 'bg-uva-blue text-white' : 'text-text-primary hover:bg-uva-blue hover:text-white'}`}
-                    onClick={() => {
-                      setSelectedPlanId(p.id);
-                      setHoveredPlanId(null);
-                      setIsPlanDropdownOpen(false);
-                    }}
-                  >
-                    {p.title}
+          <div className="flex w-full sm:w-auto sm:min-w-[320px] items-center gap-2">
+            <div className="relative flex-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsPlanDropdownOpen((prev) => !prev);
+                  setHoveredPlanId(null);
+                }}
+                onBlur={() =>
+                  setTimeout(() => {
+                    setIsPlanDropdownOpen(false);
+                    setHoveredPlanId(null);
+                  }, 150)
+                }
+                disabled={optimisticPlans.length === 0}
+                className="w-full px-4 py-2.5 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between transition-all disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none hover:border-panel-border-strong"
+              >
+                <span className="truncate text-sm font-medium">{selectedPlanLabel}</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`w-4 h-4 ml-2 shrink-0 text-text-secondary transition-transform duration-200 ${isPlanDropdownOpen ? 'rotate-180' : ''}`}>
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </button>
+
+              {isPlanDropdownOpen && optimisticPlans.length > 0 && (
+                <div className="absolute z-10 w-full mt-1.5 bg-panel-bg border border-panel-border rounded-xl shadow-lg overflow-hidden">
+                  <div className="max-h-48 overflow-y-auto p-1.5 space-y-0.5">
+                    {optimisticPlans.map((p) => {
+                      const isSelected = selectedPlanId === p.id;
+                      return (
+                        <div
+                          key={p.id}
+                          onMouseEnter={() => setHoveredPlanId(p.id)}
+                          onMouseLeave={() => setHoveredPlanId(null)}
+                          className={`px-3 py-2 text-sm cursor-pointer rounded-lg transition-colors flex items-center justify-between gap-2 ${isSelected ? 'bg-uva-blue/10 text-uva-blue font-semibold' : 'text-text-primary hover:bg-hover-bg'}`}
+                          onClick={() => {
+                            setSelectedPlanId(p.id);
+                            setHoveredPlanId(null);
+                            setIsPlanDropdownOpen(false);
+                          }}
+                        >
+                          <span className="truncate">{p.title}</span>
+                          {isSelected && (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 shrink-0 text-uva-blue">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
-                ))}
-              </div>
-            )}
+                </div>
+              )}
+            </div>
+
+            <div className="relative shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsMoreMenuOpen((prev) => !prev)}
+                onBlur={() =>
+                  setTimeout(() => {
+                    setIsMoreMenuOpen(false);
+                  }, 150)
+                }
+                className="inline-flex items-center justify-center w-10 h-10 rounded-full text-text-primary hover:bg-hover-bg transition-colors cursor-pointer"
+                aria-label="More plan actions"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4.5 h-4.5"><circle cx="12" cy="5" r="1" /><circle cx="12" cy="12" r="1" /><circle cx="12" cy="19" r="1" /></svg>
+              </button>
+
+              {isMoreMenuOpen && (
+                <div className="absolute right-0 top-full mt-1.5 w-52 rounded-xl border border-panel-border bg-panel-bg shadow-lg z-20 p-1.5 space-y-0.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void handleCreatePlan();
+                      setIsMoreMenuOpen(false);
+                    }}
+                    disabled={creatingPlan}
+                    className="w-full px-3 py-2 rounded-lg text-left text-sm text-text-primary hover:bg-hover-bg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2.5"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-text-secondary"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    {creatingPlan ? 'Creating...' : 'New Plan'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void handleAddYear();
+                      setIsMoreMenuOpen(false);
+                    }}
+                    disabled={!activePlan || updatingYear}
+                    className="w-full px-3 py-2 rounded-lg text-left text-sm text-text-primary hover:bg-hover-bg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2.5"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-text-secondary"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    {updatingYear ? 'Adding Year...' : 'Add Year'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsRenamePlanOpen(true);
+                      setIsMoreMenuOpen(false);
+                    }}
+                    disabled={!activePlan}
+                    className="w-full px-3 py-2 rounded-lg text-left text-sm text-text-primary hover:bg-hover-bg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2.5"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-text-secondary"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    Rename Plan
+                  </button>
+                  <div className="my-1 border-t border-panel-border" />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      requestDeletePlan();
+                      setIsMoreMenuOpen(false);
+                    }}
+                    disabled={!activePlan || deletingPlan}
+                    className="w-full px-3 py-2 rounded-lg text-left text-sm text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2.5"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+                    {deletingPlan ? 'Deleting...' : 'Delete Plan'}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-          <button
-            onClick={handleCreatePlan}
-            disabled={creatingPlan}
-            className="px-4 py-2 border border-panel-border-strong text-text-primary rounded hover:bg-hover-bg font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {creatingPlan ? 'Creating...' : 'New Plan'}
-          </button>
-
-          <button
-            onClick={() => void handleAddYear()}
-            disabled={!activePlan || updatingYear}
-            className="px-4 py-2 border border-panel-border-strong text-text-primary rounded hover:bg-hover-bg font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {updatingYear ? 'Adding Year...' : 'Add Year'}
-          </button>
-
-          <button
-            onClick={requestDeletePlan}
-            disabled={!activePlan || deletingPlan}
-            className="px-4 py-2 border border-red-400 text-red-500 rounded hover:bg-red-500/10 font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {deletingPlan ? 'Deleting...' : 'Delete Plan'}
-          </button>
-
-          <button
-            onClick={() => setIsSettingsOpen(true)}
-            className="px-4 py-2 border border-panel-border-strong text-text-primary rounded hover:bg-hover-bg font-semibold transition-colors cursor-pointer"
-          >
-            Settings
-          </button>
-
-          <button className="px-4 py-2 bg-uva-orange text-white rounded hover:bg-[#cc6600] font-semibold transition-colors cursor-pointer disabled:cursor-not-allowed">
-            Publish Plan
-          </button>
         </div>
       </div>
 
       <div>
         {semesterActionError && (
-          <div className="mb-4 bg-red-500/10 border border-red-500/40 text-red-500 px-4 py-2 rounded-md text-sm font-semibold">
+          <div className="mb-4 bg-red-500/10 border border-red-500/40 text-red-500 px-4 py-2 rounded-xl text-sm font-semibold">
             {semesterActionError}
           </div>
         )}
@@ -457,6 +600,10 @@ export default function PlanBuilderPage() {
               const columnCount = Math.max(2, Math.min(4, orderedTerms.length));
               const isCollapsed = Boolean(collapsedSchoolYears[row.startYear]);
               const totalCourses = orderedTerms.reduce((count, term) => count + (row.terms[term]?.courses.length ?? 0), 0);
+              const totalCredits = orderedTerms.reduce(
+                (count, term) => count + (row.terms[term]?.courses.reduce((sum, course) => sum + (course.credits ?? 0), 0) ?? 0),
+                0
+              );
 
               return (
                 <section key={row.startYear} className="space-y-3">
@@ -480,7 +627,7 @@ export default function PlanBuilderPage() {
                         type="button"
                         onClick={() => requestDeleteYear(row.startYear)}
                         disabled={updatingYear || schoolYearRows.length <= 1}
-                        className="px-3 py-1.5 text-xs font-semibold border border-red-400 text-red-500 rounded hover:bg-red-500/10 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-3 py-1.5 text-xs font-semibold border border-red-400 text-red-500 rounded-xl hover:bg-red-500/10 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         Remove Year
                       </button>
@@ -490,7 +637,7 @@ export default function PlanBuilderPage() {
                           type="button"
                           onClick={() => void handleAddSemester(row.startYear, term)}
                           disabled={updatingSemester}
-                          className="px-3 py-1.5 text-xs font-semibold border border-panel-border-strong rounded text-text-primary hover:bg-hover-bg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-3 py-1.5 text-xs font-semibold border border-panel-border-strong rounded-xl text-text-primary hover:bg-hover-bg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           Add {term}
                         </button>
@@ -499,15 +646,14 @@ export default function PlanBuilderPage() {
                   </div>
 
                   {isCollapsed ? (
-                    <div className="px-4 py-3 rounded-md border border-panel-border bg-panel-bg-alt text-sm text-text-secondary">
-                      {orderedTerms.length} semesters, {totalCourses} courses
+                    <div className="px-4 py-3 rounded-xl border border-panel-border bg-panel-bg-alt text-sm text-text-secondary">
+                      {orderedTerms.length} semesters, {totalCourses} courses, {totalCredits} credits
                     </div>
                   ) : (
                   <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${columnCount}, minmax(0, 1fr))` }}>
                     {orderedTerms.map((term) => {
                       const sem = row.terms[term];
                       if (!sem) return null;
-                      const canDeleteSemester = term === 'Winter' || term === 'Summer';
 
                       return (
                         <div key={sem.id} className="bg-panel-bg border border-panel-border rounded-lg p-5 min-h-[150px]">
@@ -522,7 +668,7 @@ export default function PlanBuilderPage() {
                               <button
                                 type="button"
                                 onClick={() => requestDeleteSemester(sem.id, `${sem.termName} ${sem.year}`)}
-                                disabled={updatingSemester || !canDeleteSemester}
+                                disabled={updatingSemester}
                                 className="inline-flex items-center justify-center w-7 h-7 rounded-full text-text-tertiary hover:text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                                 aria-label={`Delete ${sem.termName} ${sem.year}`}
                               >
@@ -532,11 +678,11 @@ export default function PlanBuilderPage() {
                           </div>
                           <div className="space-y-2">
                             {sem.courses.map((course) => (
-                              <div key={course.id} onClick={() => handleCourseClick(course.courseCode)} className="px-3 bg-panel-bg-alt border border-panel-border-strong rounded-md text-sm flex justify-between items-center hover:border-uva-blue transition-colors cursor-pointer group h-[46px]">
+                              <div key={course.id} onClick={() => handleCourseClick(course.courseCode)} className="px-3 bg-panel-bg-alt border border-panel-border-strong rounded-lg text-sm flex justify-between items-center hover:border-uva-blue transition-colors cursor-pointer group h-[46px]">
                                 <span className="font-medium text-text-primary">{course.courseCode}</span>
                                 <div className="flex items-center space-x-2">
                                   <span className="text-gray-500 font-semibold">{course.credits ?? 0} cr</span>
-                                  <button onClick={(e) => { e.stopPropagation(); void handleRemoveCourse(course.id); }} className="text-red-500 opacity-0 group-hover:opacity-100 font-bold px-1 transition-opacity cursor-pointer hover:bg-danger-bg-hover rounded">
+                                  <button onClick={(e) => { e.stopPropagation(); void handleRemoveCourse(course.id); }} className="text-red-500 opacity-0 group-hover:opacity-100 font-bold px-1 transition-opacity cursor-pointer rounded">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                                   </button>
                                 </div>
@@ -553,14 +699,15 @@ export default function PlanBuilderPage() {
                                     onChange={(e) => handleCourseSearchChange(e.target.value)}
                                     onFocus={() => setShowDropdown(true)}
                                     onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
-                                    className="w-full px-3 border border-panel-border-strong rounded-md text-sm bg-panel-bg text-text-primary focus:outline-none focus:ring-1 focus:ring-uva-blue h-full"
+                                    className="w-full px-3 border border-panel-border-strong rounded-xl text-sm bg-panel-bg text-text-primary focus:outline-none h-full"
                                   />
                                   {showDropdown && filteredCourses.length > 0 && (
-                                    <div className="absolute z-10 w-full mt-1 bg-panel-bg border border-panel-border-strong rounded-md max-h-48 overflow-y-auto">
+                                    <div className="absolute z-10 w-full mt-1.5 bg-panel-bg border border-panel-border rounded-xl shadow-lg overflow-hidden">
+                                      <div className="max-h-48 overflow-y-auto p-1.5 space-y-0.5">
                                       {filteredCourses.map((c) => (
                                         <div
                                           key={c}
-                                          className="px-3 py-2 text-sm text-text-primary hover:bg-uva-blue hover:text-white hover:bg-uva-blue transition-colors cursor-pointer"
+                                          className="px-3 py-2 text-sm text-text-primary rounded-lg hover:bg-hover-bg transition-colors cursor-pointer"
                                           onClick={() => {
                                             setCourseCode(c);
                                             getCourseCreditsFromCSV(c).then((res) => setCredits(res));
@@ -570,6 +717,7 @@ export default function PlanBuilderPage() {
                                           {c}
                                         </div>
                                       ))}
+                                      </div>
                                     </div>
                                   )}
                                 </div>
@@ -578,7 +726,7 @@ export default function PlanBuilderPage() {
                                   placeholder="Cr"
                                   value={credits}
                                   readOnly
-                                  className="w-1/4 px-3 border border-panel-border-strong rounded-md text-sm bg-input-disabled text-text-muted cursor-not-allowed focus:outline-none h-full"
+                                  className="w-1/4 px-3 border border-panel-border-strong rounded-xl text-sm bg-input-disabled text-text-muted cursor-not-allowed focus:outline-none h-full"
                                 />
                                 <div className="flex items-center space-x-1 px-1">
                                   <button onClick={() => void handleAddCourse(sem.id)} className="text-success-text hover:text-success-text-hover p-2 cursor-pointer disabled:cursor-not-allowed flex items-center justify-center transition-all hover:scale-110">
@@ -590,7 +738,7 @@ export default function PlanBuilderPage() {
                                 </div>
                               </div>
                             ) : (
-                              <button onClick={() => setNewCourseSem(sem.id)} className="mt-2 text-sm font-semibold text-gray-500 hover:text-uva-orange hover:border-uva-orange hover:bg-hover-bg hover:text-uva-orange hover:border-uva-orange w-full text-center px-3 border border-dashed border-panel-border-strong rounded-md transition-all cursor-pointer disabled:cursor-not-allowed h-[46px] flex items-center justify-center">
+                              <button onClick={() => setNewCourseSem(sem.id)} className="mt-2 text-sm font-semibold text-gray-500 hover:text-uva-orange hover:border-uva-orange hover:bg-hover-bg hover:text-uva-orange hover:border-uva-orange w-full text-center px-3 border border-dashed border-panel-border-strong rounded-xl transition-all cursor-pointer disabled:cursor-not-allowed h-[46px] flex items-center justify-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 mr-1"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Course
                               </button>
                             )}
@@ -609,7 +757,7 @@ export default function PlanBuilderPage() {
 
       {isSettingsOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setIsSettingsOpen(false)}>
-          <div className="bg-panel-bg-alt border border-panel-border rounded-lg p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-panel-bg-alt border border-panel-border rounded-2xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-bold text-xl text-heading">Settings</h2>
               <button onClick={() => setIsSettingsOpen(false)} className="text-text-muted hover:text-text-secondary cursor-pointer" aria-label="Close settings">
@@ -623,13 +771,13 @@ export default function PlanBuilderPage() {
                 type="text"
                 value={planTitle}
                 onChange={(e) => setPlanTitle(e.target.value)}
-                className="w-full px-3 py-2 border border-panel-border rounded-md bg-input-bg text-text-primary outline-none"
+                className="w-full px-3 py-2 border border-panel-border rounded-xl bg-input-bg text-text-primary outline-none"
                 disabled={!activePlan}
               />
               <button
                 onClick={() => void handleRenamePlan()}
                 disabled={!activePlan || savingTitle}
-                className="w-full border border-panel-border-strong py-2 rounded font-semibold text-text-primary hover:bg-hover-bg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full border border-panel-border-strong py-2 rounded-xl font-semibold text-text-primary hover:bg-hover-bg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {savingTitle ? 'Saving...' : 'Save Name'}
               </button>
@@ -638,10 +786,155 @@ export default function PlanBuilderPage() {
             <button
               onClick={() => void handleGenerate()}
               disabled={loading || !userId}
-              className="w-full bg-uva-blue flex justify-center text-white py-2.5 rounded font-bold hover:bg-uva-blue-dark transition-colors mt-2 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+              className="w-full bg-uva-blue/90 flex justify-center text-white py-2.5 rounded-xl font-bold hover:bg-uva-blue transition-colors mt-2 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
             >
               {loading ? 'Generating...' : 'Auto-Generate CSV Plan'}
             </button>
+
+            <div className="mt-4 pt-4 border-t border-panel-border space-y-3">
+              <h3 className="text-sm font-semibold text-heading">Import Plan PDF</h3>
+
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setImportMode('new');
+                    setIsImportPlanDropdownOpen(false);
+                    setImportError(null);
+                  }}
+                  className={`px-3 py-2 text-sm font-semibold rounded-xl border transition-colors cursor-pointer ${importMode === 'new' ? 'bg-uva-blue/90 text-white border-uva-blue' : 'border-panel-border-strong text-text-primary hover:bg-hover-bg'}`}
+                >
+                  New Plan
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setImportMode('overwrite');
+                    setImportError(null);
+                  }}
+                  className={`px-3 py-2 text-sm font-semibold rounded-xl border transition-colors cursor-pointer ${importMode === 'overwrite' ? 'bg-uva-blue/90 text-white border-uva-blue' : 'border-panel-border-strong text-text-primary hover:bg-hover-bg'}`}
+                >
+                  Overwrite
+                </button>
+              </div>
+
+              {importMode === 'new' && (
+                <input
+                  type="text"
+                  value={importNewPlanTitle}
+                  onChange={(e) => setImportNewPlanTitle(e.target.value)}
+                  placeholder="Optional new plan name"
+                  className="w-full px-3 py-2 border border-panel-border rounded-xl bg-input-bg text-text-primary outline-none"
+                />
+              )}
+
+              {importMode === 'overwrite' && (
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setIsImportPlanDropdownOpen((prev) => !prev)}
+                    onBlur={() =>
+                      setTimeout(() => {
+                        setIsImportPlanDropdownOpen(false);
+                      }, 150)
+                    }
+                    className="w-full px-4 py-2.5 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between hover:border-panel-border-strong transition-colors"
+                  >
+                      <span className="truncate text-sm font-medium">{importPlanLabel}</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`w-4 h-4 text-text-secondary transition-transform duration-200 ${isImportPlanDropdownOpen ? 'rotate-180' : ''}`}><path d="m6 9 6 6 6-6" /></svg>
+                  </button>
+
+                  {isImportPlanDropdownOpen && (
+                      <div className="absolute z-10 mt-1.5 w-full rounded-xl border border-panel-border bg-panel-bg shadow-lg overflow-hidden">
+                        <div className="max-h-40 overflow-y-auto p-1.5 space-y-0.5">
+                      {optimisticPlans.map((plan) => (
+                        <button
+                          key={plan.id}
+                          type="button"
+                          onClick={() => {
+                            setImportOverwritePlanId(plan.id);
+                            setIsImportPlanDropdownOpen(false);
+                          }}
+                            className={`w-full px-3 py-2 text-left text-sm rounded-lg cursor-pointer transition-colors ${importOverwritePlanId === plan.id ? 'bg-uva-blue/10 text-uva-blue font-semibold' : 'text-text-primary hover:bg-hover-bg'}`}
+                        >
+                          {plan.title}
+                        </button>
+                      ))}
+                        </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <input
+                type="file"
+                accept="application/pdf"
+                onChange={(e) => setImportFile(e.target.files?.[0] ?? null)}
+                className="w-full text-sm text-text-primary file:mr-3 file:px-3 file:py-2 file:border file:border-panel-border-strong file:rounded file:bg-panel-bg-alt file:text-text-primary file:cursor-pointer"
+              />
+
+              {importError && (
+                <div className="bg-red-500/10 border border-red-500/40 text-red-500 px-3 py-2 rounded text-sm font-semibold">
+                  {importError}
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={() => void handleImportFromPdf()}
+                disabled={importingPdf}
+                className="w-full px-4 py-2 bg-uva-orange/90 text-white rounded-xl hover:bg-uva-orange font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {importingPdf ? 'Importing...' : 'Import PDF'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isRenamePlanOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setIsRenamePlanOpen(false)}>
+          <div className="bg-panel-bg-alt border border-panel-border rounded-2xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-bold text-xl text-heading">Rename Plan</h2>
+              <button onClick={() => setIsRenamePlanOpen(false)} className="text-text-muted hover:text-text-secondary cursor-pointer" aria-label="Close rename plan">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <label className="block text-xs font-semibold uppercase tracking-wide text-text-secondary">Plan Name</label>
+              <input
+                type="text"
+                value={planTitle}
+                onChange={(e) => setPlanTitle(e.target.value)}
+                className="w-full px-3 py-2 border border-panel-border rounded-xl bg-input-bg text-text-primary outline-none"
+                disabled={!activePlan || savingTitle}
+              />
+              <div className="flex items-center justify-end gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setIsRenamePlanOpen(false)}
+                  className="px-4 py-2 border border-panel-border-strong rounded-xl font-semibold text-text-primary hover:bg-hover-bg transition-colors cursor-pointer"
+                  disabled={savingTitle}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    void (async () => {
+                      await handleRenamePlan();
+                      setIsRenamePlanOpen(false);
+                    })();
+                  }}
+                  disabled={!activePlan || savingTitle}
+                  className="px-4 py-2 bg-uva-blue/90 text-white rounded-xl font-semibold hover:bg-uva-blue transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {savingTitle ? 'Saving...' : 'Save Name'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -684,7 +977,7 @@ export default function PlanBuilderPage() {
 
       {loadingInfo && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-panel-bg p-6 rounded-lg flex items-center space-x-3">
+          <div className="bg-panel-bg p-6 rounded-2xl flex items-center space-x-3">
             <svg className="animate-spin h-5 w-5 text-uva-blue" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
             <span className="font-medium text-text-primary">Loading course info...</span>
           </div>
@@ -693,7 +986,7 @@ export default function PlanBuilderPage() {
 
       {selectedCourseInfo && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setSelectedCourseInfo(null)}>
-          <div className="bg-panel-bg p-6 rounded-lg max-w-md w-full max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-panel-bg p-6 rounded-2xl max-w-md w-full max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-start mb-4">
               <h2 className="text-2xl font-bold text-heading">{selectedCourseInfo.courseCode}</h2>
               <button onClick={() => setSelectedCourseInfo(null)} className="text-text-muted hover:text-text-secondary cursor-pointer">

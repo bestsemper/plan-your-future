@@ -118,12 +118,12 @@ export default function ForumPage() {
         </div>
 
         <div className="mb-6">
-          <div className="h-12 w-full rounded-md bg-input-disabled" />
+          <div className="h-12 w-full rounded-xl bg-input-disabled" />
         </div>
 
         <div className="space-y-4">
           {Array.from({ length: 2 }).map((_, i) => (
-            <div key={i} className="bg-panel-bg border border-panel-border p-5 rounded-md flex gap-4">
+            <div key={i} className="bg-panel-bg border border-panel-border p-5 rounded-xl flex gap-4">
               <div className="w-24 shrink-0 space-y-2">
                 <div className="h-4 w-full rounded bg-input-disabled" />
                 <div className="h-4 w-full rounded bg-input-disabled" />
@@ -149,7 +149,7 @@ export default function ForumPage() {
         <button
           type="button"
           onClick={() => setIsComposerOpen((prev) => !prev)}
-          className="px-4 py-2 bg-uva-orange text-white rounded hover:bg-[#cc6600] font-semibold transition-colors cursor-pointer"
+          className="px-4 py-2 bg-uva-orange/90 text-white rounded-xl hover:bg-uva-orange font-semibold transition-colors cursor-pointer"
         >
           {isComposerOpen ? 'Close' : 'New Post'}
         </button>
@@ -161,12 +161,12 @@ export default function ForumPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search posts and replies..."
-          className="w-full p-3 border border-panel-border rounded-md bg-input-bg text-text-primary outline-none"
+          className="w-full p-3 border border-panel-border rounded-xl bg-input-bg text-text-primary outline-none"
         />
       </div>
 
       {isComposerOpen && (
-        <div className="bg-panel-bg border border-panel-border rounded-md p-4 mb-6">
+        <div className="bg-panel-bg border border-panel-border rounded-xl p-4 mb-6">
           <h2 className="text-lg font-bold text-heading mb-3">Create New Post</h2>
           {!canPost && (
             <p className="text-sm text-text-secondary mb-3">Log in to create posts, reply, and vote.</p>
@@ -177,7 +177,7 @@ export default function ForumPage() {
               value={newPostTitle}
               onChange={(e) => setNewPostTitle(e.target.value)}
               placeholder="Post title"
-              className="w-full p-3 border border-panel-border rounded-md bg-input-bg text-text-primary outline-none"
+              className="w-full p-3 border border-panel-border rounded-xl bg-input-bg text-text-primary outline-none"
               disabled={!canPost || isPending}
             />
             <textarea
@@ -185,7 +185,7 @@ export default function ForumPage() {
               onChange={(e) => setNewPostBody(e.target.value)}
               placeholder="Ask your question or share your advice"
               rows={4}
-              className="w-full p-3 border border-panel-border rounded-md bg-input-bg text-text-primary outline-none"
+              className="w-full p-3 border border-panel-border rounded-xl bg-input-bg text-text-primary outline-none"
               disabled={!canPost || isPending}
             />
             <div className="relative">
@@ -201,10 +201,10 @@ export default function ForumPage() {
                     setHoveredPlanId(null);
                   }, 150)
                 }
-                className="w-full p-3 border border-panel-border rounded-md bg-input-bg text-text-primary outline-none text-left cursor-pointer flex items-center justify-between disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-4 py-2.5 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between focus:outline-none hover:border-panel-border-strong transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={!canPost || isPending}
               >
-                <span>{selectedPlanLabel}</span>
+                <span className="truncate text-sm font-medium">{selectedPlanLabel}</span>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="16"
@@ -212,44 +212,52 @@ export default function ForumPage() {
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
-                  strokeWidth="2"
+                  strokeWidth="2.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className={`w-4 h-4 ml-2 transition-transform ${isPlanDropdownOpen ? 'rotate-180' : ''}`}
+                  className={`w-4 h-4 ml-2 shrink-0 text-text-secondary transition-transform duration-200 ${isPlanDropdownOpen ? 'rotate-180' : ''}`}
                 >
                   <path d="m6 9 6 6 6-6" />
                 </svg>
               </button>
 
               {isPlanDropdownOpen && canPost && !isPending && (
-                <div className="absolute z-10 w-full mt-1 bg-panel-bg border border-panel-border-strong rounded-md max-h-48 overflow-y-auto">
+                <div className="absolute z-10 w-full mt-1.5 bg-panel-bg border border-panel-border rounded-xl shadow-lg overflow-hidden">
+                  <div className="max-h-48 overflow-y-auto p-1.5 space-y-0.5">
                   <div
                     onMouseEnter={() => setHoveredPlanId('__none__')}
                     onMouseLeave={() => setHoveredPlanId(null)}
-                    className={`px-3 py-2 text-sm cursor-pointer transition-colors ${attachedPlanId === '' && hoveredPlanId === null ? 'bg-uva-blue text-white' : 'text-text-primary hover:bg-uva-blue hover:text-white'}`}
+                    className={`px-3 py-2 text-sm cursor-pointer rounded-lg transition-colors flex items-center justify-between gap-2 ${attachedPlanId === '' ? 'bg-uva-blue/10 text-uva-blue font-semibold' : 'text-text-primary hover:bg-hover-bg'}`}
                     onClick={() => {
                       setAttachedPlanId('');
                       setHoveredPlanId(null);
                       setIsPlanDropdownOpen(false);
                     }}
                   >
-                    No plan attached
+                    <span>No plan attached</span>
+                    {attachedPlanId === '' && (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 shrink-0 text-uva-blue"><polyline points="20 6 9 17 4 12" /></svg>
+                    )}
                   </div>
                   {plans.map((plan) => (
                     <div
                       key={plan.id}
                       onMouseEnter={() => setHoveredPlanId(plan.id)}
                       onMouseLeave={() => setHoveredPlanId(null)}
-                      className={`px-3 py-2 text-sm cursor-pointer transition-colors ${attachedPlanId === plan.id && (hoveredPlanId === null || hoveredPlanId === plan.id) ? 'bg-uva-blue text-white' : 'text-text-primary hover:bg-uva-blue hover:text-white'}`}
+                      className={`px-3 py-2 text-sm cursor-pointer rounded-lg transition-colors flex items-center justify-between gap-2 ${attachedPlanId === plan.id ? 'bg-uva-blue/10 text-uva-blue font-semibold' : 'text-text-primary hover:bg-hover-bg'}`}
                       onClick={() => {
                         setAttachedPlanId(plan.id);
                         setHoveredPlanId(null);
                         setIsPlanDropdownOpen(false);
                       }}
                     >
-                      Attach: {plan.title}
+                      <span className="truncate">Attach: {plan.title}</span>
+                      {attachedPlanId === plan.id && (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 shrink-0 text-uva-blue"><polyline points="20 6 9 17 4 12" /></svg>
+                      )}
                     </div>
                   ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -257,7 +265,7 @@ export default function ForumPage() {
               type="button"
               onClick={handleCreatePost}
               disabled={!canPost || isPending}
-              className="px-4 py-2 bg-uva-orange text-white rounded hover:bg-[#cc6600] font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-uva-orange/90 text-white rounded-xl hover:bg-uva-orange font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isPending ? 'Posting...' : 'Post'}
             </button>
@@ -266,12 +274,12 @@ export default function ForumPage() {
       )}
 
       {error && (
-        <div className="mb-4 bg-red-500/10 border border-red-500/40 text-red-500 px-4 py-2 rounded-md text-sm font-semibold">
+        <div className="mb-4 bg-red-500/10 border border-red-500/40 text-red-500 px-4 py-2 rounded-xl text-sm font-semibold">
           {error}
         </div>
       )}
 
-      <div className="bg-panel-bg border border-panel-border rounded-md overflow-hidden">
+      <div className="bg-panel-bg border border-panel-border rounded-xl overflow-hidden">
         {filteredPosts.map((post) => {
           return (
             <article key={post.id} className="px-4 py-4 border-b border-panel-border last:border-b-0">

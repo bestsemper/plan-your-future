@@ -52,8 +52,23 @@ export default async function Home() {
               See what other students are planning and get feedback on your schedule.
             </p>
           </div>
-          <Link href="/forum" className="text-uva-orange font-semibold hover:underline flex items-center">
-            Browse the Forum <span className="ml-2">&rarr;</span>
+          <Link href="/forum" className="inline-flex items-center gap-1.5 text-sm font-semibold text-uva-blue hover:text-uva-orange transition-colors">
+            Browse the Forum
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="w-4 h-4"
+              aria-hidden="true"
+            >
+              <path d="m9 18 6-6-6-6" />
+            </svg>
           </Link>
         </div>
       </div>

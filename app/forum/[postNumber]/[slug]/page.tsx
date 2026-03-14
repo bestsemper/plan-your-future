@@ -192,7 +192,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
     return (
       <div className="max-w-5xl mx-auto py-8 animate-pulse">
         <div className="h-6 w-24 rounded bg-input-disabled mb-6" />
-        <div className="bg-panel-bg border border-panel-border rounded-md p-5 space-y-3 mb-6">
+        <div className="bg-panel-bg border border-panel-border rounded-xl p-5 space-y-3 mb-6">
           <div className="h-8 w-3/4 rounded bg-input-disabled" />
           <div className="h-4 w-1/2 rounded bg-input-disabled" />
           <div className="h-4 w-full rounded bg-input-disabled" />
@@ -220,13 +220,13 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
       </Link>
 
       {error && (
-        <div className="mb-4 bg-red-500/10 border border-red-500/40 text-red-500 px-4 py-2 rounded-md text-sm font-semibold">
+        <div className="mb-4 bg-red-500/10 border border-red-500/40 text-red-500 px-4 py-2 rounded-xl text-sm font-semibold">
           {error}
         </div>
       )}
 
       <div className="space-y-6">
-          <article className="bg-panel-bg border border-panel-border rounded-md p-5">
+          <article className="bg-panel-bg border border-panel-border rounded-xl p-5">
             <div className="flex items-start justify-between gap-3 mb-2">
               <h1 className="text-4xl font-semibold text-heading leading-tight">{post.title}</h1>
               {post.canDelete && (
@@ -234,7 +234,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                   type="button"
                   onClick={() => setIsDeleteConfirmOpen(true)}
                   disabled={isPending}
-                  className="shrink-0 px-3 py-1.5 rounded border border-red-400 text-red-500 hover:bg-red-500/10 text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="shrink-0 px-3 py-1.5 rounded-xl border border-red-400 text-red-500 hover:bg-red-500/10 text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Delete
                 </button>
@@ -321,7 +321,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                       setIsSortDropdownOpen(false);
                     }, 150)
                   }
-                  className="inline-flex items-center gap-2 px-3 py-1.5 border border-panel-border rounded bg-input-bg text-text-primary cursor-pointer"
+                  className="inline-flex items-center gap-2 px-3 py-2 border border-panel-border rounded-xl bg-input-bg text-text-primary cursor-pointer hover:border-panel-border-strong transition-colors"
                 >
                   <span>Sort: {replySort === 'newest' ? 'Newest first' : 'Oldest first'}</span>
                   <svg
@@ -334,7 +334,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className={`w-4 h-4 transition-transform ${isSortDropdownOpen ? 'rotate-180' : ''}`}
+                    className={`w-4 h-4 text-text-secondary transition-transform duration-200 ${isSortDropdownOpen ? 'rotate-180' : ''}`}
                     aria-hidden="true"
                   >
                     <path d="m6 9 6 6 6-6" />
@@ -342,14 +342,14 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                 </button>
 
                 {isSortDropdownOpen && (
-                  <div className="absolute right-0 mt-1 w-44 rounded-md border border-panel-border-strong bg-panel-bg shadow-lg z-10 overflow-hidden">
+                  <div className="absolute right-0 mt-1.5 w-48 rounded-xl border border-panel-border bg-panel-bg shadow-lg z-10 overflow-hidden p-1.5 space-y-0.5">
                     <button
                       type="button"
                       onClick={() => {
                         setReplySort('newest');
                         setIsSortDropdownOpen(false);
                       }}
-                      className={`w-full text-left px-3 py-2 text-sm cursor-pointer transition-colors ${replySort === 'newest' ? 'bg-uva-blue text-white' : 'text-text-primary hover:bg-uva-blue hover:text-white'}`}
+                      className={`w-full text-left px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors ${replySort === 'newest' ? 'bg-uva-blue/10 text-uva-blue font-semibold' : 'text-text-primary hover:bg-hover-bg'}`}
                     >
                       Newest first
                     </button>
@@ -359,7 +359,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                         setReplySort('oldest');
                         setIsSortDropdownOpen(false);
                       }}
-                      className={`w-full text-left px-3 py-2 text-sm cursor-pointer transition-colors ${replySort === 'oldest' ? 'bg-uva-blue text-white' : 'text-text-primary hover:bg-uva-blue hover:text-white'}`}
+                      className={`w-full text-left px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors ${replySort === 'oldest' ? 'bg-uva-blue/10 text-uva-blue font-semibold' : 'text-text-primary hover:bg-hover-bg'}`}
                     >
                       Oldest first
                     </button>
@@ -368,13 +368,13 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
               </div>
             </div>
 
-            <div className="bg-panel-bg border border-panel-border rounded-md p-3">
+            <div className="bg-panel-bg border border-panel-border rounded-xl p-3">
               <textarea
                 value={replyDraft}
                 onChange={(e) => setReplyDraft(e.target.value)}
                 rows={3}
                 placeholder="Join the conversation..."
-                className="w-full p-3 border border-panel-border rounded-md bg-input-bg text-text-primary outline-none"
+                className="w-full p-3 border border-panel-border rounded-xl bg-input-bg text-text-primary outline-none"
                 disabled={!canPost || isPending}
               />
               <div className="mt-2 flex justify-end">
@@ -382,7 +382,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                   type="button"
                   onClick={handleReply}
                   disabled={!canPost || isPending}
-                  className="px-4 py-2 bg-uva-blue text-white rounded hover:bg-uva-blue-dark font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 bg-uva-blue/90 text-white rounded-xl hover:bg-uva-blue font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isPending ? 'Submitting...' : 'Reply'}
                 </button>
@@ -390,13 +390,13 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
             </div>
 
             {sortedAnswers.length === 0 && (
-              <div className="bg-panel-bg border border-panel-border rounded-md p-4">
+              <div className="bg-panel-bg border border-panel-border rounded-xl p-4">
                 <p className="text-sm text-text-secondary">No replies yet.</p>
               </div>
             )}
 
             {sortedAnswers.map((answer) => (
-              <article key={answer.id} className="bg-panel-bg border border-panel-border rounded-md p-4">
+              <article key={answer.id} className="bg-panel-bg border border-panel-border rounded-xl p-4">
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded bg-input-disabled text-text-secondary text-xs font-bold flex items-center justify-center shrink-0 uppercase">
                     {answer.authorDisplayName.charAt(0)}
@@ -468,7 +468,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
           }}
         >
           <div
-            className="bg-panel-bg border border-panel-border rounded-lg w-full max-w-3xl max-h-[85vh] overflow-y-auto p-5"
+            className="bg-panel-bg border border-panel-border rounded-2xl w-full max-w-3xl max-h-[85vh] overflow-y-auto p-5"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
@@ -504,7 +504,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {attachedPlanPreview.semesters.map((sem) => (
-                    <div key={sem.id} className="bg-panel-bg-alt border border-panel-border rounded-lg p-4">
+                    <div key={sem.id} className="bg-panel-bg-alt border border-panel-border rounded-xl p-4">
                       <div className="flex justify-between items-center border-b border-panel-border pb-2 mb-3">
                         <h5 className="font-bold text-heading">{sem.termName} {sem.year}</h5>
                         <span className="text-xs font-semibold bg-input-disabled px-2 py-1 rounded text-text-secondary">
@@ -517,7 +517,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                           <p className="text-sm text-text-secondary">No courses in this semester.</p>
                         )}
                         {sem.courses.map((course) => (
-                          <div key={course.id} className="px-3 bg-panel-bg border border-panel-border-strong rounded-md text-sm flex justify-between items-center h-[42px]">
+                          <div key={course.id} className="px-3 bg-panel-bg border border-panel-border-strong rounded-lg text-sm flex justify-between items-center h-[42px]">
                             <span className="font-medium text-text-primary">{course.courseCode}</span>
                             <span className="text-text-secondary font-semibold">{course.credits ?? 0} cr</span>
                           </div>
