@@ -32,7 +32,7 @@ export default function ProfileActions({
           onClick={() => setIsCompletedCoursesOpen(true)}
           className="border border-dashed border-panel-border-strong px-5 py-2.5 rounded-xl hover:bg-hover-bg text-text-primary font-semibold transition-colors cursor-pointer"
         >
-          Completed Courses
+          Transfer and Extra Courses
         </button>
       </div>
 

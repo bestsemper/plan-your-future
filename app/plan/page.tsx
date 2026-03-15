@@ -700,7 +700,7 @@ export default function PlanBuilderPage() {
 
   const handleImportFromPdf = async () => {
     if (!importFile) {
-      setImportError('Please choose a Stellic PDF file.');
+      setImportError('Please choose an audit report PDF file.');
       return;
     }
     if (importMode === 'overwrite' && !importOverwritePlanId) {
@@ -929,7 +929,7 @@ export default function PlanBuilderPage() {
                     className="w-full px-3 py-2 rounded-lg text-left text-sm text-text-primary hover:bg-hover-bg transition-colors cursor-pointer flex items-center gap-2.5"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-text-secondary"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="17 3 21 3 21 7"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                    Import Plan PDF
+                    Import Audit Report PDF
                   </button>
                   <div className="my-1 border-t border-panel-border" />
                   <button
@@ -1208,7 +1208,10 @@ export default function PlanBuilderPage() {
             </button>
 
             <div className="mt-4 pt-4 border-t border-panel-border space-y-3">
-              <h3 className="text-sm font-semibold text-heading">Import Plan PDF</h3>
+              <h3 className="text-sm font-semibold text-heading">Import Audit Report PDF</h3>
+              <p className="text-xs text-text-secondary leading-relaxed">
+                In Stellic: Track Progress &rarr; Print Audit Report (printer icon) &rarr; Create Audit Report, then upload that PDF here.
+              </p>
 
               <div className="flex gap-2">
                 <button
@@ -1299,9 +1302,9 @@ export default function PlanBuilderPage() {
                 type="button"
                 onClick={() => void handleImportFromPdf()}
                 disabled={importingPdf}
-                className="w-full px-4 py-2 bg-uva-orange/90 text-white rounded-xl hover:bg-uva-orange font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-4 py-2 bg-uva-blue/90 text-white rounded-xl hover:bg-uva-blue font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {importingPdf ? 'Importing...' : 'Import PDF'}
+                {importingPdf ? 'Importing...' : 'Import Audit PDF'}
               </button>
             </div>
           </div>

@@ -60,6 +60,130 @@ type ParsedStellicCourse = {
   credits: number | null;
 };
 
+type ParsedAuditCompletedCourse = {
+  courseCode: string;
+  title: string | null;
+  semesterTaken: string | null;
+  sourceType: 'audit_pdf_transfer' | 'audit_pdf_unmatched' | 'audit_pdf_taken';
+};
+
+type AuditImportSelection = 'transfer' | 'taken' | 'both';
+
+function hasTransferEquivalentGrade(line: string): boolean {
+  // In Stellic audit exports, TE indicates transfer/test-equivalent credit.
+  return /(?:Fall|Winter|Spring|Summer)\s*'?(\d{2})\s*TE\b/i.test(line) || /\bTE\b/i.test(line);
+}
+
+function decodeAuditPdfText(pdfBase64: string): Promise<string> {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const normalizedBase64 = pdfBase64.includes(',')
+        ? pdfBase64.split(',').pop() ?? ''
+        : pdfBase64;
+
+      if (!normalizedBase64) {
+        reject(new Error('Uploaded file payload was empty.'));
+        return;
+      }
+
+      const pdfBuffer = Buffer.from(normalizedBase64, 'base64');
+      if (pdfBuffer.length === 0) {
+        reject(new Error('Uploaded PDF could not be decoded.'));
+        return;
+      }
+
+      const pdfParse = require('pdf-parse/lib/pdf-parse.js') as (dataBuffer: Buffer) => Promise<{ text?: string }>;
+      const pdfData = await pdfParse(pdfBuffer);
+      resolve(pdfData.text || '');
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
+
+function parseAuditSemesterTaken(line: string): string | null {
+  const termMatch = line.match(/\b(Fall|Winter|Spring|Summer)\s+'(\d{2})\b/i);
+  if (!termMatch) return null;
+
+  const term = termMatch[1][0].toUpperCase() + termMatch[1].slice(1).toLowerCase();
+  const twoDigitYear = Number.parseInt(termMatch[2], 10);
+  const fullYear = twoDigitYear <= 50 ? 2000 + twoDigitYear : 1900 + twoDigitYear;
+  return `${term} ${fullYear}`;
+}
+
+function extractAuditCompletedCoursesFromText(
+  text: string,
+  selection: AuditImportSelection = 'transfer'
+): ParsedAuditCompletedCourse[] {
+  const rawLines = text
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+
+  const resultMap = new Map<string, ParsedAuditCompletedCourse>();
+  let inUnmatchedSection = false;
+
+  for (const line of rawLines) {
+    if (/^Unmatched Courses\b/i.test(line)) {
+      inUnmatchedSection = true;
+      continue;
+    }
+
+    if (inUnmatchedSection && /^\d{2}-\d{2}-\d{4},/.test(line)) {
+      inUnmatchedSection = false;
+      continue;
+    }
+
+    const isTransferLine = /Non-UVa Transfer\/Test Credit/i.test(line);
+    const isTeTransferLine = hasTransferEquivalentGrade(line);
+    const isUnmatched = inUnmatchedSection;
+    const hasTakenKeyword = /\btaken\b/i.test(line);
+    const hasPlannedOrProgressKeyword = /\bplanned\b|in progress|remaining/i.test(line);
+    const explicitGradeMatch = line.match(/(?:Fall|Winter|Spring|Summer)\s*'?(\d{2})\s*([A-Z][A-Z+-]?)/i);
+    const hasTakenLikeGrade = Boolean(explicitGradeMatch);
+
+    const isTransfer = isTransferLine || isTeTransferLine;
+    const isTaken = (hasTakenKeyword || hasTakenLikeGrade || isUnmatched) && !hasPlannedOrProgressKeyword;
+
+    const includeForSelection =
+      selection === 'both'
+        ? isTransfer || isTaken || isUnmatched
+        : selection === 'transfer'
+          ? isTransfer || isUnmatched
+          : (isTaken || isUnmatched) && !isTransfer;
+
+    if (!includeForSelection) continue;
+
+    const courseCodeMatch = line.match(/\b([A-Z]{2,4})\s?-?(\d{4})\b/);
+    if (!courseCodeMatch) continue;
+
+    const courseCode = `${courseCodeMatch[1]} ${courseCodeMatch[2]}`.toUpperCase();
+    const titleSection = line.slice(courseCodeMatch.index! + courseCodeMatch[0].length).trim();
+    const title = (titleSection.split(/\(\d+(?:\.\d+)?\s+credits\)/i)[0] || '').trim() || null;
+    const semesterTaken = parseAuditSemesterTaken(line);
+    const nextSourceType: ParsedAuditCompletedCourse['sourceType'] = isTransfer
+      ? 'audit_pdf_transfer'
+      : isUnmatched
+        ? 'audit_pdf_unmatched'
+        : 'audit_pdf_taken';
+
+    const existing = resultMap.get(courseCode);
+    resultMap.set(courseCode, {
+      courseCode,
+      title: existing?.title ?? title,
+      semesterTaken: existing?.semesterTaken ?? semesterTaken,
+      sourceType:
+        existing?.sourceType === 'audit_pdf_transfer' || nextSourceType === 'audit_pdf_transfer'
+          ? 'audit_pdf_transfer'
+          : existing?.sourceType === 'audit_pdf_unmatched' || nextSourceType === 'audit_pdf_unmatched'
+            ? 'audit_pdf_unmatched'
+            : 'audit_pdf_taken',
+    });
+  }
+
+  return Array.from(resultMap.values());
+}
+
 function parseStellicCoursesFromText(text: string): ParsedStellicCourse[] {
   const lines = text
     .split(/\r?\n/)
@@ -1295,7 +1419,7 @@ export async function importPlanFromStellicPdf(input: {
   }
 
   if (!input.pdfBase64) {
-    return { error: 'Please upload a PDF file.' };
+    return { error: 'Please upload an audit report PDF file.' };
   }
 
   if (input.mode === 'overwrite' && !input.overwritePlanId) {
@@ -1303,26 +1427,11 @@ export async function importPlanFromStellicPdf(input: {
   }
 
   try {
-    const normalizedBase64 = input.pdfBase64.includes(',')
-      ? input.pdfBase64.split(',').pop() ?? ''
-      : input.pdfBase64;
-
-    if (!normalizedBase64) {
-      return { error: 'Uploaded file payload was empty.' };
-    }
-
-    const pdfBuffer = Buffer.from(normalizedBase64, 'base64');
-    if (pdfBuffer.length === 0) {
-      return { error: 'Uploaded PDF could not be decoded.' };
-    }
-
-    const pdfParse = require('pdf-parse/lib/pdf-parse.js') as (dataBuffer: Buffer) => Promise<{ text?: string }>;
-    const pdfData = await pdfParse(pdfBuffer);
-
-    const parsedCourses = parseStellicCoursesFromText(pdfData.text || '');
+    const auditText = await decodeAuditPdfText(input.pdfBase64);
+    const parsedCourses = parseStellicCoursesFromText(auditText);
 
     if (parsedCourses.length === 0) {
-      return { error: 'No courses were detected in the uploaded Stellic PDF.' };
+      return { error: 'No courses were detected in the uploaded Stellic audit report PDF.' };
     }
 
     let targetPlanId = '';
@@ -1448,22 +1557,23 @@ export async function importPlanFromStellicPdf(input: {
       }
     }
 
-    const takenCodes = Array.from(new Set(parsedCourses.filter((c) => c.status === 'taken').map((c) => c.courseCode)));
-    if (takenCodes.length > 0) {
+    const externalCompletedCourses = extractAuditCompletedCoursesFromText(auditText, 'transfer');
+    if (externalCompletedCourses.length > 0) {
       const existingCompleted = await prisma.completedCourse.findMany({
         where: { userId: user.id },
         select: { courseCode: true },
       });
       const existingSet = new Set(existingCompleted.map((c) => c.courseCode.toUpperCase()));
 
-      const newCompleted = takenCodes.filter((code) => !existingSet.has(code));
+      const newCompleted = externalCompletedCourses.filter((course) => !existingSet.has(course.courseCode));
       if (newCompleted.length > 0) {
         await prisma.completedCourse.createMany({
-          data: newCompleted.map((courseCode) => ({
+          data: newCompleted.map((course) => ({
             userId: user.id,
-            courseCode,
-            sourceType: 'stellic_pdf',
-            semesterTaken: null,
+            courseCode: course.courseCode,
+            title: course.title,
+            sourceType: course.sourceType,
+            semesterTaken: course.semesterTaken,
           })),
         });
       }
@@ -1475,8 +1585,65 @@ export async function importPlanFromStellicPdf(input: {
     return { success: true, planId: targetPlanId };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown import error.';
-    console.error('stellic pdf import error:', message);
-    return { error: `Failed to parse/import Stellic PDF: ${message}` };
+    console.error('audit pdf plan import error:', message);
+    return { error: `Failed to parse/import audit report PDF: ${message}` };
+  }
+}
+
+export async function importCompletedCoursesFromAuditPdf(input: {
+  pdfBase64: string;
+  selection?: AuditImportSelection;
+}) {
+  const user = await getCurrentUser();
+  if (!user) {
+    return { error: 'You must be logged in.' };
+  }
+
+  if (!input.pdfBase64) {
+    return { error: 'Please upload an audit report PDF file.' };
+  }
+
+  try {
+    const auditText = await decodeAuditPdfText(input.pdfBase64);
+    const selection = input.selection ?? 'both';
+    const parsedCourses = extractAuditCompletedCoursesFromText(auditText, selection);
+
+    if (parsedCourses.length === 0) {
+      return { error: 'No transfer or unmatched courses were detected in this audit report.' };
+    }
+
+    const existingCompleted = await prisma.completedCourse.findMany({
+      where: { userId: user.id },
+      select: { courseCode: true },
+    });
+    const existingSet = new Set(existingCompleted.map((c) => c.courseCode.toUpperCase()));
+
+    const newCourses = parsedCourses.filter((course) => !existingSet.has(course.courseCode));
+
+    if (newCourses.length > 0) {
+      await prisma.completedCourse.createMany({
+        data: newCourses.map((course) => ({
+          userId: user.id,
+          courseCode: course.courseCode,
+          title: course.title,
+          sourceType: course.sourceType,
+          semesterTaken: course.semesterTaken,
+        })),
+      });
+    }
+
+    revalidatePath('/profile');
+    revalidatePath('/plan');
+
+    return {
+      success: true,
+      importedCount: newCourses.length,
+      detectedCount: parsedCourses.length,
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown import error.';
+    console.error('audit pdf completed-course import error:', message);
+    return { error: `Failed to parse/import audit report PDF: ${message}` };
   }
 }
 
@@ -1812,12 +1979,17 @@ export async function addCompletedCourse(courseCode: string, title?: string, sem
   }
 
   try {
+    const normalizedCode = courseCode.toUpperCase();
+    if (/\b\d{4}T\b/.test(normalizedCode)) {
+      return { error: 'Transfer credits should be imported from an audit report. Manual add is only for placement/skip extra courses.' };
+    }
+
     const course = await prisma.completedCourse.create({
       data: {
         userId: user.id,
-        courseCode: courseCode.toUpperCase(),
+        courseCode: normalizedCode,
         title: title || null,
-        sourceType: 'manual',
+        sourceType: 'manual_extra',
         semesterTaken: semesterTaken || null,
       },
     });

@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { getCompletedCourses, addCompletedCourse, deleteCompletedCourse, getPlanBuilderData } from '@/app/actions';
+import { useState, useEffect, useMemo } from 'react';
+import { getCompletedCourses, addCompletedCourse, deleteCompletedCourse, getPlanBuilderData, importCompletedCoursesFromAuditPdf } from '@/app/actions';
 
 interface CompletedCourse {
   id: string;
@@ -22,6 +22,24 @@ interface EditCompletedCoursesProps {
   onCoursesChanged?: () => void;
 }
 
+type CourseListCategory = 'transfer' | 'extra' | 'taken';
+
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      if (typeof result !== 'string') {
+        reject(new Error('Unable to read file as data URL.'));
+        return;
+      }
+      resolve(result);
+    };
+    reader.onerror = () => reject(new Error('Unable to read file.'));
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged }: EditCompletedCoursesProps) {
   const [courses, setCourses] = useState<CompletedCourse[]>([]);
   const [allCourses, setAllCourses] = useState<CourseOption[]>([]);
@@ -33,6 +51,61 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const [showTransfer, setShowTransfer] = useState(true);
+  const [showExtra, setShowExtra] = useState(true);
+  const [showTaken, setShowTaken] = useState(true);
+
+  const getCurrentSemesterRank = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth(); // 0-indexed
+
+    let termOrder = 1; // Spring
+    if (month <= 1) {
+      termOrder = 0; // Winter
+    } else if (month >= 2 && month <= 4) {
+      termOrder = 1; // Spring
+    } else if (month >= 5 && month <= 7) {
+      termOrder = 2; // Summer
+    } else {
+      termOrder = 3; // Fall
+    }
+
+    return year * 10 + termOrder;
+  };
+
+  const parseSemesterRank = (semesterTaken: string | null): number | null => {
+    if (!semesterTaken) return null;
+    const match = semesterTaken.match(/^(Fall|Winter|Spring|Summer)\s+(\d{4})$/i);
+    if (!match) return null;
+
+    const year = Number.parseInt(match[2], 10);
+    const term = match[1].toLowerCase();
+    const order = term === 'winter' ? 0 : term === 'spring' ? 1 : term === 'summer' ? 2 : 3;
+    return year * 10 + order;
+  };
+
+  const classifyCourse = (course: CompletedCourse): CourseListCategory => {
+    const sourceType = (course.sourceType || '').toLowerCase();
+    if (sourceType.includes('transfer') || sourceType.includes('unmatched') || /\b\d{4}t\b/.test(course.courseCode.toLowerCase())) {
+      return 'transfer';
+    }
+    if (sourceType.includes('manual_extra') || sourceType === 'manual') {
+      return 'extra';
+    }
+    return 'taken';
+  };
+
+  const filteredListedCourses = useMemo(() => {
+    return courses.filter((course) => {
+      const category = classifyCourse(course);
+      if (category === 'transfer') return showTransfer;
+      if (category === 'extra') return showExtra;
+      return showTaken;
+    });
+  }, [courses, showTransfer, showExtra, showTaken]);
 
   useEffect(() => {
     if (isOpen) {
@@ -52,7 +125,7 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
     }
   }
 
-  const filteredCourses = courseCode.trim()
+  const filteredCourseOptions = courseCode.trim()
     ? allCourses
         .filter((course) =>
           course.code.toLowerCase().includes(courseCode.toLowerCase()) ||
@@ -130,6 +203,34 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
     }
   }
 
+  async function handleImportFromAuditPdf() {
+    if (!importFile) {
+      setError('Please choose an audit report PDF file.');
+      return;
+    }
+
+    setIsImporting(true);
+    setError('');
+    try {
+      const dataUrl = await fileToDataUrl(importFile);
+      const result = await importCompletedCoursesFromAuditPdf({ pdfBase64: dataUrl });
+
+      if ('error' in result) {
+        setError(result.error || 'Failed to import from audit report.');
+        setIsImporting(false);
+        return;
+      }
+
+      setImportFile(null);
+      await loadCourses();
+      onCoursesChanged?.();
+      setIsImporting(false);
+    } catch {
+      setError('Unable to read PDF file.');
+      setIsImporting(false);
+    }
+  }
+
   if (!isOpen) return null;
 
   return (
@@ -140,7 +241,7 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
       >
           {/* Header */}
           <div className="bg-panel-bg border-b border-panel-border px-8 py-6 flex justify-between items-center">
-            <h2 className="text-2xl font-bold text-heading">Completed Courses</h2>
+            <h2 className="text-2xl font-bold text-heading">Transfer and Extra Courses</h2>
             <button
               type="button"
               onClick={onClose}
@@ -162,9 +263,33 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
               </div>
             )}
 
+            <div className="border border-panel-border rounded-2xl p-6 bg-panel-bg space-y-3">
+              <h3 className="font-semibold text-heading text-base">Import from Audit Report PDF</h3>
+              <p className="text-sm text-text-secondary leading-relaxed">
+                In Stellic: Track Progress &rarr; Print Audit Report (printer icon) &rarr; Create Audit Report, then upload that PDF here.
+              </p>
+              <input
+                type="file"
+                accept="application/pdf"
+                onChange={(e) => setImportFile(e.target.files?.[0] ?? null)}
+                className="w-full text-sm text-text-primary file:mr-3 file:px-3 file:py-2 file:border file:border-panel-border-strong file:rounded file:bg-panel-bg-alt file:text-text-primary file:cursor-pointer"
+              />
+              <button
+                type="button"
+                onClick={() => void handleImportFromAuditPdf()}
+                disabled={isImporting}
+                className="w-full px-6 py-3 bg-uva-blue/90 text-white rounded-xl font-semibold hover:bg-uva-blue transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isImporting ? 'Importing...' : 'Import Courses'}
+              </button>
+            </div>
+
             {/* Add Course Form */}
             <div className="border border-panel-border rounded-2xl p-6 bg-panel-bg">
-              <h3 className="font-semibold text-heading mb-4 text-base">Add Completed Course</h3>
+              <h3 className="font-semibold text-heading mb-4 text-base">Add Extra Course (Placement/Skip)</h3>
+              <p className="text-xs text-text-secondary mb-4">
+                Manual add is only for extra courses (for example placement/skip credit). Import transfer courses from the audit PDF section above.
+              </p>
               <form onSubmit={handleAddCourse} className="space-y-4">
                 {/* Course Code with Dropdown */}
                 <div className="relative">
@@ -180,10 +305,10 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
                       className="w-full px-4 py-3 bg-input-bg border border-panel-border rounded-xl text-text-primary outline-none focus:border-uva-blue focus:ring-2 focus:ring-uva-blue/20 transition-all"
                       disabled={isSaving}
                     />
-                    {showDropdown && filteredCourses.length > 0 && (
+                    {showDropdown && filteredCourseOptions.length > 0 && (
                       <div className="absolute z-10 left-0 top-full w-full mt-1.5 bg-panel-bg border border-panel-border rounded-xl shadow-lg overflow-hidden">
                         <div className="max-h-56 overflow-y-auto p-1.5 space-y-0.5">
-                          {filteredCourses.map((course) => (
+                          {filteredCourseOptions.map((course) => (
                             <div
                               key={course.code}
                               className="px-3 py-2.5 rounded-lg hover:bg-hover-bg transition-colors cursor-pointer"
@@ -237,14 +362,39 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
 
             {/* Courses List */}
             <div>
-              <h3 className="font-semibold text-heading mb-3 text-base">Your Completed Courses ({courses.length})</h3>
+              <h3 className="font-semibold text-heading mb-3 text-base">Your Transfer and Extra Courses ({filteredListedCourses.length}/{courses.length})</h3>
+              <div className="flex flex-wrap gap-2 mb-3">
+                <button
+                  type="button"
+                  onClick={() => setShowTransfer((prev) => !prev)}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-xl border transition-colors cursor-pointer ${showTransfer ? 'bg-uva-blue/10 text-uva-blue border-uva-blue/40' : 'border-panel-border-strong text-text-secondary hover:bg-hover-bg'}`}
+                >
+                  Transfer
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowExtra((prev) => !prev)}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-xl border transition-colors cursor-pointer ${showExtra ? 'bg-uva-blue/10 text-uva-blue border-uva-blue/40' : 'border-panel-border-strong text-text-secondary hover:bg-hover-bg'}`}
+                >
+                  Extra
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowTaken((prev) => !prev)}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-xl border transition-colors cursor-pointer ${showTaken ? 'bg-uva-blue/10 text-uva-blue border-uva-blue/40' : 'border-panel-border-strong text-text-secondary hover:bg-hover-bg'}`}
+                >
+                  Taken
+                </button>
+              </div>
               {loading ? (
                 <p className="text-text-secondary">Loading...</p>
               ) : courses.length === 0 ? (
-                <p className="text-text-secondary">No completed courses yet.</p>
+                <p className="text-text-secondary">No transfer or extra courses yet.</p>
+              ) : filteredListedCourses.length === 0 ? (
+                <p className="text-text-secondary">No courses match the selected filters.</p>
               ) : (
                 <div className="space-y-2">
-                  {courses.map((course) => (
+                  {filteredListedCourses.map((course) => (
                     <div
                       key={course.id}
                       className="flex items-center justify-between p-4 bg-input-bg border border-panel-border rounded-xl"
