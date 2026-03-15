@@ -171,6 +171,37 @@ export default function PlanBuilderPage() {
 
   const activePlan = optimisticPlans.find((p) => p.id === selectedPlanId) || optimisticPlans[0];
 
+  // Check all existing courses in the plan for prerequisite violations
+  useEffect(() => {
+    const checkExistingCoursesPrerequisites = async () => {
+      if (!activePlan || !completedCourses) return;
+
+      const newProblematicCourses = new Map<string, Set<string>>();
+
+      for (const semester of activePlan.semesters) {
+        for (const course of semester.courses) {
+          const result = await checkCoursePrerequisites({
+            courseCode: course.courseCode,
+            completedCourses,
+            planSemesters: activePlan.semesters,
+            currentSemesterTermOrder: semester.termOrder,
+          });
+
+          // If prerequisites are not satisfied and it's not a 1000-level course without prerequisites
+          if (!result.isSatisfied && !(result.hasNoPrerequisites && result.hasUnknownPrerequisites)) {
+            const existing = newProblematicCourses.get(semester.id) || new Set<string>();
+            existing.add(course.courseCode);
+            newProblematicCourses.set(semester.id, existing);
+          }
+        }
+      }
+
+      setSemestersProblematicCourses(newProblematicCourses);
+    };
+
+    void checkExistingCoursesPrerequisites();
+  }, [activePlan, completedCourses]);
+
   const schoolYearRows = useMemo<SchoolYearRow[]>(() => {
     if (!activePlan) return [];
 
@@ -945,17 +976,29 @@ export default function PlanBuilderPage() {
                             </div>
                           </div>
                           <div className="space-y-2">
-                            {sem.courses.map((course) => (
-                              <div key={course.id} onClick={() => handleCourseClick(course.courseCode)} className="px-3 bg-panel-bg-alt border border-panel-border-strong rounded-xl text-sm flex justify-between items-center hover:border-uva-blue transition-colors cursor-pointer group h-[46px]">
-                                <span className="font-medium text-text-primary">{course.courseCode}</span>
-                                <div className="relative flex items-center justify-end min-w-[84px] h-full pr-1">
-                                  <span className="text-gray-500 font-semibold whitespace-nowrap transition-transform duration-200 group-hover:-translate-x-6">{course.credits ?? 0} cr</span>
-                                  <button onClick={(e) => { e.stopPropagation(); void handleRemoveCourse(course.id); }} className="absolute right-0 text-danger-text hover:text-danger-text-hover opacity-0 translate-x-1 group-hover:opacity-100 p-2 cursor-pointer flex items-center justify-center transition-all duration-200 hover:scale-110">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                                  </button>
+                            {sem.courses.map((course) => {
+                              const isProblematic = semestersProblematicCourses.get(sem.id)?.has(course.courseCode) ?? false;
+                              return (
+                                <div key={course.id} onClick={() => handleCourseClick(course.courseCode)} className="px-3 bg-panel-bg-alt border border-panel-border-strong rounded-xl text-sm flex justify-between items-center hover:border-uva-blue transition-colors cursor-pointer group h-[46px]">
+                                  <span className="font-medium text-text-primary flex items-center gap-2">
+                                    {course.courseCode}
+                                    {isProblematic && (
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-yellow-500 flex-shrink-0">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <line x1="12" y1="8" x2="12" y2="12"/>
+                                        <line x1="12" y1="16" x2="12.01" y2="16"/>
+                                      </svg>
+                                    )}
+                                  </span>
+                                  <div className="relative flex items-center justify-end min-w-[84px] h-full pr-1">
+                                    <span className="text-gray-500 font-semibold whitespace-nowrap transition-transform duration-200 group-hover:-translate-x-6">{course.credits ?? 0} cr</span>
+                                    <button onClick={(e) => { e.stopPropagation(); void handleRemoveCourse(course.id); }} className="absolute right-0 text-danger-text hover:text-danger-text-hover opacity-0 translate-x-1 group-hover:opacity-100 p-2 cursor-pointer flex items-center justify-center transition-all duration-200 hover:scale-110">
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                    </button>
+                                  </div>
                                 </div>
-                              </div>
-                            ))}
+                              );
+                            })}
 
                             {newCourseSem === sem.id ? (
                               <>

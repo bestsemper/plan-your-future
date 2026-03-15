@@ -1,8 +1,7 @@
 import { getCurrentUser } from '../actions';
 import { redirect } from 'next/navigation';
 import ThemeToggle from './ThemeToggle';
-import EditProfileForm from './EditProfileForm';
-import ImportPlan from './ImportPlan';
+import ProfileActions from './ProfileActions';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -39,13 +38,13 @@ export default async function Profile() {
           </div>
 
           <div className="flex gap-4 items-start">
-            <EditProfileForm
+            <ProfileActions
               displayName={user.displayName}
               major={user.major}
               gradYear={user.gradYear}
               bio={user.bio}
+              plans={plans}
             />
-            <ImportPlan plans={plans} />
           </div>
         </div>
         

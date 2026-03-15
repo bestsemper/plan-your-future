@@ -1765,3 +1765,95 @@ export async function getUserProfile(computingId: string) {
   }
 }
 
+export async function getCompletedCourses() {
+  const user = await getCurrentUser();
+  if (!user) {
+    return { error: 'You must be logged in.' };
+  }
+
+  try {
+    const completedCourses = await prisma.completedCourse.findMany({
+      where: { userId: user.id },
+      select: {
+        id: true,
+        courseCode: true,
+        title: true,
+        sourceType: true,
+        semesterTaken: true,
+      },
+      orderBy: { courseCode: 'asc' },
+    });
+
+    // Enrich courses with titles from JSON data if they're missing
+    const { courseDetailsByCode } = loadCourseDetailsFromJSON();
+    const enrichedCourses = completedCourses.map((course) => {
+      if (!course.title) {
+        const normalizedCode = normalizeCourseCode(course.courseCode);
+        const courseDetails = courseDetailsByCode.get(normalizedCode);
+        return {
+          ...course,
+          title: courseDetails?.title ?? null,
+        };
+      }
+      return course;
+    });
+
+    return { courses: enrichedCourses };
+  } catch (error) {
+    console.error('Error fetching completed courses:', error);
+    return { error: 'Failed to load completed courses' };
+  }
+}
+
+export async function addCompletedCourse(courseCode: string, title?: string, semesterTaken?: string) {
+  const user = await getCurrentUser();
+  if (!user) {
+    return { error: 'You must be logged in.' };
+  }
+
+  try {
+    const course = await prisma.completedCourse.create({
+      data: {
+        userId: user.id,
+        courseCode: courseCode.toUpperCase(),
+        title: title || null,
+        sourceType: 'manual',
+        semesterTaken: semesterTaken || null,
+      },
+    });
+
+    revalidatePath('/profile');
+    return { success: true, course };
+  } catch (error) {
+    console.error('Error adding completed course:', error);
+    return { error: 'Failed to add completed course' };
+  }
+}
+
+export async function deleteCompletedCourse(courseId: string) {
+  const user = await getCurrentUser();
+  if (!user) {
+    return { error: 'You must be logged in.' };
+  }
+
+  try {
+    const course = await prisma.completedCourse.findUnique({
+      where: { id: courseId },
+    });
+
+    if (!course || course.userId !== user.id) {
+      return { error: 'Course not found or unauthorized' };
+    }
+
+    await prisma.completedCourse.delete({
+      where: { id: courseId },
+    });
+
+    revalidatePath('/profile');
+    return { success: true };
+  } catch (error) {
+    console.error('Error deleting completed course:', error);
+    return { error: 'Failed to delete completed course' };
+  }
+}
+
