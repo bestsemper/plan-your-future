@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { getForumPageData } from '../actions';
 import { getForumPostHref } from './url';
 
@@ -49,6 +49,9 @@ export default function ForumPage() {
   const [dataLoaded, setDataLoaded] = useState(false);
 
   const [search, setSearch] = useState('');
+  const [appliedSearch, setAppliedSearch] = useState('');
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement | null>(null);
 
   const loadData = async () => {
     const res = await getForumPageData();
@@ -61,7 +64,7 @@ export default function ForumPage() {
   }, []);
 
   const filteredPosts = useMemo(() => {
-    const term = search.trim().toLowerCase();
+    const term = appliedSearch.trim().toLowerCase();
     if (!term) return posts;
 
     return posts.filter((post) => {
@@ -71,14 +74,28 @@ export default function ForumPage() {
       );
       return inPost || inReplies;
     });
+  }, [posts, appliedSearch]);
+
+  const suggestedPosts = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return [];
+
+    return posts
+      .filter((post) => {
+        const haystack = `${post.title} ${post.body} ${post.authorDisplayName}`.toLowerCase();
+        return haystack.includes(term);
+      })
+      .slice(0, 6);
   }, [posts, search]);
+
+  const showSuggestions = isSearchFocused && suggestedPosts.length > 0;
 
   if (!dataLoaded) {
     return (
-      <div className="max-w-5xl mx-auto py-8 animate-pulse">
+      <div className="w-full pt-0 pb-6 animate-pulse">
         <div className="mb-6 border-b border-panel-border pb-4 flex items-center justify-between gap-3">
           <div className="h-9 w-64 rounded bg-input-disabled" />
-          <div className="h-10 w-28 rounded bg-input-disabled" />
+          <div className="h-[42px] w-28 rounded bg-input-disabled" />
         </div>
 
         <div className="mb-6">
@@ -107,25 +124,72 @@ export default function ForumPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto py-8">
-      <div className="flex justify-between items-center mb-6 border-b border-panel-border pb-4">
-        <h1 className="text-3xl font-bold text-heading">Community Forum</h1>
-        <Link
-          href="/forum/questions"
-          className="px-4 py-2 bg-uva-orange/90 text-white rounded-xl hover:bg-uva-orange font-semibold transition-colors cursor-pointer"
-        >
-          Ask a Question
-        </Link>
-      </div>
+    <div className="w-full pt-0 pb-6">
+      <div className="mb-6 border-b border-panel-border pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <h1 className="text-3xl font-bold text-heading">Forum</h1>
+        <div className="flex items-center gap-3 w-full lg:w-auto lg:min-w-[460px]">
+          <div
+            ref={searchContainerRef}
+            className="relative flex-1"
+            onBlur={(e) => {
+              if (!searchContainerRef.current?.contains(e.relatedTarget as Node | null)) {
+                setIsSearchFocused(false);
+              }
+            }}
+          >
+            <span className="sr-only">Search the forum</span>
+            <svg
+              className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-text-tertiary"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                fillRule="evenodd"
+                d="M8.5 3a5.5 5.5 0 014.396 8.804l3.65 3.65a.75.75 0 11-1.06 1.06l-3.65-3.65A5.5 5.5 0 118.5 3zm0 1.5a4 4 0 100 8 4 4 0 000-8z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onFocus={() => setIsSearchFocused(true)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  setAppliedSearch(search);
+                  setIsSearchFocused(false);
+                }
+              }}
+              placeholder="Search the forum"
+              className="w-full h-[42px] pl-10 pr-4 border border-panel-border rounded-full bg-input-bg text-text-primary outline-none focus:border-uva-blue/40 focus:ring-2 focus:ring-uva-blue/15"
+            />
 
-      <div className="mb-6">
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search posts and replies..."
-          className="w-full p-3 border border-panel-border rounded-xl bg-input-bg text-text-primary outline-none"
-        />
+            {showSuggestions && (
+              <div className="absolute left-0 right-0 mt-2 z-30 rounded-xl border border-panel-border bg-panel-bg shadow-lg overflow-hidden">
+                {suggestedPosts.map((post) => (
+                  <Link
+                    key={post.id}
+                    href={getForumPostHref(post.postNumber, post.title)}
+                    className="block px-4 py-3 border-b border-panel-border last:border-b-0 hover:bg-hover-bg transition-colors"
+                  >
+                    <p className="text-sm font-semibold text-heading line-clamp-1">{post.title}</p>
+                    <p className="text-xs text-text-secondary mt-0.5 line-clamp-1">
+                      by {post.authorDisplayName}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <Link
+            href="/forum/questions"
+            className="h-[42px] px-5 inline-flex items-center justify-center bg-uva-blue text-white rounded-full hover:bg-uva-blue-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-uva-blue/30 font-semibold transition-colors cursor-pointer whitespace-nowrap"
+          >
+            Ask Question
+          </Link>
+        </div>
       </div>
 
       <div className="bg-panel-bg border border-panel-border rounded-xl overflow-hidden">

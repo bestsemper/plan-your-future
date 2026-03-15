@@ -2,18 +2,33 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { logout } from "../actions";
 
 export default function Sidebar({ user }: { user: { computingId: string, displayName: string } | null }) {
   const pathname = usePathname();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onOutsideClick = (event: MouseEvent) => {
+      if (!menuRef.current) return;
+      if (!menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", onOutsideClick);
+    return () => document.removeEventListener("mousedown", onOutsideClick);
+  }, []);
 
   if (pathname === '/login') {
     return null;
   }
 
   return (
-    <aside className="w-64 h-screen bg-uva-blue text-white flex flex-col justify-between sticky top-0 shrink-0">
-      <div className="p-6">
+    <aside className="w-64 h-screen bg-uva-blue text-white flex flex-col justify-between sticky top-0 shrink-0 px-6 py-6">
+      <div>
         <Link href="/" className="block mb-8">
           <svg role="img" width="100%" height="auto" viewBox="0 0 223 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="block mb-3 w-full">
             <title>University of Virginia Logo</title>
@@ -22,64 +37,83 @@ export default function Sidebar({ user }: { user: { computingId: string, display
           </svg>
           <span className="text-sm tracking-widest font-semibold border-t border-white/20 pt-2 block text-uva-orange">HOO'S PLAN</span>
         </Link>
-        <nav className="space-y-1 -ml-3 -mr-6">
+        <nav className="space-y-2">
           <Link 
             href="/" 
-            className={`block pl-2 pr-6 py-2 transition-colors font-medium border-l-4 ${
+            className={`block px-4 py-2.5 transition-colors font-medium rounded-xl border ${
               pathname === '/' 
-                ? 'bg-black/20 text-white border-uva-orange' 
-                : 'text-white/90 hover:bg-black/10 hover:text-white border-transparent'
+                ? 'bg-white text-uva-blue border-black/15' 
+                : 'text-white/75 hover:text-white border-transparent'
             }`}
           >
             Dashboard
           </Link>
           <Link 
             href="/plan" 
-            className={`block pl-2 pr-6 py-2 transition-colors font-medium border-l-4 ${
+            className={`block px-4 py-2.5 transition-colors font-medium rounded-xl border ${
               pathname === '/plan' 
-                ? 'bg-black/20 text-white border-uva-orange' 
-                : 'text-white/90 hover:bg-black/10 hover:text-white border-transparent'
+                ? 'bg-white text-uva-blue border-black/15' 
+                : 'text-white/75 hover:text-white border-transparent'
             }`}
           >
             Plan Builder
           </Link>
           <Link 
             href="/forum" 
-            className={`block pl-2 pr-6 py-2 transition-colors font-medium border-l-4 ${
+            className={`block px-4 py-2.5 transition-colors font-medium rounded-xl border ${
               pathname === '/forum' 
-                ? 'bg-black/20 text-white border-uva-orange' 
-                : 'text-white/90 hover:bg-black/10 hover:text-white border-transparent'
+                ? 'bg-white text-uva-blue border-black/15' 
+                : 'text-white/75 hover:text-white border-transparent'
             }`}
           >
             Forum
           </Link>
         </nav>
       </div>
-      
-      <div className="bg-uva-blue-dark/90 border-t border-white/10 p-4 flex flex-col gap-2">
+
+      <div className="pt-4 flex flex-col gap-2 border-t border-white/20">
         {user ? (
           <>
-            <Link href="/profile" className="flex items-center space-x-3 rounded-xl hover:bg-black/20 p-2.5 transition-colors border border-transparent hover:border-white/10">
-              <div className="w-8 h-8 rounded-full bg-uva-orange flex items-center justify-center text-white font-bold uppercase">
-                {user.displayName.charAt(0)}
-              </div>
-              <div className="flex-1 overflow-hidden">
-                <p className="text-sm font-medium text-white truncate">{user.displayName}</p>
-                <p className="text-xs text-white/70 truncate">{user.computingId}</p>
-              </div>
-            </Link>
-            <form action={logout} className="mt-2">
-              <button type="submit" className="w-full text-center text-sm text-white border border-white/25 bg-transparent hover:bg-white/10 py-2.5 rounded-xl transition-colors font-semibold cursor-pointer block">
-                Sign Out
+            <div className="relative" ref={menuRef}>
+              <button
+                type="button"
+                onClick={() => setMenuOpen((prev) => !prev)}
+                className="w-full flex items-center space-x-3 rounded-xl hover:bg-black/20 p-2.5 transition-colors border border-transparent hover:border-white/10 cursor-pointer"
+              >
+                <div className="w-8 h-8 rounded-full bg-uva-orange flex items-center justify-center text-white font-bold uppercase">
+                  {user.displayName.charAt(0)}
+                </div>
+                <div className="flex-1 overflow-hidden text-left">
+                  <p className="text-sm font-medium text-white truncate">{user.displayName}</p>
+                  <p className="text-xs text-white/70 truncate">{user.computingId}</p>
+                </div>
               </button>
-            </form>
+
+              {menuOpen && (
+                <div className="absolute left-0 right-0 bottom-full mb-2 rounded-xl border border-panel-border bg-panel-bg shadow-lg p-1.5 z-20">
+                  <Link
+                    href="/profile"
+                    onClick={() => setMenuOpen(false)}
+                    className="block rounded-lg px-3 py-2 text-sm font-medium text-text-primary hover:bg-hover-bg"
+                  >
+                    Profile
+                  </Link>
+                  <form action={logout}>
+                    <button
+                      type="submit"
+                      className="w-full text-left rounded-lg px-3 py-2 text-sm font-medium text-text-primary hover:bg-hover-bg cursor-pointer"
+                    >
+                      Sign Out
+                    </button>
+                  </form>
+                </div>
+              )}
+            </div>
           </>
         ) : (
-          <div className="mt-2">
-            <Link href="/login" className="flex items-center justify-center w-full text-sm text-white bg-uva-orange hover:bg-[#cc6600] py-2.5 rounded transition-colors font-bold shadow-sm">
-              Sign In
-            </Link>
-          </div>
+          <Link href="/login" className="mt-1 flex items-center justify-center w-full text-sm text-white bg-uva-orange hover:bg-[#cc6600] py-2.5 rounded-xl transition-colors font-bold shadow-sm">
+            Sign In
+          </Link>
         )}
       </div>
     </aside>

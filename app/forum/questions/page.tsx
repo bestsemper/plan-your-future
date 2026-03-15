@@ -49,7 +49,7 @@ export default function ForumQuestionsPage() {
 
   if (!dataLoaded) {
     return (
-      <div className="max-w-3xl mx-auto py-8 animate-pulse">
+      <div className="w-full pt-0 pb-6 animate-pulse">
         <div className="mb-6 flex items-center justify-between gap-3 border-b border-panel-border pb-4">
           <div className="h-10 w-48 rounded bg-input-disabled" />
           <div className="h-9 w-28 rounded bg-input-disabled" />
@@ -65,7 +65,7 @@ export default function ForumQuestionsPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto py-8">
+    <div className="w-full pt-0 pb-6">
       <div className="mb-6 flex items-center justify-between gap-3 border-b border-panel-border pb-4">
         <div>
           <h1 className="text-3xl font-bold text-heading">Ask a Question</h1>

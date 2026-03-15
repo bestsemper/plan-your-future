@@ -29,11 +29,15 @@ export default async function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex bg-background text-text-primary`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex bg-uva-blue text-text-primary`}>
         <ThemeProvider>
           <Sidebar user={user} />
-          <main className="flex-1 overflow-auto h-screen p-8 bg-background">
-            {children}
+          <main className="flex-1 h-screen bg-uva-blue overflow-hidden flex flex-col py-3 pr-3">
+            <div className="h-full w-full rounded-3xl bg-background border border-black/15 overflow-hidden">
+              <div className="h-full overflow-auto p-8">
+                {children}
+              </div>
+            </div>
           </main>
         </ThemeProvider>
       </body>

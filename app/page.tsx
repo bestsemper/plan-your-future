@@ -12,15 +12,10 @@ export default async function Home() {
   }) : [];
 
   return (
-    <div className="max-w-5xl mx-auto py-8">
-      {user ? (
-        <h1 className="text-3xl font-bold mb-2 text-heading">Welcome, {user.displayName}</h1>
-      ) : (
-        <h1 className="text-3xl font-bold mb-2 text-heading">Welcome to Plan Your Future</h1>
-      )}
-      <p className="text-text-secondary mb-10">
-        Your companion for 4-year course planning at UVA.
-      </p>
+    <div className="w-full pt-0 pb-6">
+      <div className="mb-6 border-b border-panel-border pb-4 flex items-center justify-between gap-3">
+        <h1 className="text-3xl font-bold text-heading">Dashboard</h1>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-panel-bg p-6 rounded-xl border border-panel-border flex flex-col justify-between">

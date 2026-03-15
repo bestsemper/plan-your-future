@@ -653,7 +653,7 @@ export default function PlanBuilderPage() {
 
   if (!dataLoaded) {
     return (
-      <div className="max-w-5xl mx-auto py-8 animate-pulse">
+      <div className="w-full pt-0 pb-6 animate-pulse">
         {/* Header */}
         <div className="mb-6 border-b border-panel-border pb-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -710,11 +710,10 @@ export default function PlanBuilderPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto py-8">
-      <div className="mb-6 border-b border-panel-border pb-4 space-y-3">
+    <div className="w-full pt-0 pb-6">
+      <div className="mb-6 border-b border-panel-border pb-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <h1 className="text-3xl font-bold text-heading">Plan Builder</h1>
-
           <div className="flex w-full sm:w-auto sm:min-w-[320px] items-center gap-2">
             <div className="relative flex-1">
               <button
