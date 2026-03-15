@@ -1,17 +1,14 @@
 import json
 import re
-import shutil
 from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass, asdict
 import sys
-from concurrent.futures import ThreadPoolExecutor, as_completed
-import os
 
 # Regex pattern for course codes (e.g., CS 1110, APMA 1090, etc.)
 COURSE_CODE_PATTERN = r'\b([A-Z]{2,6})\s*(\d{4})\b'
 
 # Regex pattern for prerequisite prefix
-PREREQ_PREFIX_PATTERN = r'(?:prereq|prerequisite)(?:\s*[:\-]?)\s*'
+PREREQ_PREFIX_PATTERN = r'(?:prerequisite|prereq)(?:\s*[:\-]?)\s*'
 
 # Regex pattern for "N of the following" constraints
 COUNT_OF_PATTERN = r'(?:at\s+least\s+)?(\d+)\s+(?:of\s+(?:the\s+)?following|from\s+the\s+following|courses?\s+from)'
@@ -67,21 +64,21 @@ def extract_prerequisite_text(description: str, enrollment_requirements: str) ->
     """Extract prerequisite text from description or enrollment requirements"""
     # Enrollment requirements takes precedence
     text = enrollment_requirements.strip() if enrollment_requirements.strip() else description.strip()
-    
+
     if not text:
         return None
-    
+
     # Look for prerequisite prefix
     match = re.search(PREREQ_PREFIX_PATTERN, text, re.IGNORECASE)
     if match:
         # Return text starting from the prerequisite mention
         return text[match.start():]
-    
+
     # If no explicit prefix, check if the text contains course codes
     # This handles cases where prerequisites are listed without "prereq:" prefix
     if extract_course_codes(text):
         return text
-    
+
     return None
 
 
@@ -99,10 +96,11 @@ def extract_words_after_prefix(text: str) -> List[str]:
     
     # Remove course codes and get remaining words
     remaining_text = text[match.end():]
+    remaining_text = re.sub(COURSE_CODE_PATTERN, ' ', remaining_text)
     words = re.findall(r'\b[a-zA-Z]+\b', remaining_text.lower())
     
     # Filter out common conjunctions and prepositions (already handled)
-    stop_words = {'and', 'or', 'with', 'plus', 'a', 'an', 'the', 'of', 'to', 'in', 'at', 'for', 'by', 'on'}
+    stop_words = {'and', 'or', 'with', 'plus', 'a', 'an', 'the', 'of', 'to', 'in', 'at', 'for', 'by', 'on', 's'}
     filtered_words = [w for w in words if w not in stop_words]
     
     return filtered_words
@@ -120,7 +118,7 @@ def tokenize_prerequisite(text: str) -> List[str]:
     # Tokenize
     tokens = []
     pattern = r'(\(|\)|AND|OR|' + COURSE_CODE_PATTERN + r')'
-    
+
     # If we found a count pattern, add it as a special token
     if count_match:
         tokens.append(f"COUNT:{count_match.group(1)}")
@@ -273,58 +271,43 @@ def parse_prerequisite_tree(tokens: List[str]) -> Optional[Any]:
     return tree
 
 
-def process_course_prerequisite(course_code: str, description: str, enrollment_requirements: str) -> Tuple[Optional[Any], List[str]]:
-    """Process a single course and return its prerequisite tree and associated words"""
+def process_course_prerequisite(course_code: str, description: str, enrollment_requirements: str) -> Optional[Any]:
+    """Process a single course and return its prerequisite tree"""
     # Extract prerequisite text
     prereq_text = extract_prerequisite_text(description, enrollment_requirements)
     
     if not prereq_text:
-        return None, []
-    
-    # Extract words for analysis
-    words = extract_words_after_prefix(prereq_text)
+        return None
     
     # Check if there are any course codes
     courses = extract_course_codes(prereq_text)
     if not courses:
-        return None, words
+        return None
     
     # Tokenize and parse
     tokens = tokenize_prerequisite(prereq_text)
     tree = parse_prerequisite_tree(tokens)
     
-    return tree, words
+    return tree
 
 
-def process_course_row(row: Dict[str, str]) -> Tuple[str, Optional[Any], List[str], bool]:
+def process_course_row(row: Dict[str, str]) -> Tuple[str, Optional[Any], bool]:
     """Worker function to process a single course row"""
     course_code = row.get('course_code', '').strip()
     description = row.get('description', '').strip()
     enrollment_requirements = row.get('enrollment_requirements', '').strip()
     
     if not course_code:
-        return '', None, [], False
+        return '', None, False
     
-    tree, words = process_course_prerequisite(course_code, description, enrollment_requirements)
+    tree = process_course_prerequisite(course_code, description, enrollment_requirements)
     has_prereq = tree is not None
     
-    return course_code, tree.to_dict() if tree and hasattr(tree, 'to_dict') else tree, words, has_prereq
-
-
-def render_progress_bar(completed: int, total: int, width: int = 36) -> str:
-    """Build a compact text progress bar for terminal display."""
-    if total <= 0:
-        return "[" + ("-" * width) + "]   0.0% (0/0)"
-
-    ratio = max(0.0, min(1.0, completed / total))
-    filled = int(ratio * width)
-    bar = "#" * filled + "-" * (width - filled)
-    percent = ratio * 100
-    return f"[{bar}] {percent:5.1f}% ({completed}/{total})"
+    return course_code, tree.to_dict() if tree and hasattr(tree, 'to_dict') else tree, has_prereq
 
 
 def main():
-    """Main function to process all courses with concurrent execution"""
+    """Main function to process all courses"""
     # Read JSON file into memory
     json_file = "data/uva_course_details.json"
     rows = []
@@ -381,47 +364,25 @@ def main():
     
     # Process courses concurrently
     courses_with_prereqs = {}
-    all_words = {}
     courses_without_prereqs = []
     
-    max_workers = os.cpu_count() or 4
-
     error_count = 0
-    terminal_width = shutil.get_terminal_size((100, 20)).columns
-    progress_bar_width = max(20, min(48, terminal_width - 28))
-    
-    try:
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            futures = {executor.submit(process_course_row, row): i for i, row in enumerate(rows)}
-            completed = 0
 
-            for future in as_completed(futures):
-                completed += 1
-                progress_line = render_progress_bar(completed, len(rows), progress_bar_width)
-                print(f"\r{progress_line}", end="", flush=True)
-                
-                try:
-                    course_code, tree, words, has_prereq = future.result()
-                    
-                    if not course_code:
-                        continue
-                    
-                    if tree and has_prereq:
-                        courses_with_prereqs[course_code] = tree
-                        all_words[course_code] = words
-                    else:
-                        courses_without_prereqs.append(course_code)
-                
-                except Exception as e:
-                    error_count += 1
-                    continue
-    
-    except Exception as e:
-        print(f"Error in concurrent execution: {e}")
-        sys.exit(1)
+    for row in rows:
+        try:
+            course_code, tree, has_prereq = process_course_row(row)
 
-    # Move to next line after carriage-return progress updates
-    print()
+            if not course_code:
+                continue
+
+            if tree and has_prereq:
+                courses_with_prereqs[course_code] = tree
+            else:
+                courses_without_prereqs.append(course_code)
+
+        except Exception:
+            error_count += 1
+            continue
     
     # Save results to JSON
     output_data = {
@@ -431,7 +392,6 @@ def main():
             "courses_without_prerequisites": len(courses_without_prereqs),
         },
         "prerequisite_trees": courses_with_prereqs,
-        "prerequisite_words_by_course": all_words,
         "courses_without_prerequisites": courses_without_prereqs,
     }
     
