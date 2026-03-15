@@ -121,8 +121,8 @@ export default function PlanBuilderPage() {
   const [prereqWarning, setPrereqWarning] = useState<{ type: 'info' | 'warning' | 'error'; message: string; missingCourses?: string[] } | null>(null);
   const [showPrereqConfirm, setShowPrereqConfirm] = useState(false);
   const [pendingCourseAdd, setPendingCourseAdd] = useState<{ semesterId: string; courseCode: string; credits: number } | null>(null);
-  // Map of semesterId -> Set of problematic course codes
-  const [semestersProblematicCourses, setSemestersProblematicCourses] = useState<Map<string, Set<string>>>(new Map());
+  // Map of semesterId -> Map of courseCode -> missing prerequisite codes
+  const [semestersProblematicCourses, setSemestersProblematicCourses] = useState<Map<string, Map<string, string[]>>>(new Map());
 
   const loadData = async (preferredPlanId?: string) => {
     const res = await getPlanBuilderData();
@@ -176,7 +176,7 @@ export default function PlanBuilderPage() {
     const checkExistingCoursesPrerequisites = async () => {
       if (!activePlan || !completedCourses) return;
 
-      const newProblematicCourses = new Map<string, Set<string>>();
+      const newProblematicCourses = new Map<string, Map<string, string[]>>();
 
       for (const semester of activePlan.semesters) {
         for (const course of semester.courses) {
@@ -189,8 +189,8 @@ export default function PlanBuilderPage() {
 
           // If prerequisites are not satisfied and it's not a 1000-level course without prerequisites
           if (!result.isSatisfied && !(result.hasNoPrerequisites && result.hasUnknownPrerequisites)) {
-            const existing = newProblematicCourses.get(semester.id) || new Set<string>();
-            existing.add(course.courseCode);
+            const existing = newProblematicCourses.get(semester.id) || new Map<string, string[]>();
+            existing.set(course.courseCode, result.missingCourses || []);
             newProblematicCourses.set(semester.id, existing);
           }
         }
@@ -371,8 +371,8 @@ export default function PlanBuilderPage() {
     // Track this course as problematic in the semester
     setSemestersProblematicCourses((prev) => {
       const updated = new Map(prev);
-      const current = updated.get(pendingCourseAdd.semesterId) || new Set<string>();
-      current.add(pendingCourseAdd.courseCode);
+      const current = updated.get(pendingCourseAdd.semesterId) || new Map<string, string[]>();
+      current.set(pendingCourseAdd.courseCode, prereqWarning.missingCourses || []);
       updated.set(pendingCourseAdd.semesterId, current);
       return updated;
     });
@@ -955,7 +955,7 @@ export default function PlanBuilderPage() {
                                     <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3.05h16.94a2 2 0 0 0 1.71-3.05l-8.47-14.14a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
                                   </svg>
                                   <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900/90 text-white text-xs rounded-lg whitespace-nowrap pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                                    Unsatisfied prereqs: {Array.from(semestersProblematicCourses.get(sem.id) || new Set()).join(', ')}
+                                    Unsatisfied prereqs: {Array.from(semestersProblematicCourses.get(sem.id)?.keys() || []).join(', ')}
                                   </div>
                                 </div>
                               )}
@@ -977,17 +977,23 @@ export default function PlanBuilderPage() {
                           </div>
                           <div className="space-y-2">
                             {sem.courses.map((course) => {
-                              const isProblematic = semestersProblematicCourses.get(sem.id)?.has(course.courseCode) ?? false;
+                              const missingCourses = semestersProblematicCourses.get(sem.id)?.get(course.courseCode) ?? [];
+                              const isProblematic = missingCourses.length > 0;
                               return (
                                 <div key={course.id} onClick={() => handleCourseClick(course.courseCode)} className="px-3 bg-panel-bg-alt border border-panel-border-strong rounded-xl text-sm flex justify-between items-center hover:border-uva-blue transition-colors cursor-pointer group h-[46px]">
                                   <span className="font-medium text-text-primary flex items-center gap-2">
                                     {course.courseCode}
                                     {isProblematic && (
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-yellow-500 flex-shrink-0">
-                                        <circle cx="12" cy="12" r="10"/>
-                                        <line x1="12" y1="8" x2="12" y2="12"/>
-                                        <line x1="12" y1="16" x2="12.01" y2="16"/>
-                                      </svg>
+                                      <div className="group/warning relative">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-yellow-500 flex-shrink-0 cursor-help hover:text-yellow-600 transition-colors">
+                                          <circle cx="12" cy="12" r="10"/>
+                                          <line x1="12" y1="8" x2="12" y2="12"/>
+                                          <line x1="12" y1="16" x2="12.01" y2="16"/>
+                                        </svg>
+                                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900/90 text-white text-xs rounded-lg whitespace-nowrap pointer-events-none opacity-0 group-hover/warning:opacity-100 transition-opacity z-10">
+                                          Missing: {missingCourses.join(', ')}
+                                        </div>
+                                      </div>
                                     )}
                                   </span>
                                   <div className="relative flex items-center justify-end min-w-[84px] h-full pr-1">
