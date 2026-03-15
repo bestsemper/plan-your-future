@@ -69,6 +69,25 @@ type ParsedAuditCompletedCourse = {
 
 type AuditImportSelection = 'transfer' | 'taken' | 'both';
 
+type AttachedPlanViewData = {
+  plan: {
+    id: string;
+    title: string;
+    ownerDisplayName: string;
+    semesters: Array<{
+      id: string;
+      termName: string;
+      termOrder: number;
+      year: number;
+      courses: Array<{
+        id: string;
+        courseCode: string;
+        credits: number | null;
+      }>;
+    }>;
+  };
+};
+
 function hasTransferEquivalentGrade(line: string): boolean {
   // In Stellic audit exports, TE indicates transfer/test-equivalent credit.
   return /(?:Fall|Winter|Spring|Summer)\s*'?(\d{2})\s*TE\b/i.test(line) || /\bTE\b/i.test(line);
@@ -197,7 +216,9 @@ function parseStellicCoursesFromText(text: string): ParsedStellicCourse[] {
   let currentYear: number | null = null;
   let sectionMode: 'taken' | 'planned' = 'planned';
 
-  const termRegex = /\b(Fall|Winter|Spring|Summer)\s+(20\d{2})\b/i;
+  // Match both "Fall 2025" and "Fall '25" formats
+  // Don't use trailing \b since it won't match when followed by letter grades like 'TE', 'A+', etc.
+  const termRegex = /\b(Fall|Winter|Spring|Summer)\s+(?:'(\d{2})|(20\d{2}))/i;
   const courseCodeRegex = /\b([A-Z]{2,4})\s?-?(\d{4})\b/g;
 
   for (const rawLine of lines) {
@@ -214,7 +235,17 @@ function parseStellicCoursesFromText(text: string): ParsedStellicCourse[] {
             : termValue === 'spring'
               ? 'Spring'
               : 'Summer';
-      currentYear = Number.parseInt(termMatch[2], 10);
+      
+      // Handle both 4-digit year (2025) and 2-digit year ('25)
+      if (termMatch[2]) {
+        // 2-digit year like '25
+        const twoDigitYear = Number.parseInt(termMatch[2], 10);
+        // Convert to 4-digit: 00-30 -> 2000-2030, 31-99 -> 1931-1999
+        currentYear = twoDigitYear <= 30 ? 2000 + twoDigitYear : 1900 + twoDigitYear;
+      } else {
+        // 4-digit year
+        currentYear = Number.parseInt(termMatch[3], 10);
+      }
     }
 
     const lowerLine = line.toLowerCase();
@@ -431,13 +462,35 @@ export async function createForumPost(title: string, body: string, attachedPlanI
   }
 
   let validatedPlanId: string | null = null;
+  let planSnapshot: any = null;
+  
   if (attachedPlanId && attachedPlanId.trim() !== '') {
     const plan = await prisma.plan.findFirst({
       where: {
         id: attachedPlanId,
         userId: user.id,
       },
-      select: { id: true },
+      select: {
+        id: true,
+        title: true,
+        semesters: {
+          orderBy: { termOrder: 'asc' },
+          select: {
+            id: true,
+            termName: true,
+            termOrder: true,
+            year: true,
+            courses: {
+              orderBy: { courseCode: 'asc' },
+              select: {
+                id: true,
+                courseCode: true,
+                credits: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!plan) {
@@ -445,6 +498,11 @@ export async function createForumPost(title: string, body: string, attachedPlanI
     }
 
     validatedPlanId = plan.id;
+    // Capture a snapshot of the plan at the time of posting
+    planSnapshot = {
+      title: plan.title,
+      semesters: plan.semesters,
+    };
   }
 
   await prisma.forumPost.create({
@@ -453,6 +511,7 @@ export async function createForumPost(title: string, body: string, attachedPlanI
       title: trimmedTitle,
       body: trimmedBody,
       attachedPlanId: validatedPlanId,
+      planSnapshot: planSnapshot,
     },
   });
 
@@ -1051,8 +1110,35 @@ export async function getPlanBuilderData() {
   };
 }
 
-export async function getAttachedPlanViewData(planId: string) {
+export async function getAttachedPlanViewData(planId: string): Promise<AttachedPlanViewData | { error: 'not_found' | 'forbidden' }> {
   const currentUser = await getCurrentUser();
+
+  // Check if this plan is attached to a forum post with a snapshot
+  const attachedPost = await prisma.forumPost.findFirst({
+    where: { attachedPlanId: planId },
+    select: { 
+      id: true,
+      planSnapshot: true,
+      author: {
+        select: {
+          displayName: true,
+        },
+      },
+    },
+  });
+
+  // If there's a snapshot, use that instead of the live plan
+  if (attachedPost?.planSnapshot) {
+    const snapshot = attachedPost.planSnapshot as any;
+    return {
+      plan: {
+        id: planId,
+        title: snapshot.title,
+        ownerDisplayName: attachedPost.author.displayName,
+        semesters: snapshot.semesters,
+      },
+    };
+  }
 
   const plan = await prisma.plan.findFirst({
     where: { id: planId },
@@ -1093,11 +1179,7 @@ export async function getAttachedPlanViewData(planId: string) {
   let attachedToForumPost = false;
 
   if (!ownedByCurrentUser) {
-    const attachedPost = await prisma.forumPost.findFirst({
-      where: { attachedPlanId: plan.id },
-      select: { id: true },
-    });
-    attachedToForumPost = Boolean(attachedPost);
+    attachedToForumPost = Boolean(attachedPost?.id);
   }
 
   if (!ownedByCurrentUser && !attachedToForumPost) {
