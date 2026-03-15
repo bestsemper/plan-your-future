@@ -22,6 +22,8 @@ type ForumAnswerItem = {
   canDelete: boolean;
   createdAt: string;
   authorDisplayName: string;
+  authorId: string;
+  authorComputingId: string;
   voteScore: number;
   currentUserVote: 1 | -1 | 0;
 };
@@ -36,6 +38,8 @@ type ForumPostItem = {
   viewCount: number;
   createdAt: string;
   authorDisplayName: string;
+  authorId: string;
+  authorComputingId: string;
   canDelete: boolean;
   attachedPlan: { id: string; title: string } | null;
   answers: ForumAnswerItem[];
@@ -133,8 +137,10 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
     canDelete: true,
     createdAt: new Date().toISOString(),
     authorDisplayName: 'You',
-    voteScore: 0,
-    currentUserVote: 0,
+    authorId: 'temp-user-id',
+    authorComputingId: '',
+    voteScore: 1,
+    currentUserVote: 1,
   });
 
   const handleReply = () => {
@@ -441,7 +447,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                 <button
                   type="button"
                   onClick={() => handleVote(answer.id, 1)}
-                  disabled={!canPost || isPending}
+                  disabled={!canPost || isPending || answer.isDeleted}
                   aria-label="Like reply"
                   className={`inline-flex items-center justify-center w-8 h-8 rounded-full border transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                     answer.currentUserVote === 1
@@ -459,7 +465,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                 <button
                   type="button"
                   onClick={() => handleVote(answer.id, -1)}
-                  disabled={!canPost || isPending}
+                  disabled={!canPost || isPending || answer.isDeleted}
                   aria-label="Unlike reply"
                   className={`inline-flex items-center justify-center w-8 h-8 rounded-full border transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                     answer.currentUserVote === -1
@@ -477,6 +483,8 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                 <p className="text-xs text-text-tertiary mb-2">
                   {answer.isDeleted ? (
                     <>deleted {formatRelativeTime(answer.createdAt)}</>
+                  ) : answer.authorComputingId ? (
+                    <><Link href={`/profile/${answer.authorComputingId}`} className="text-uva-blue font-semibold hover:underline">{answer.authorDisplayName}</Link> replied {formatRelativeTime(answer.createdAt)}</>
                   ) : (
                     <><span className="text-uva-blue font-semibold">{answer.authorDisplayName}</span> replied {formatRelativeTime(answer.createdAt)}</>
                   )}
@@ -503,7 +511,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                       setActiveReplyEditorId(answer.id);
                       setInlineReplyDraft('');
                     }}
-                    disabled={!canPost || isPending}
+                    disabled={!canPost || isPending || answer.isDeleted}
                     className="px-3 py-1.5 rounded-xl border border-panel-border-strong text-text-primary hover:bg-hover-bg text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Reply
@@ -535,7 +543,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                       <button
                         type="button"
                         onClick={() => handleReplyToReply(answer.id)}
-                        disabled={!canPost || isPending}
+                        disabled={!canPost || isPending || answer.isDeleted}
                         className="px-3 py-1.5 bg-uva-blue/90 text-white rounded-xl text-xs font-semibold hover:bg-uva-blue transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {isPending ? 'Posting...' : 'Post Reply'}
@@ -585,7 +593,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
             </div>
 
             <p className="text-xs text-text-tertiary mb-4">
-              <span className="text-uva-blue font-semibold">{post.authorDisplayName}</span> asked {formatRelativeTime(post.createdAt)} | {post.viewCount} views
+              <Link href={`/profile/${post.authorComputingId}`} className="text-uva-blue font-semibold hover:underline">{post.authorDisplayName}</Link> asked {formatRelativeTime(post.createdAt)} | {post.viewCount} views
             </p>
 
             <div className="border-t border-panel-border pt-5">
