@@ -98,7 +98,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
                 className={`block px-4 py-2.5 transition-colors font-medium rounded-xl border ${
                   isActive(link.href)
                     ? "bg-white text-uva-blue border-black/15"
-                    : "text-white/75 hover:text-white border-transparent"
+                    : "text-white/75 hover:text-white hover:bg-black/20 border-transparent hover:border-white/10"
                 }`}
               >
                 {link.label}
@@ -148,7 +148,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
                 className={`block px-4 py-2.5 transition-colors font-medium rounded-xl border ${
                   isActive(link.href)
                     ? "bg-white text-uva-blue border-black/15"
-                    : "text-white/75 hover:text-white border-transparent"
+                    : "text-white/75 hover:text-white hover:bg-black/20 border-transparent hover:border-white/10"
                 }`}
               >
                 {link.label}
