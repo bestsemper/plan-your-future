@@ -43,7 +43,7 @@ export default function ConfirmModal({
 
         {/* Centered icon */}
         <div className="flex justify-center mb-4">
-          <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${isDanger ? 'bg-red-100' : 'bg-uva-blue/10'}`}>
+          <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${isDanger ? 'bg-red-500/10' : 'bg-uva-blue/10'}`}>
             {isDanger ? (
               <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-500"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
             ) : (
