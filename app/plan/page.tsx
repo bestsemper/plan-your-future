@@ -1236,10 +1236,9 @@ export default function PlanBuilderPage() {
             </div>
 
             <div className="space-y-3">
-              <div className="rounded-xl border border-panel-border bg-panel-bg px-3 py-2 text-sm text-text-secondary">
-                <p className="font-semibold text-text-primary">Download from Stellic</p>
-                <p>Open your plan in Stellic, download the plan as a PDF, and upload that file here.</p>
-              </div>
+              <p className="text-sm text-text-secondary">
+                Open Stellic → Plan your Path → Download Plan → Create plan report
+              </p>
 
               <div className="flex gap-2">
                 <button

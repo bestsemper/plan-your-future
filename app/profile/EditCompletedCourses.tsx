@@ -215,7 +215,7 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
 
   async function handleImportFromAuditPdf() {
     if (!importFile) {
-      setError('Please choose an audit report PDF file.');
+      setError('Please choose an audit report PDF.');
       return;
     }
 
@@ -287,9 +287,9 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
             )}
 
             <div className="border border-panel-border rounded-2xl p-6 bg-panel-bg space-y-3">
-              <h3 className="font-semibold text-heading text-base">Import Audit PDF</h3>
+              <h3 className="font-semibold text-heading text-base">Import Audit Report</h3>
               <p className="text-sm text-text-secondary">
-                In Stellic, open your audit and export it as a PDF, then upload it here.
+                Open Stellic → Plan your Path → Print Audit Report → Create audit report
               </p>
               <input
                 type="file"
@@ -303,15 +303,15 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
                 disabled={isImporting}
                 className="w-full px-6 py-3 bg-uva-blue/90 text-white rounded-xl font-semibold hover:bg-uva-blue transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isImporting ? 'Importing...' : 'Import Audit PDF'}
+                {isImporting ? 'Importing...' : 'Import Audit Report'}
               </button>
             </div>
 
             {/* Add Course Form */}
             <div className="border border-panel-border rounded-2xl p-6 bg-panel-bg">
-              <h3 className="font-semibold text-heading mb-4 text-base">Add Extra Course (Placement/Skip)</h3>
+              <h3 className="font-semibold text-heading mb-4 text-base">Add Extra Course</h3>
               <p className="text-sm text-text-secondary mb-4">
-                Use this only for extra credits not shown in your audit (for example placement or skip credit).
+                Use this only for extra courses not shown in your audit report (e.g. courses from placement or skip tests).
               </p>
               <form onSubmit={handleAddCourse} className="space-y-4">
                 {/* Course Code with Dropdown */}
