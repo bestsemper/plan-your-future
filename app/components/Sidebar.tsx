@@ -9,7 +9,8 @@ export default function Sidebar({ user }: { user: { computingId: string, display
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const desktopMenuRef = useRef<HTMLDivElement>(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   const navLinks = [
     {
@@ -52,8 +53,11 @@ export default function Sidebar({ user }: { user: { computingId: string, display
 
   useEffect(() => {
     const onOutsideClick = (event: MouseEvent) => {
-      if (!menuRef.current) return;
-      if (!menuRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      const clickedDesktopMenu = !!desktopMenuRef.current?.contains(target);
+      const clickedMobileMenu = !!mobileMenuRef.current?.contains(target);
+
+      if (!clickedDesktopMenu && !clickedMobileMenu) {
         setMenuOpen(false);
       }
     };
@@ -108,16 +112,19 @@ export default function Sidebar({ user }: { user: { computingId: string, display
           <button
             type="button"
             aria-label="Close menu"
-            className="lg:hidden fixed top-14 bottom-0 inset-x-0 z-[45] bg-transparent"
+            className="lg:hidden fixed top-14 bottom-0 inset-x-0 z-[60] bg-transparent touch-none"
+            onPointerDown={(event) => event.preventDefault()}
+            onTouchMove={(event) => event.preventDefault()}
             onClick={() => setMobileNavOpen(false)}
           />
-          <div className="pointer-events-none lg:hidden fixed top-[4.25rem] bottom-3 left-3 right-3 z-[45] rounded-3xl bg-black/35" />
+          <div className="pointer-events-none lg:hidden fixed top-[4.25rem] bottom-3 left-3 right-3 z-[60] rounded-3xl bg-black/35" />
         </>
       )}
 
       {!isLoginPage && (
       <aside
-        className={`lg:hidden fixed top-14 bottom-0 left-0 z-50 w-72 bg-uva-blue text-white px-6 py-6 flex flex-col justify-between transform transition-transform duration-200 ${
+        id="mobile-sidebar-panel"
+        className={`lg:hidden fixed top-14 bottom-0 left-0 z-[70] w-72 bg-uva-blue text-white px-6 py-6 flex flex-col justify-between transform transition-transform duration-200 ${
           mobileNavOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -143,23 +150,48 @@ export default function Sidebar({ user }: { user: { computingId: string, display
 
         <div className="pt-4 flex flex-col gap-2 border-t border-white/20">
           {user ? (
-            <>
-              <Link
-                href="/profile"
-                onClick={() => setMobileNavOpen(false)}
-                className="w-full text-left rounded-lg px-3 py-2 text-sm font-medium text-white hover:bg-white/10"
+            <div className="relative" ref={mobileMenuRef}>
+              <button
+                type="button"
+                onClick={() => setMenuOpen((prev) => !prev)}
+                className="w-full flex items-center space-x-3 rounded-xl hover:bg-black/20 p-2.5 transition-colors border border-transparent hover:border-white/10 cursor-pointer"
               >
-                Profile
-              </Link>
-              <form action={logout} suppressHydrationWarning>
-                <button
-                  type="submit"
-                  className="w-full text-left rounded-lg px-3 py-2 text-sm font-medium text-white hover:bg-white/10 cursor-pointer"
-                >
-                  Sign Out
-                </button>
-              </form>
-            </>
+                <div className="w-8 h-8 rounded-full bg-uva-orange flex items-center justify-center text-white font-bold uppercase">
+                  {user.displayName.charAt(0)}
+                </div>
+                <div className="flex-1 overflow-hidden text-left">
+                  <p className="text-sm font-medium text-white truncate">{user.displayName}</p>
+                  <p className="text-xs text-white/70 truncate">{user.computingId}</p>
+                </div>
+              </button>
+
+              {menuOpen && (
+                <div className="absolute left-0 right-0 bottom-full mb-2 rounded-xl border border-panel-border bg-panel-bg shadow-lg p-1.5 z-20">
+                  <Link
+                    href="/profile"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      setMobileNavOpen(false);
+                    }}
+                    className="block rounded-lg px-3 py-2 text-sm font-medium text-text-primary hover:bg-hover-bg"
+                  >
+                    Profile
+                  </Link>
+                  <form action={logout} suppressHydrationWarning>
+                    <button
+                      type="submit"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        setMobileNavOpen(false);
+                      }}
+                      className="w-full text-left rounded-lg px-3 py-2 text-sm font-medium text-text-primary hover:bg-hover-bg cursor-pointer"
+                    >
+                      Sign Out
+                    </button>
+                  </form>
+                </div>
+              )}
+            </div>
           ) : (
             <Link href="/login" className="mt-1 flex items-center justify-center w-full text-sm text-uva-blue bg-white hover:bg-white/90 py-2.5 rounded-xl transition-colors font-bold shadow-sm border border-black/10">
               Sign In
@@ -196,7 +228,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
 
         <div className="pt-4 flex flex-col gap-2 border-t border-white/20">
           {user ? (
-            <div className="relative" ref={menuRef}>
+            <div className="relative" ref={desktopMenuRef}>
               <button
                 type="button"
                 onClick={() => setMenuOpen((prev) => !prev)}

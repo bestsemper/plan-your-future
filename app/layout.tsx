@@ -35,9 +35,9 @@ export default async function RootLayout({
       <body suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} antialiased flex bg-uva-blue text-text-primary`}>
         <ThemeProvider>
           <Sidebar user={user} />
-          <main className="relative z-10 flex-1 bg-uva-blue overflow-visible flex flex-col h-[100svh] p-3 pt-[4.25rem] lg:h-screen lg:pt-3">
+          <main id="app-main-content" className="relative z-10 flex-1 bg-uva-blue overflow-visible flex flex-col h-[100svh] p-3 pt-[4.25rem] lg:h-screen lg:pt-3">
             <div className="h-full w-full rounded-3xl bg-background border border-black/15 border-l-0 overflow-visible">
-              <div className="h-full overflow-y-auto overflow-x-visible p-8">
+              <div id="app-scroll-container" className="h-full overflow-y-auto overflow-x-visible p-8">
                 {children}
               </div>
             </div>
