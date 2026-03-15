@@ -156,7 +156,8 @@ export function getMissingCoursesRecursive(
 
 /**
  * Get ALL missing courses from a prerequisite tree (flat list)
- * This recursively finds all course nodes and returns those not yet taken
+ * This recursively finds all course nodes and returns those not yet taken,
+ * but respects COUNT requirements - if enough courses are taken, don't include the rest
  */
 function getAllMissingCoursesFlat(
   tree: PrerequisiteTree,
@@ -169,8 +170,30 @@ function getAllMissingCoursesFlat(
       if (!taken.has(node.code.toUpperCase())) {
         missing.add(node.code);
       }
-    } else if ('children' in node) {
+    } else if (node.type === 'count') {
+      // For COUNT nodes, check if requirement is satisfied
+      const satisfied = node.children.filter((child) =>
+        evaluateTreeRecursive(child, taken)
+      );
+      const needMore = node.count - satisfied.length;
+      
+      // Only traverse children if we still need more courses
+      if (needMore > 0) {
+        node.children.forEach(traverse);
+      }
+    } else if (node.type === 'AND') {
+      // For AND nodes, traverse all children (all must be satisfied)
       node.children.forEach(traverse);
+    } else if (node.type === 'OR') {
+      // For OR nodes, only traverse unsatisfied branches
+      const isSatisfied = node.children.some((child) =>
+        evaluateTreeRecursive(child, taken)
+      );
+      
+      if (!isSatisfied) {
+        // If no branch is satisfied, we need courses from somewhere
+        node.children.forEach(traverse);
+      }
     }
   }
 
@@ -193,7 +216,7 @@ export function getDetailedMissingRequirements(
     return [
       {
         type: 'course',
-        description: `${tree.code}`,
+        description: `Missing: ${tree.code}`,
         missingCourses: [tree.code],
       },
     ];
@@ -224,7 +247,7 @@ export function getDetailedMissingRequirements(
     return [
       {
         type: 'count',
-        description: `Need ${needMore} more of: ${courseOptions.join(', ')}`,
+        description: `Missing: Need ${needMore} more of: ${courseOptions.join(', ')}`,
         missingCourses: courseOptions.filter(
           (c) => !taken.has(c.toUpperCase())
         ),
@@ -271,7 +294,7 @@ export function getDetailedMissingRequirements(
         if (!taken.has(child.code.toUpperCase())) {
           const singleCourseReq: RequirementMissing = {
             type: 'course',
-            description: child.code,
+            description: `Missing: ${child.code}`,
             missingCourses: [child.code],
           };
           branchRequirements.push([singleCourseReq]);

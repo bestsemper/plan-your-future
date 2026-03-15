@@ -14,7 +14,7 @@ COURSE_CODE_PATTERN = r'\b([A-Z]{2,6})\s*(\d{4})\b'
 PREREQ_PREFIX_PATTERN = r'(?:prereq|prerequisite)(?:\s*[:\-]?)\s*'
 
 # Regex pattern for "N of the following" constraints
-COUNT_OF_PATTERN = r'(?:(?:at\s+least\s+)?(\d+)|(?:one|two|three|four|five|six|seven|eight|nine|ten))\s+(?:of\s+(?:the\s+)?(?:following|these)|from\s+(?:the\s+)?(?:following|these))'
+COUNT_OF_PATTERN = r'(?:at\s+least\s+)?(\d+)\s+(?:of\s+(?:the\s+)?following|from\s+the\s+following|courses?\s+from)'
 
 
 @dataclass
@@ -110,28 +110,8 @@ def extract_words_after_prefix(text: str) -> List[str]:
 
 def tokenize_prerequisite(text: str) -> List[str]:
     """Tokenize the prerequisite text into tokens (course codes, operators, parens, count constraints)"""
-    # Check for count pattern first (e.g., "2 of the following" or "ONE of the following")
+    # Check for count pattern first (e.g., "2 of the following")
     count_match = re.search(COUNT_OF_PATTERN, text, re.IGNORECASE)
-    count_token = None
-    
-    if count_match:
-        # Extract the count number or word
-        match_text = count_match.group(0)
-        # Try to extract digit
-        digit_match = re.search(r'\d+', match_text)
-        if digit_match:
-            count_token = f"COUNT:{digit_match.group(0)}"
-        else:
-            # Convert word to number
-            word_map = {
-                'one': '1', 'two': '2', 'three': '3', 'four': '4',
-                'five': '5', 'six': '6', 'seven': '7', 'eight': '8',
-                'nine': '9', 'ten': '10'
-            }
-            for word, num in word_map.items():
-                if word in match_text.lower():
-                    count_token = f"COUNT:{num}"
-                    break
     
     # Replace 'and' and 'or' (case-insensitive) with uppercase
     text = re.sub(r'\band\b', 'AND', text, flags=re.IGNORECASE)
@@ -141,23 +121,28 @@ def tokenize_prerequisite(text: str) -> List[str]:
     tokens = []
     pattern = r'(\(|\)|AND|OR|' + COURSE_CODE_PATTERN + r')'
     
-    # Extract text after the count pattern if found
-    text_to_tokenize = text
+    # If we found a count pattern, add it as a special token
     if count_match:
-        text_to_tokenize = text[count_match.end():]
-    
-    for match in re.finditer(pattern, text_to_tokenize, re.IGNORECASE):
-        token = match.group(0).strip()
-        if token:
-            # Combine course code with number
-            if match.group(3):  # If it matched the course pattern
-                tokens.append(f"{match.group(2)} {match.group(3)}")
-            elif token in ('AND', 'OR', '(', ')'):
-                tokens.append(token)
-    
-    # Add count token at the beginning if found
-    if count_token:
-        tokens.insert(0, count_token)
+        tokens.append(f"COUNT:{count_match.group(1)}")
+        # Parse text after the count constraint
+        text_after = text[count_match.end():]
+        for match in re.finditer(pattern, text_after, re.IGNORECASE):
+            token = match.group(0).strip()
+            if token:
+                # Combine course code with number
+                if match.group(3):  # If it matched the course pattern
+                    tokens.append(f"{match.group(2)} {match.group(3)}")
+                elif token in ('AND', 'OR', '(', ')'):
+                    tokens.append(token)
+    else:
+        for match in re.finditer(pattern, text, re.IGNORECASE):
+            token = match.group(0).strip()
+            if token:
+                # Combine course code with number
+                if match.group(3):  # If it matched the course pattern
+                    tokens.append(f"{match.group(2)} {match.group(3)}")
+                elif token in ('AND', 'OR', '(', ')'):
+                    tokens.append(token)
     
     # Filter out orphan operators - operators that don't connect to courses
     # This removes noise like "OR" from "grade of C- or better"
@@ -347,27 +332,29 @@ def main():
     try:
         with open(json_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
-            # The JSON is a list of courses
-            if isinstance(data, list):
-                rows = [
-                    {
-                        'course_code': course.get('course_code', ''),
-                        'description': course.get('description', ''),
-                        'enrollment_requirements': course.get('enrollment_requirements', '')
-                    }
-                    for course in data
-                ]
-            elif isinstance(data, dict) and 'courses' in data:
+            # Convert JSON structure to rows format
+            # Assuming the JSON has courses as objects with course_code, description, enrollment_requirements
+            if isinstance(data, dict) and 'courses' in data:
                 # If it's a dict with 'courses' key
                 rows = [
                     {
-                        'course_code': course.get('code', course.get('course_code', '')),
+                        'course_code': course.get('code', ''),
                         'description': course.get('description', ''),
                         'enrollment_requirements': course.get('enrollment_requirements', '')
                     }
                     for course in data.get('courses', [])
                 ]
-            elif isinstance(data, dict):
+            elif isinstance(data, list):
+                # If it's directly a list of courses
+                rows = [
+                    {
+                        'course_code': course.get('code', course.get('course_code', '')),
+                        'description': course.get('description', ''),
+                        'enrollment_requirements': course.get('enrollment_requirements', course.get('requirements', ''))
+                    }
+                    for course in data
+                ]
+            else:
                 # Fallback: treat as a dict of courses keyed by course code
                 rows = [
                     {

@@ -432,7 +432,7 @@ export default function PlanBuilderPage() {
       
       setPrereqWarning({
         type: 'error',
-        message: `${code} requires: ${detailMsg}. These courses are not marked as completed or planned in an earlier semester.`,
+        message: `${code} is missing prerequisites: ${detailMsg}. These courses are not marked as completed or planned in an earlier semester.`,
         missingCourses: result.missingCourses,
         detailedRequirements: result.detailedRequirements,
       });
