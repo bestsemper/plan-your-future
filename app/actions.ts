@@ -1895,6 +1895,7 @@ export async function checkCoursePrerequisites(input: {
       isSatisfied: true,
       hasNoPrerequisites: true,
       missingCourses: [],
+      detailedRequirements: [],
       hasUnknownPrerequisites: false,
     };
   }

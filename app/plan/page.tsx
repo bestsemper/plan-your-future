@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
+import type { RequirementMissing } from './utils/prerequisiteChecker';
 import ConfirmModal from '../components/ConfirmModal';
 import {
   addSchoolYearToPlan,
@@ -190,7 +191,7 @@ export default function PlanBuilderPage() {
   const [showPrereqConfirm, setShowPrereqConfirm] = useState(false);
   const [pendingCourseAdd, setPendingCourseAdd] = useState<{ semesterId: string; courseCode: string; credits: number } | null>(null);
   // Map of semesterId -> Map of courseCode -> missing prerequisite codes
-  const [semestersProblematicCourses, setSemestersProblematicCourses] = useState<Map<string, Map<string, string[]>>>(new Map());
+  const [semestersProblematicCourses, setSemestersProblematicCourses] = useState<Map<string, Map<string, RequirementMissing[]>>>(new Map());
 
   const loadData = async (preferredPlanId?: string) => {
     const res = await getPlanBuilderData();
@@ -244,7 +245,7 @@ export default function PlanBuilderPage() {
     const checkExistingCoursesPrerequisites = async () => {
       if (!activePlan || !completedCourses) return;
 
-      const newProblematicCourses = new Map<string, Map<string, string[]>>();
+      const newProblematicCourses = new Map<string, Map<string, RequirementMissing[]>>();
 
       for (const semester of activePlan.semesters) {
         for (const course of semester.courses) {
@@ -257,8 +258,8 @@ export default function PlanBuilderPage() {
 
           // If prerequisites are not satisfied and it's not a 1000-level course without prerequisites
           if (!result.isSatisfied && !(result.hasNoPrerequisites && result.hasUnknownPrerequisites)) {
-            const existing = newProblematicCourses.get(semester.id) || new Map<string, string[]>();
-            existing.set(course.courseCode, result.missingCourses || []);
+            const existing = newProblematicCourses.get(semester.id) || new Map<string, RequirementMissing[]>();
+            existing.set(course.courseCode, result.detailedRequirements || []);
             newProblematicCourses.set(semester.id, existing);
           }
         }
@@ -391,9 +392,12 @@ export default function PlanBuilderPage() {
       addCourseOptimistically(semesterId, code, cr);
     } else {
       // Prerequisites not satisfied - show hard warning and ask for confirmation
+      const detailMsg = result.detailedRequirements
+        .map(req => req.description)
+        .join('; ');
       setPrereqWarning({
         type: 'error',
-        message: `${code} requires: ${result.missingCourses.join(', ')}. These courses are not marked as completed or planned in an earlier semester.`,
+        message: `${code} requires: ${detailMsg || result.missingCourses.join(', ')}. These courses are not marked as completed or planned in an earlier semester.`,
         missingCourses: result.missingCourses,
       });
       setShowPrereqConfirm(true);
@@ -1053,14 +1057,17 @@ export default function PlanBuilderPage() {
                           </div>
                           <div className="space-y-2">
                             {sem.courses.map((course) => {
-                              const missingCourses = semestersProblematicCourses.get(sem.id)?.get(course.courseCode) ?? [];
-                              const isProblematic = missingCourses.length > 0;
+                              const requirementsMissing = semestersProblematicCourses.get(sem.id)?.get(course.courseCode) ?? [];
+                              const isProblematic = requirementsMissing.length > 0;
+                              const tooltipMessage = requirementsMissing
+                                .map(req => req.description)
+                                .join('; ');
                               return (
                                 <div key={course.id} onClick={() => handleCourseClick(course.courseCode)} className="px-3 bg-panel-bg-alt border border-panel-border-strong rounded-xl text-sm flex justify-between items-center hover:border-uva-blue transition-colors cursor-pointer group h-[46px]">
                                   <span className="font-medium text-text-primary flex items-center gap-2">
                                     {course.courseCode}
                                     {isProblematic && (
-                                      <HoverTooltip message={`Missing: ${missingCourses.join(', ')}`}>
+                                      <HoverTooltip message={`Missing: ${tooltipMessage}`}>
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-yellow-500 flex-shrink-0 cursor-help hover:text-yellow-600 transition-colors">
                                           <circle cx="12" cy="12" r="10"/>
                                           <line x1="12" y1="8" x2="12" y2="12"/>

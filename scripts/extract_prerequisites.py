@@ -1,4 +1,3 @@
-import csv
 import json
 import re
 import shutil
@@ -13,6 +12,9 @@ COURSE_CODE_PATTERN = r'\b([A-Z]{2,6})\s*(\d{4})\b'
 
 # Regex pattern for prerequisite prefix
 PREREQ_PREFIX_PATTERN = r'(?:prereq|prerequisite)(?:\s*[:\-]?)\s*'
+
+# Regex pattern for "N of the following" constraints
+COUNT_OF_PATTERN = r'(?:(?:at\s+least\s+)?(\d+)|(?:one|two|three|four|five|six|seven|eight|nine|ten))\s+(?:of\s+(?:the\s+)?(?:following|these)|from\s+(?:the\s+)?(?:following|these))'
 
 
 @dataclass
@@ -38,6 +40,25 @@ class OperatorNode:
     def to_dict(self):
         return {
             "type": self.type,
+            "children": [child.to_dict() if hasattr(child, 'to_dict') else child for child in self.children]
+        }
+
+
+@dataclass
+class CountNode:
+    """Represents an 'N of the following' constraint node in the tree"""
+    type: str = "count"
+    count: int = 1  # How many courses are required
+    children: List[Any] = None
+
+    def __post_init__(self):
+        if self.children is None:
+            self.children = []
+
+    def to_dict(self):
+        return {
+            "type": self.type,
+            "count": self.count,
             "children": [child.to_dict() if hasattr(child, 'to_dict') else child for child in self.children]
         }
 
@@ -88,7 +109,30 @@ def extract_words_after_prefix(text: str) -> List[str]:
 
 
 def tokenize_prerequisite(text: str) -> List[str]:
-    """Tokenize the prerequisite text into tokens (course codes, operators, parens)"""
+    """Tokenize the prerequisite text into tokens (course codes, operators, parens, count constraints)"""
+    # Check for count pattern first (e.g., "2 of the following" or "ONE of the following")
+    count_match = re.search(COUNT_OF_PATTERN, text, re.IGNORECASE)
+    count_token = None
+    
+    if count_match:
+        # Extract the count number or word
+        match_text = count_match.group(0)
+        # Try to extract digit
+        digit_match = re.search(r'\d+', match_text)
+        if digit_match:
+            count_token = f"COUNT:{digit_match.group(0)}"
+        else:
+            # Convert word to number
+            word_map = {
+                'one': '1', 'two': '2', 'three': '3', 'four': '4',
+                'five': '5', 'six': '6', 'seven': '7', 'eight': '8',
+                'nine': '9', 'ten': '10'
+            }
+            for word, num in word_map.items():
+                if word in match_text.lower():
+                    count_token = f"COUNT:{num}"
+                    break
+    
     # Replace 'and' and 'or' (case-insensitive) with uppercase
     text = re.sub(r'\band\b', 'AND', text, flags=re.IGNORECASE)
     text = re.sub(r'\bor\b', 'OR', text, flags=re.IGNORECASE)
@@ -97,7 +141,12 @@ def tokenize_prerequisite(text: str) -> List[str]:
     tokens = []
     pattern = r'(\(|\)|AND|OR|' + COURSE_CODE_PATTERN + r')'
     
-    for match in re.finditer(pattern, text, re.IGNORECASE):
+    # Extract text after the count pattern if found
+    text_to_tokenize = text
+    if count_match:
+        text_to_tokenize = text[count_match.end():]
+    
+    for match in re.finditer(pattern, text_to_tokenize, re.IGNORECASE):
         token = match.group(0).strip()
         if token:
             # Combine course code with number
@@ -106,13 +155,17 @@ def tokenize_prerequisite(text: str) -> List[str]:
             elif token in ('AND', 'OR', '(', ')'):
                 tokens.append(token)
     
+    # Add count token at the beginning if found
+    if count_token:
+        tokens.insert(0, count_token)
+    
     # Filter out orphan operators - operators that don't connect to courses
     # This removes noise like "OR" from "grade of C- or better"
     cleaned_tokens = []
     for i, token in enumerate(tokens):
         if token in ('AND', 'OR'):
             # Keep operator if it has a valid token before and after it
-            has_valid_before = i > 0 and tokens[i-1] not in ('AND', 'OR')
+            has_valid_before = i > 0 and tokens[i-1] not in ('AND', 'OR') and not tokens[i-1].startswith('COUNT:')
             has_valid_after = i < len(tokens) - 1 and tokens[i+1] not in ('AND', 'OR')
             if has_valid_before and has_valid_after:
                 cleaned_tokens.append(token)
@@ -168,8 +221,47 @@ def parse_prerequisite_tree(tokens: List[str]) -> Optional[Any]:
             return left
         
         def parse_primary(self) -> Optional[Any]:
-            """Parse primary expression (course or parenthesized expression)"""
+            """Parse primary expression (course, count constraint, or parenthesized expression)"""
             token = self.peek()
+            
+            # Handle COUNT token
+            if token and token.startswith('COUNT:'):
+                count_str = token.split(':')[1]
+                count = int(count_str)
+                self.consume()
+                
+                # Collect courses until we hit end or a low-precedence operator outside parens
+                children = []
+                paren_depth = 0
+                
+                while self.peek():
+                    next_token = self.peek()
+                    
+                    # Track parentheses depth
+                    if next_token == '(':
+                        paren_depth += 1
+                    elif next_token == ')':
+                        paren_depth -= 1
+                    
+                    # Stop if we hit OR at top level (outside parens)
+                    if next_token == 'OR' and paren_depth == 0:
+                        break
+                    
+                    # Parse one expression and add to children
+                    if paren_depth == 0:
+                        # Parse at AND level to collect all courses until OR
+                        child = self.parse_and_expression()
+                    else:
+                        child = self.parse_primary()
+                    
+                    if child:
+                        children.append(child)
+                    else:
+                        break
+                
+                if children:
+                    return CountNode(type='count', count=count, children=children)
+                return None
             
             if token == '(':
                 self.consume()  # consume '('
@@ -242,19 +334,56 @@ def render_progress_bar(completed: int, total: int, width: int = 36) -> str:
 
 def main():
     """Main function to process all courses with concurrent execution"""
-    # Read CSV into memory
-    csv_file = "uva_course_details.csv"
+    # Read JSON file into memory
+    json_file = "data/uva_course_details.json"
     rows = []
     
     try:
-        with open(csv_file, 'r', encoding='utf-8') as f:
-            reader = csv.DictReader(f)
-            rows = list(reader)
+        with open(json_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            # The JSON is a list of courses
+            if isinstance(data, list):
+                rows = [
+                    {
+                        'course_code': course.get('course_code', ''),
+                        'description': course.get('description', ''),
+                        'enrollment_requirements': course.get('enrollment_requirements', '')
+                    }
+                    for course in data
+                ]
+            elif isinstance(data, dict) and 'courses' in data:
+                # If it's a dict with 'courses' key
+                rows = [
+                    {
+                        'course_code': course.get('code', course.get('course_code', '')),
+                        'description': course.get('description', ''),
+                        'enrollment_requirements': course.get('enrollment_requirements', '')
+                    }
+                    for course in data.get('courses', [])
+                ]
+            elif isinstance(data, dict):
+                # Fallback: treat as a dict of courses keyed by course code
+                rows = [
+                    {
+                        'course_code': code,
+                        'description': course.get('description', ''),
+                        'enrollment_requirements': course.get('enrollment_requirements', course.get('requirements', ''))
+                    }
+                    for code, course in data.items()
+                    if isinstance(course, dict)
+                ]
     except FileNotFoundError:
-        print(f"Error: {csv_file} not found")
+        print(f"Error: {json_file} not found")
+        sys.exit(1)
+    except json.JSONDecodeError as e:
+        print(f"Error parsing JSON: {e}")
         sys.exit(1)
     except Exception as e:
-        print(f"Error reading CSV: {e}")
+        print(f"Error reading JSON file: {e}")
+        sys.exit(1)
+    
+    if not rows:
+        print("Error: No course data found in JSON file")
         sys.exit(1)
     
     # Process courses concurrently
@@ -313,7 +442,7 @@ def main():
         "courses_without_prerequisites": courses_without_prereqs,
     }
     
-    output_file = "uva_prerequisites.json"
+    output_file = "data/uva_prerequisites.json"
     try:
         with open(output_file, 'w', encoding='utf-8') as f:
             json.dump(output_data, f, indent=2, ensure_ascii=False)

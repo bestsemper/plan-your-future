@@ -8,19 +8,35 @@ type CourseNode = {
 
 type OperatorNode = {
   type: 'AND' | 'OR';
-  children: (CourseNode | OperatorNode)[];
+  children: (CourseNode | OperatorNode | CountNode)[];
 };
 
-type PrerequisiteTree = CourseNode | OperatorNode;
+type CountNode = {
+  type: 'count';
+  count: number;
+  children: (CourseNode | OperatorNode | CountNode)[];
+};
+
+type PrerequisiteTree = CourseNode | OperatorNode | CountNode;
 
 export interface Prerequisites {
   prerequisite_trees: Record<string, PrerequisiteTree>;
-  word_analysis: Record<string, number>;
+  prerequisite_words_by_course?: Record<string, string[]>;
+  word_analysis?: Record<string, number>;
   metadata: {
     total_courses: number;
     courses_with_prerequisites: number;
-    generated_at: string;
+    courses_without_prerequisites?: number;
+    generated_at?: string;
   };
+}
+
+export interface RequirementMissing {
+  type: 'course' | 'count' | 'or' | 'and';
+  description: string;
+  missingCourses: string[];
+  satisfiedCount?: number; // For count nodes: how many are satisfied
+  requiredCount?: number; // For count nodes: how many are needed
 }
 
 let cachedPrerequisites: Prerequisites | null = null;
@@ -59,6 +75,14 @@ export function evaluateTreeRecursive(
     return taken.has(tree.code.toUpperCase());
   }
 
+  if (tree.type === 'count') {
+    // Count how many children are satisfied
+    const satisfiedCount = tree.children.filter((child) =>
+      evaluateTreeRecursive(child, taken)
+    ).length;
+    return satisfiedCount >= tree.count;
+  }
+
   if (tree.type === 'AND') {
     // All children must be satisfied
     return tree.children.every((child) => evaluateTreeRecursive(child, taken));
@@ -72,6 +96,9 @@ export function evaluateTreeRecursive(
   return false;
 }
 
+/**
+ * Get missing courses from a prerequisite tree (simple list)
+ */
 export function getMissingCoursesRecursive(
   tree: PrerequisiteTree,
   taken: Set<string>
@@ -81,6 +108,20 @@ export function getMissingCoursesRecursive(
       return [];
     }
     return [tree.code];
+  }
+
+  if (tree.type === 'count') {
+    // For count nodes, return all courses that haven't been taken
+    const missing: string[] = [];
+    for (const child of tree.children) {
+      if (child.type === 'course' && !taken.has(child.code.toUpperCase())) {
+        missing.push(child.code);
+      } else if (child.type !== 'course') {
+        // Recursively check complex children
+        missing.push(...getMissingCoursesRecursive(child, taken));
+      }
+    }
+    return missing;
   }
 
   if (tree.type === 'AND') {
@@ -113,10 +154,112 @@ export function getMissingCoursesRecursive(
   return [];
 }
 
+/**
+ * Get detailed missing requirements from a prerequisite tree
+ */
+export function getDetailedMissingRequirements(
+  tree: PrerequisiteTree,
+  taken: Set<string>
+): RequirementMissing[] {
+  if (tree.type === 'course') {
+    const code = tree.code.toUpperCase();
+    if (taken.has(code)) {
+      return [];
+    }
+    return [
+      {
+        type: 'course',
+        description: `${tree.code}`,
+        missingCourses: [tree.code],
+      },
+    ];
+  }
+
+  if (tree.type === 'count') {
+    const satisfied = tree.children.filter((child) =>
+      evaluateTreeRecursive(child, taken)
+    );
+    const needMore = tree.count - satisfied.length;
+
+    if (needMore <= 0) {
+      return [];
+    }
+
+    // Get all course options available
+    const courseOptions: string[] = [];
+    const collectCourses = (node: PrerequisiteTree) => {
+      if (node.type === 'course') {
+        courseOptions.push(node.code);
+      } else if ('children' in node) {
+        node.children.forEach(collectCourses);
+      }
+    };
+
+    tree.children.forEach(collectCourses);
+
+    return [
+      {
+        type: 'count',
+        description: `Need ${needMore} more of: ${courseOptions.join(', ')}`,
+        missingCourses: courseOptions.filter(
+          (c) => !taken.has(c.toUpperCase())
+        ),
+        satisfiedCount: satisfied.length,
+        requiredCount: tree.count,
+      },
+    ];
+  }
+
+  if (tree.type === 'AND') {
+    // Collect requirements from all children
+    const requirements: RequirementMissing[] = [];
+    for (const child of tree.children) {
+      requirements.push(...getDetailedMissingRequirements(child, taken));
+    }
+    return requirements;
+  }
+
+  if (tree.type === 'OR') {
+    // Check if at least one is satisfied
+    const firstSatisfied = tree.children.some((child) =>
+      evaluateTreeRecursive(child, taken)
+    );
+
+    if (firstSatisfied) {
+      return [];
+    }
+
+    // None are satisfied - collect course options
+    const courseOptions: string[] = [];
+    const collectCourses = (node: PrerequisiteTree) => {
+      if (node.type === 'course') {
+        courseOptions.push(node.code);
+      } else if ('children' in node) {
+        node.children.forEach(collectCourses);
+      }
+    };
+
+    tree.children.forEach(collectCourses);
+
+    return [
+      {
+        type: 'or',
+        description: `Need one of: ${courseOptions.join(', ')}`,
+        missingCourses: courseOptions.filter(
+          (c) => !taken.has(c.toUpperCase())
+        ),
+      },
+    ];
+  }
+
+  return [];
+}
+
 export interface PrerequisiteCheckResult {
   isSatisfied: boolean;
   hasNoPrerequisites: boolean;
-  missingCourses: string[];
+  missingCourses: string[]; // Simple list of missing course codes
+  detailedRequirements: RequirementMissing[]; // Detailed requirement descriptions
   hasUnknownPrerequisites: boolean; // No prereqs but not 1000-level
 }
 
@@ -146,6 +289,7 @@ export function checkPrerequisites(
       isSatisfied: true,
       hasNoPrerequisites: true,
       missingCourses: [],
+      detailedRequirements: [],
       hasUnknownPrerequisites: !is1000Level, // Warning if not 1000-level
     };
   }
@@ -154,11 +298,15 @@ export function checkPrerequisites(
   const missingCourses = isSatisfied
     ? []
     : getMissingCoursesRecursive(tree, taken);
+  const detailedRequirements = isSatisfied
+    ? []
+    : getDetailedMissingRequirements(tree, taken);
 
   return {
     isSatisfied,
     hasNoPrerequisites: false,
     missingCourses,
+    detailedRequirements,
     hasUnknownPrerequisites: false,
   };
 }
