@@ -31,7 +31,7 @@ export function loadPrerequisites(): Prerequisites {
   }
 
   try {
-    const prereqPath = path.join(process.cwd(), 'uva_prerequisites.json');
+    const prereqPath = path.join(process.cwd(), 'data/uva_prerequisites.json');
     const data = fs.readFileSync(prereqPath, 'utf-8');
     cachedPrerequisites = JSON.parse(data) as Prerequisites;
     return cachedPrerequisites;

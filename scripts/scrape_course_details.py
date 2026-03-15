@@ -22,6 +22,48 @@ HEADERS = {
 }
 
 
+def course_key(course: dict) -> str:
+    code = str(course.get("course_code", "")).upper()
+    return " ".join(code.split())
+
+
+def sorted_courses(courses_by_key: dict[str, dict]) -> list[dict]:
+    return sorted(
+        courses_by_key.values(),
+        key=lambda c: (
+            " ".join(str(c.get("course_code", "")).split()).upper(),
+            str(c.get("crse_id", "")),
+        ),
+    )
+
+
+def load_existing_courses(filename: Path) -> dict[str, dict]:
+    if not filename.exists():
+        return {}
+
+    try:
+        with open(filename, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        if not isinstance(data, list):
+            return {}
+
+        result: dict[str, dict] = {}
+        for item in data:
+            if isinstance(item, dict) and item.get("course_code"):
+                result[course_key(item)] = item
+        return result
+    except Exception:
+        return {}
+
+
+def normalize_text(value: object) -> str:
+    text = str(value or "")
+    text = text.replace("\u00a0", " ").replace("\xa0", " ")
+    text = text.replace("\ufffd", "")
+    text = text.replace("\u00c2 ", " ")
+    return text.strip()
+
+
 def format_credit_value(units_minimum, units_maximum) -> str:
     minimum = str(units_minimum or "").strip()
     maximum = str(units_maximum or "").strip()
@@ -41,8 +83,8 @@ def extract_credits_from_class_details(class_details_data: dict) -> str:
         )
         match = re.search(r"\d+(?:\.\d+)?(?:\s*-\s*\d+(?:\.\d+)?)?", str(units))
         return match.group(0).replace(" ", "") if match else ""
-    except Exception as e:
-        print(f"      ✗ Error extracting credits: {e}")
+    except Exception:
+        pass
     return ""
 
 
@@ -101,8 +143,7 @@ def get_courses_by_subject(subject: str) -> list[dict]:
         if "courses" in data:
             return data["courses"]
         return []
-    except Exception as e:
-        print(f"  ✗ Error fetching courses for {subject}: {e}")
+    except Exception:
         return []
 
 
@@ -126,8 +167,7 @@ def get_sections_for_course(course_id: str, term: str) -> list[dict]:
         if "sections" in data:
             return data["sections"]
         return []
-    except Exception as e:
-        print(f"    ✗ Error fetching sections for course {course_id} (term {term}): {e}")
+    except Exception:
         return []
 
 
@@ -143,8 +183,7 @@ def get_class_details(class_nbr: str, term: str) -> dict:
         response = requests.get(CLASS_DETAILS_URL, params=params, headers=HEADERS, timeout=10)
         response.raise_for_status()
         return response.json()
-    except Exception as e:
-        print(f"    ✗ Error fetching class details for {class_nbr}: {e}")
+    except Exception:
         return {}
 
 
@@ -156,9 +195,9 @@ def extract_description(class_details_data: dict) -> str:
             if "catalog_descr" in section_info:
                 catalog_descr = section_info["catalog_descr"]
                 if "crse_catalog_description" in catalog_descr:
-                    return catalog_descr["crse_catalog_description"]
-    except Exception as e:
-        print(f"      ✗ Error extracting description: {e}")
+                    return normalize_text(catalog_descr["crse_catalog_description"])
+    except Exception:
+        pass
     return ""
 
 
@@ -170,9 +209,9 @@ def extract_enrollment_requirements(class_details_data: dict) -> str:
             if "enrollment_information" in section_info:
                 enrollment_info = section_info["enrollment_information"]
                 if "enroll_requirements" in enrollment_info:
-                    return enrollment_info["enroll_requirements"]
-    except Exception as e:
-        print(f"      ✗ Error extracting enrollment requirements: {e}")
+                    return normalize_text(enrollment_info["enroll_requirements"])
+    except Exception:
+        pass
     return ""
 
 
@@ -213,15 +252,15 @@ def get_catalog_details(crse_id: str, subject: str, catalog_nbr: str) -> dict:
         if "course_details" in data:
             course_details = data["course_details"]
             return {
-                "title": course_details.get("course_title", ""),
-                "description": course_details.get("descrlong", ""),
+                "title": normalize_text(course_details.get("course_title", "")),
+                "description": normalize_text(course_details.get("descrlong", "")),
                 "credits": format_credit_value(
                     course_details.get("units_minimum"),
                     course_details.get("units_maximum"),
                 ),
             }
-    except Exception as e:
-        print(f"      ✗ Error fetching catalog details: {e}")
+    except Exception:
+        pass
     return {"title": "", "description": "", "credits": ""}
 
 
@@ -233,16 +272,14 @@ def process_course(subject: str, course: dict) -> dict | None:
         catalog_nbr = course.get("catalog_nbr", "")
         
         if not crse_id:
-            print(f"    ✗ No crse_id found for {course_code} {catalog_nbr}")
             return None
         
         full_course_code = f"{course_code} {catalog_nbr}"
-        print(f"    Processing {full_course_code} (id: {crse_id})...")
 
         # Get title/description/credits from catalog endpoint.
         catalog_details = get_catalog_details(crse_id, subject, catalog_nbr)
-        title = catalog_details.get("title") or course.get("descr", "")
-        description = catalog_details.get("description") or course.get("descr", "")
+        title = normalize_text(catalog_details.get("title") or course.get("descr", ""))
+        description = normalize_text(catalog_details.get("description") or course.get("descr", ""))
         credits = catalog_details.get("credits", "")
         description_prereqs = extract_prerequisites_from_description(description)
 
@@ -285,79 +322,121 @@ def process_course(subject: str, course: dict) -> dict | None:
             "description": description,
             "enrollment_requirements": enrollment_reqs,
         }
-
-        print(
-            "      ✓ Saved JSON:",
-            {
-                "course_code": result["course_code"],
-                "title": result["title"],
-                "credits": result["credits"],
-                "term": result["term"],
-                "has_description": bool(result["description"]),
-                "has_enrollment_requirements": bool(result["enrollment_requirements"]),
-            },
-        )
         return result
 
-    except Exception as e:
-        print(f"    ✗ Error processing course: {e}")
+    except Exception:
         return None
+
+
+def subject_from_course_code(course_code: str) -> str:
+    return " ".join(str(course_code or "").split()).split(" ")[0].upper()
+
+
+def keep_subjects_before_start(
+    existing_courses: dict[str, dict],
+    subjects: list[tuple[str, str]],
+    start_index: int,
+) -> dict[str, dict]:
+    subject_order = {code.upper(): i for i, (code, _name) in enumerate(subjects)}
+
+    kept: dict[str, dict] = {}
+    for key, course in existing_courses.items():
+        subject_code = subject_from_course_code(course.get("course_code", ""))
+        idx = subject_order.get(subject_code)
+
+        # Keep unknown subjects and everything before start subject.
+        if idx is None or idx < start_index:
+            kept[key] = course
+
+    return kept
+
+
+def find_resume_index(
+    subjects: list[tuple[str, str]],
+    existing_courses: dict[str, dict],
+) -> int | None:
+    """Return the subject index to resume from, or None to start fresh."""
+    if not existing_courses:
+        return None
+
+    present: set[str] = {
+        subject_from_course_code(c.get("course_code", ""))
+        for c in existing_courses.values()
+    }
+    present.discard("")
+
+    last_index = -1
+    for i, (code, _) in enumerate(subjects):
+        if code.upper() in present:
+            last_index = i
+
+    return last_index + 1 if last_index >= 0 else None
 
 
 def main() -> None:
     """Main function to orchestrate the scraping"""
-    print("=" * 80)
-    print("UVA Course Details Scraper")
-    print("=" * 80)
-    
-    # Step 1: Get all subjects
-    print("\n[Step 1] Fetching all subjects...")
     try:
         catalog_text = get_catalog_text()
         subjects = extract_subjects(catalog_text)
-        print(f"Found {len(subjects)} subjects")
     except Exception as e:
-        print(f"✗ Error getting subjects: {e}")
+        print(f"Error getting subjects: {e}")
         return
-    
-    # Step 2: Process each subject
-    all_courses_data = []
-    
-    for i, (subject_code, subject_name) in enumerate(subjects, 1):
-        print(f"\n[{i}/{len(subjects)}] Processing subject: {subject_code} ({subject_name})")
-        
-        # Get courses for this subject
+
+    output_path = OUTPUT_DIR / "uva_course_details.json"
+    existing = load_existing_courses(output_path)
+    resume_index = find_resume_index(subjects, existing)
+
+    if resume_index is None:
+        subjects_to_run = subjects
+        courses_by_key: dict[str, dict] = {}
+    elif resume_index >= len(subjects):
+        print("All subjects already scraped, nothing to do")
+        return
+    else:
+        subjects_to_run = subjects[resume_index:]
+        courses_by_key = keep_subjects_before_start(existing, subjects, resume_index)
+        print(f"Resuming from {subjects[resume_index][0]} (subject {resume_index + 1}/{len(subjects)})")
+
+    attempted = 0
+    saved_this_run = 0
+
+    for i, (subject_code, subject_name) in enumerate(subjects_to_run, 1):
+        print(f"[{i}/{len(subjects_to_run)}] Processing subject: {subject_code} ({subject_name})")
+
         courses = get_courses_by_subject(subject_code)
-        print(f"  Found {len(courses)} courses")
-        
-        # Process each course
         for course in courses:
+            attempted += 1
             course_data = process_course(subject_code, course)
             if course_data:
-                all_courses_data.append(course_data)
-    
-    # Step 3: Save to CSV
-    print("\n" + "=" * 80)
-    print(f"[Step 2] Saving results...")
-    save_to_json(all_courses_data, OUTPUT_DIR / "uva_course_details.json")
-    
-    print("\n" + "=" * 80)
-    print(f"✅ Successfully processed {len(all_courses_data)} courses")
-    print("=" * 80)
+                saved_this_run += 1
+                courses_by_key[course_key(course_data)] = course_data
 
-def save_to_json(courses: list[dict], filename: Path) -> None:
+        # Persist partial results after each subject completes.
+        save_to_json(sorted_courses(courses_by_key), output_path, quiet=True)
+
+    save_to_json(sorted_courses(courses_by_key), output_path)
+
+    failed = attempted - saved_this_run
+    print(
+        f"Done: subjects={len(subjects_to_run)} | attempted={attempted} | "
+        f"saved_this_run={saved_this_run} | failed={failed} | total_in_json={len(courses_by_key)}"
+    )
+
+def save_to_json(courses: list[dict], filename: Path, quiet: bool = False) -> None:
     """Save courses to JSON file"""
     if not courses:
-        print("No courses to save")
+        if not quiet:
+            print("No courses to save")
         return
     
     try:
         with open(filename, 'w', encoding='utf-8') as f:
             json.dump(courses, f, indent=2, ensure_ascii=False)
-        
-        print(f"✅ Saved {len(courses)} courses to {filename}")
+
+        if not quiet:
+            print(f"Output: {filename}")
     except Exception as e:
-        print(f"✗ Error saving to JSON: {e}")
+        print(f"Error saving to JSON: {e}")
 
 
 if __name__ == "__main__":

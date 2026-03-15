@@ -1,6 +1,7 @@
 import csv
 import json
 import re
+import shutil
 from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass, asdict
 import sys
@@ -227,12 +228,20 @@ def process_course_row(row: Dict[str, str]) -> Tuple[str, Optional[Any], List[st
     return course_code, tree.to_dict() if tree and hasattr(tree, 'to_dict') else tree, words, has_prereq
 
 
+def render_progress_bar(completed: int, total: int, width: int = 36) -> str:
+    """Build a compact text progress bar for terminal display."""
+    if total <= 0:
+        return "[" + ("-" * width) + "]   0.0% (0/0)"
+
+    ratio = max(0.0, min(1.0, completed / total))
+    filled = int(ratio * width)
+    bar = "#" * filled + "-" * (width - filled)
+    percent = ratio * 100
+    return f"[{bar}] {percent:5.1f}% ({completed}/{total})"
+
+
 def main():
     """Main function to process all courses with concurrent execution"""
-    print("=" * 80)
-    print("UVA Course Prerequisites Extractor (Concurrent)")
-    print("=" * 80)
-    
     # Read CSV into memory
     csv_file = "uva_course_details.csv"
     rows = []
@@ -242,13 +251,11 @@ def main():
             reader = csv.DictReader(f)
             rows = list(reader)
     except FileNotFoundError:
-        print(f"✗ Error: {csv_file} not found")
+        print(f"Error: {csv_file} not found")
         sys.exit(1)
     except Exception as e:
-        print(f"✗ Error reading CSV: {e}")
+        print(f"Error reading CSV: {e}")
         sys.exit(1)
-    
-    print(f"Loaded {len(rows)} courses, starting concurrent processing...")
     
     # Process courses concurrently
     courses_with_prereqs = {}
@@ -256,17 +263,20 @@ def main():
     courses_without_prereqs = []
     
     max_workers = os.cpu_count() or 4
-    print(f"Using {max_workers} worker threads\n")
+
+    error_count = 0
+    terminal_width = shutil.get_terminal_size((100, 20)).columns
+    progress_bar_width = max(20, min(48, terminal_width - 28))
     
     try:
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = {executor.submit(process_course_row, row): i for i, row in enumerate(rows)}
             completed = 0
-            
+
             for future in as_completed(futures):
                 completed += 1
-                if completed % 100 == 0:
-                    print(f"[{completed}/{len(rows)}] courses processed...")
+                progress_line = render_progress_bar(completed, len(rows), progress_bar_width)
+                print(f"\r{progress_line}", end="", flush=True)
                 
                 try:
                     course_code, tree, words, has_prereq = future.result()
@@ -281,12 +291,15 @@ def main():
                         courses_without_prereqs.append(course_code)
                 
                 except Exception as e:
-                    print(f"✗ Error processing course: {e}")
+                    error_count += 1
                     continue
     
     except Exception as e:
-        print(f"✗ Error in concurrent execution: {e}")
+        print(f"Error in concurrent execution: {e}")
         sys.exit(1)
+
+    # Move to next line after carriage-return progress updates
+    print()
     
     # Save results to JSON
     output_data = {
@@ -304,18 +317,16 @@ def main():
     try:
         with open(output_file, 'w', encoding='utf-8') as f:
             json.dump(output_data, f, indent=2, ensure_ascii=False)
-        print(f"\n✅ Results saved to {output_file}")
     except Exception as e:
-        print(f"✗ Error saving to JSON: {e}")
+        print(f"Error saving to JSON: {e}")
         sys.exit(1)
-    
-    # Print summary
-    print("\n" + "=" * 80)
-    print("Summary:")
-    print(f"  Total courses: {output_data['metadata']['total_courses']}")
-    print(f"  Courses with prerequisites: {output_data['metadata']['courses_with_prerequisites']}")
-    print(f"  Courses without prerequisites: {output_data['metadata']['courses_without_prerequisites']}")
-    print("=" * 80)
+
+    print(
+        f"Done: {output_data['metadata']['total_courses']} courses | "
+        f"with prereqs: {output_data['metadata']['courses_with_prerequisites']} | "
+        f"without prereqs: {output_data['metadata']['courses_without_prerequisites']} | "
+        f"errors: {error_count} | output: {output_file}"
+    )
 
 
 if __name__ == "__main__":
