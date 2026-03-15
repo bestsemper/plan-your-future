@@ -13,7 +13,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ co
   const { user, postCount } = profileData;
 
   return (
-    <div className="max-w-5xl mx-auto py-8">
+    <div className="max-w-5xl mx-auto py-4 md:py-8">
       <Link href="/forum" className="inline-flex items-center gap-1.5 text-sm font-semibold text-uva-blue hover:text-uva-orange transition-colors mb-6">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4" aria-hidden="true">
           <path d="m15 18-6-6 6-6" />
@@ -21,15 +21,15 @@ export default async function UserProfilePage({ params }: { params: Promise<{ co
         Back to Forum
       </Link>
 
-      <div className="bg-panel-bg p-8 rounded-2xl border border-panel-border mb-8">
-        <div className="flex items-center gap-6 mb-6">
-          <div className="w-24 h-24 rounded-full bg-uva-orange flex items-center justify-center text-white text-3xl font-bold uppercase">
+      <div className="bg-panel-bg p-4 md:p-8 rounded-2xl border border-panel-border mb-8">
+        <div className="flex flex-col sm:flex-row items-center gap-4 md:gap-6 mb-6 text-center sm:text-left">
+          <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-uva-orange flex items-center justify-center text-white text-2xl md:text-3xl font-bold uppercase shrink-0">
             {user.displayName.charAt(0)}
           </div>
-          <div>
-            <h1 className="text-3xl font-bold mb-1 text-heading">{user.displayName}</h1>
-            <p className="text-text-secondary text-lg font-medium">{user.major || 'Undeclared'} • Class of {user.gradYear || '2026'}</p>
-            {user.bio && <p className="text-text-secondary text-base mt-2">{user.bio}</p>}
+          <div className="w-full min-w-0">
+            <h1 className="text-2xl md:text-3xl font-bold mb-1 text-heading break-words">{user.displayName}</h1>
+            <p className="text-text-secondary text-base md:text-lg font-medium break-words">{user.major || 'Undeclared'} • Class of {user.gradYear || '2026'}</p>
+            {user.bio && <p className="text-text-secondary text-sm md:text-base mt-2 break-words">{user.bio}</p>}
           </div>
         </div>
       </div>

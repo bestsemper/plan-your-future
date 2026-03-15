@@ -21,7 +21,7 @@ export default function ProfileActions({
 
   return (
     <>
-      <div className="flex gap-4 items-start flex-wrap">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-start w-full">
         <EditProfileForm
           displayName={displayName}
           major={major}
@@ -30,7 +30,7 @@ export default function ProfileActions({
         />
         <button
           onClick={() => setIsCompletedCoursesOpen(true)}
-          className="border border-dashed border-panel-border-strong px-5 py-2.5 rounded-xl hover:bg-hover-bg text-text-primary font-semibold transition-colors cursor-pointer"
+          className="w-full sm:w-auto border border-dashed border-panel-border-strong px-5 py-2.5 rounded-xl hover:bg-hover-bg text-text-primary font-semibold transition-colors cursor-pointer"
         >
           Transfer and Extra Courses
         </button>

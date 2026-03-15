@@ -18,21 +18,21 @@ export default async function Profile() {
   const postCount = await prisma.forumPost.count({ where: { authorId: user.id } });
 
   return (
-    <div className="max-w-5xl mx-auto py-8">
-      <div className="bg-panel-bg p-8 rounded-2xl border border-panel-border mb-8 flex justify-between items-start gap-4">
-        <div>
-          <div className="flex items-center gap-6 mb-6">
-            <div className="w-24 h-24 rounded-full bg-uva-orange flex items-center justify-center text-white text-3xl font-bold uppercase">
+    <div className="max-w-5xl mx-auto py-4 md:py-8">
+      <div className="bg-panel-bg p-4 md:p-8 rounded-2xl border border-panel-border mb-8 flex flex-col md:flex-row md:justify-between items-stretch md:items-start gap-6">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-col sm:flex-row items-center sm:items-center gap-4 md:gap-6 mb-6 text-center sm:text-left">
+            <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-uva-orange flex items-center justify-center text-white text-2xl md:text-3xl font-bold uppercase shrink-0">
               {user.displayName.charAt(0)}
             </div>
-            <div>
-              <h1 className="text-3xl font-bold mb-1 text-heading">Hi, {user.displayName}</h1>
-              <p className="text-text-secondary text-lg font-medium">{user.major || 'Undeclared'} • Class of {user.gradYear || '2026'}</p>
-              {user.bio && <p className="text-text-secondary text-base mt-2">{user.bio}</p>}
+            <div className="min-w-0 w-full">
+              <h1 className="text-2xl md:text-3xl font-bold mb-1 text-heading break-words">Hi, {user.displayName}</h1>
+              <p className="text-text-secondary text-base md:text-lg font-medium break-words">{user.major || 'Undeclared'} • Class of {user.gradYear || '2026'}</p>
+              {user.bio && <p className="text-text-secondary text-sm md:text-base mt-2 break-words">{user.bio}</p>}
             </div>
           </div>
 
-          <div className="flex gap-4 items-start">
+          <div className="w-full">
             <ProfileActions
               displayName={user.displayName}
               major={user.major}

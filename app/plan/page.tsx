@@ -1011,6 +1011,10 @@ export default function PlanBuilderPage() {
               const orderedTerms = (['Fall', 'Winter', 'Spring', 'Summer'] as const).filter((term) => Boolean(row.terms[term]));
               const missingTerms = (['Fall', 'Winter', 'Spring', 'Summer'] as const).filter((term) => !row.terms[term]);
               const columnCount = Math.max(2, Math.min(4, orderedTerms.length));
+              const gridColsClass =
+                columnCount <= 2 ? 'grid-cols-1 sm:grid-cols-2' :
+                columnCount === 3 ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' :
+                'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4';
               const isCollapsed = Boolean(collapsedSchoolYears[row.startYear]);
               const totalCourses = orderedTerms.reduce((count, term) => count + (row.terms[term]?.courses.length ?? 0), 0);
               const totalCredits = orderedTerms.reduce(
@@ -1063,7 +1067,7 @@ export default function PlanBuilderPage() {
                       {orderedTerms.length} semesters, {totalCourses} courses, {totalCredits} credits
                     </div>
                   ) : (
-                  <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${columnCount}, minmax(0, 1fr))` }}>
+                  <div className={`grid gap-4 ${gridColsClass}`}>
                     {orderedTerms.map((term) => {
                       const sem = row.terms[term];
                       if (!sem) return null;

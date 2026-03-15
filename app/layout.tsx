@@ -18,6 +18,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Hoos Plan",
   description: "UVA 4-year course planner and forum",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default async function RootLayout({
@@ -32,8 +35,8 @@ export default async function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex bg-uva-blue text-text-primary`}>
         <ThemeProvider>
           <Sidebar user={user} />
-          <main className="relative z-10 flex-1 h-screen bg-uva-blue overflow-visible flex flex-col py-3 pr-3">
-            <div className="h-full w-full rounded-3xl bg-background border border-black/15 overflow-visible">
+          <main className="relative z-10 flex-1 h-screen bg-uva-blue overflow-visible flex flex-col p-3 pt-16 md:pt-3">
+            <div className="h-full w-full rounded-3xl bg-background border border-black/15 border-l-0 overflow-visible">
               <div className="h-full overflow-y-auto overflow-x-visible p-8">
                 {children}
               </div>

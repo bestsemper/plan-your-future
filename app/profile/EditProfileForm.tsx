@@ -62,7 +62,7 @@ export default function EditProfileForm({
       <button
         type="button"
         onClick={() => setIsEditing(true)}
-        className="bg-uva-blue/90 text-white px-5 py-2.5 rounded-xl hover:bg-uva-blue font-bold transition-colors cursor-pointer"
+        className="w-full sm:w-auto bg-uva-blue/90 text-white px-5 py-2.5 rounded-xl hover:bg-uva-blue font-bold transition-colors cursor-pointer"
       >
         Edit Profile
       </button>
@@ -76,8 +76,8 @@ export default function EditProfileForm({
         onClick={(e) => e.stopPropagation()}
       >
           {/* Header */}
-          <div className="bg-panel-bg border-b border-panel-border px-8 py-6 flex justify-between items-center">
-            <h2 className="text-2xl font-bold text-heading">Edit Profile</h2>
+          <div className="bg-panel-bg border-b border-panel-border px-4 md:px-8 py-4 md:py-6 flex justify-between items-center gap-4">
+            <h2 className="text-xl md:text-2xl font-bold text-heading">Edit Profile</h2>
             <button
               type="button"
               onClick={handleCancel}
@@ -92,7 +92,7 @@ export default function EditProfileForm({
           </div>
 
           {/* Form Content */}
-          <div className="px-8 py-6 space-y-6 overflow-y-auto">
+          <div className="px-4 md:px-8 py-4 md:py-6 space-y-6 overflow-y-auto">
             <div>
               <label className="block text-sm font-semibold text-text-secondary mb-2">Display Name</label>
               <input
@@ -145,12 +145,12 @@ export default function EditProfileForm({
           </div>
 
           {/* Footer */}
-          <div className="sticky bottom-0 bg-panel-bg border-t border-panel-border px-8 py-6 flex justify-end gap-3">
+          <div className="sticky bottom-0 bg-panel-bg border-t border-panel-border px-4 md:px-8 py-4 md:py-6 flex flex-col-reverse sm:flex-row justify-end gap-3">
             <button
               type="button"
               onClick={handleCancel}
               disabled={isPending}
-              className="px-6 py-2.5 border border-panel-border-strong rounded-xl font-semibold text-text-primary hover:bg-hover-bg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full sm:w-auto px-6 py-2.5 border border-panel-border-strong rounded-xl font-semibold text-text-primary hover:bg-hover-bg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
@@ -158,7 +158,7 @@ export default function EditProfileForm({
               type="button"
               onClick={handleSave}
               disabled={isPending}
-              className="px-6 py-2.5 bg-uva-blue/90 text-white rounded-xl font-semibold hover:bg-uva-blue transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full sm:w-auto px-6 py-2.5 bg-uva-blue/90 text-white rounded-xl font-semibold hover:bg-uva-blue transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isPending ? 'Saving...' : 'Save Changes'}
             </button>
