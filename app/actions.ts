@@ -89,8 +89,12 @@ type AttachedPlanViewData = {
 };
 
 function hasTransferEquivalentGrade(line: string): boolean {
-  // In Stellic audit exports, TE indicates transfer/test-equivalent credit.
-  return /(?:Fall|Winter|Spring|Summer)\s*'?(\d{2})\s*TE\b/i.test(line) || /\bTE\b/i.test(line);
+  // In Stellic audit exports, TE/PT indicate transfer or test/placement-equivalent credit.
+  return /(?:Fall|Winter|Spring|Summer)\s*'?(\d{2})\s*(?:TE|PT)\b/i.test(line) || /\b(?:TE|PT)\b/i.test(line);
+}
+
+function shouldIgnoreStellicCourseLine(line: string): boolean {
+  return /\(courses:\s*\(|\bcredits in plan\b|\(through\b|\bremaining\b/i.test(line);
 }
 
 function decodeAuditPdfText(pdfBase64: string): Promise<string> {
@@ -211,9 +215,6 @@ function parseStellicCoursesFromText(text: string): ParsedStellicCourse[] {
 
   const results: ParsedStellicCourse[] = [];
   const seen = new Set<string>();
-
-  let currentTerm: ParsedStellicCourse['termName'] = null;
-  let currentYear: number | null = null;
   let sectionMode: 'taken' | 'planned' = 'planned';
 
   // Match both "Fall 2025" and "Fall '25" formats
@@ -224,10 +225,25 @@ function parseStellicCoursesFromText(text: string): ParsedStellicCourse[] {
   for (const rawLine of lines) {
     const line = rawLine.replace(/\s+/g, ' ');
 
+    const lowerLine = line.toLowerCase();
+    if (/completed|taken|earned|fulfilled/.test(lowerLine)) {
+      sectionMode = 'taken';
+    }
+    if (/planned|in progress|enrolled|future/.test(lowerLine)) {
+      sectionMode = 'planned';
+    }
+
+    if (shouldIgnoreStellicCourseLine(line)) {
+      continue;
+    }
+
     const termMatch = line.match(termRegex);
+    let lineTerm: ParsedStellicCourse['termName'] = null;
+    let lineYear: number | null = null;
+
     if (termMatch) {
       const termValue = termMatch[1].toLowerCase();
-      currentTerm =
+      lineTerm =
         termValue === 'fall'
           ? 'Fall'
           : termValue === 'winter'
@@ -235,25 +251,13 @@ function parseStellicCoursesFromText(text: string): ParsedStellicCourse[] {
             : termValue === 'spring'
               ? 'Spring'
               : 'Summer';
-      
-      // Handle both 4-digit year (2025) and 2-digit year ('25)
-      if (termMatch[2]) {
-        // 2-digit year like '25
-        const twoDigitYear = Number.parseInt(termMatch[2], 10);
-        // Convert to 4-digit: 00-30 -> 2000-2030, 31-99 -> 1931-1999
-        currentYear = twoDigitYear <= 30 ? 2000 + twoDigitYear : 1900 + twoDigitYear;
-      } else {
-        // 4-digit year
-        currentYear = Number.parseInt(termMatch[3], 10);
-      }
-    }
 
-    const lowerLine = line.toLowerCase();
-    if (/completed|taken|earned|fulfilled/.test(lowerLine)) {
-      sectionMode = 'taken';
-    }
-    if (/planned|in progress|enrolled|future/.test(lowerLine)) {
-      sectionMode = 'planned';
+      if (termMatch[2]) {
+        const twoDigitYear = Number.parseInt(termMatch[2], 10);
+        lineYear = twoDigitYear <= 30 ? 2000 + twoDigitYear : 1900 + twoDigitYear;
+      } else {
+        lineYear = Number.parseInt(termMatch[3], 10);
+      }
     }
 
     const matches = Array.from(line.matchAll(courseCodeRegex));
@@ -267,7 +271,7 @@ function parseStellicCoursesFromText(text: string): ParsedStellicCourse[] {
           : null;
       const courseStatus = statusFromLine ?? sectionMode;
 
-      const dedupeKey = `${code}|${currentTerm ?? 'none'}|${currentYear ?? 'none'}|${courseStatus}`;
+      const dedupeKey = `${code}|${lineTerm ?? 'none'}|${lineYear ?? 'none'}|${courseStatus}`;
       if (seen.has(dedupeKey)) continue;
       seen.add(dedupeKey);
 
@@ -284,8 +288,8 @@ function parseStellicCoursesFromText(text: string): ParsedStellicCourse[] {
 
       results.push({
         courseCode: code,
-        termName: currentTerm,
-        year: currentYear,
+        termName: lineTerm,
+        year: lineYear,
         status: courseStatus,
         credits,
       });
@@ -1510,7 +1514,11 @@ export async function importPlanFromStellicPdf(input: {
 
   try {
     const auditText = await decodeAuditPdfText(input.pdfBase64);
-    const parsedCourses = parseStellicCoursesFromText(auditText);
+    const transferAndExtraCourses = extractAuditCompletedCoursesFromText(auditText, 'transfer');
+    const excludedCourseCodes = new Set(transferAndExtraCourses.map((course) => course.courseCode.toUpperCase()));
+    const parsedCourses = parseStellicCoursesFromText(auditText).filter(
+      (course) => !excludedCourseCodes.has(course.courseCode.toUpperCase())
+    );
 
     if (parsedCourses.length === 0) {
       return { error: 'No courses were detected in the uploaded Stellic audit report PDF.' };
@@ -1639,15 +1647,14 @@ export async function importPlanFromStellicPdf(input: {
       }
     }
 
-    const externalCompletedCourses = extractAuditCompletedCoursesFromText(auditText, 'transfer');
-    if (externalCompletedCourses.length > 0) {
+    if (transferAndExtraCourses.length > 0) {
       const existingCompleted = await prisma.completedCourse.findMany({
         where: { userId: user.id },
         select: { courseCode: true },
       });
       const existingSet = new Set(existingCompleted.map((c) => c.courseCode.toUpperCase()));
 
-      const newCompleted = externalCompletedCourses.filter((course) => !existingSet.has(course.courseCode));
+      const newCompleted = transferAndExtraCourses.filter((course) => !existingSet.has(course.courseCode));
       if (newCompleted.length > 0) {
         await prisma.completedCourse.createMany({
           data: newCompleted.map((course) => ({
