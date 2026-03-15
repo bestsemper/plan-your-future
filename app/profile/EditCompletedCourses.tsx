@@ -265,9 +265,6 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
 
             <div className="border border-panel-border rounded-2xl p-6 bg-panel-bg space-y-3">
               <h3 className="font-semibold text-heading text-base">Import from Audit Report PDF</h3>
-              <p className="text-sm text-text-secondary leading-relaxed">
-                In Stellic: Track Progress &rarr; Print Audit Report (printer icon) &rarr; Create Audit Report, then upload that PDF here.
-              </p>
               <input
                 type="file"
                 accept="application/pdf"

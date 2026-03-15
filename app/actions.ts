@@ -69,9 +69,32 @@ type ParsedAuditCompletedCourse = {
 
 type AuditImportSelection = 'transfer' | 'taken' | 'both';
 
+type AttachedPlanViewData = {
+  plan: {
+    id: string;
+    title: string;
+    ownerDisplayName: string;
+    semesters: Array<{
+      id: string;
+      termName: string;
+      termOrder: number;
+      year: number;
+      courses: Array<{
+        id: string;
+        courseCode: string;
+        credits: number | null;
+      }>;
+    }>;
+  };
+};
+
 function hasTransferEquivalentGrade(line: string): boolean {
-  // In Stellic audit exports, TE indicates transfer/test-equivalent credit.
-  return /(?:Fall|Winter|Spring|Summer)\s*'?(\d{2})\s*TE\b/i.test(line) || /\bTE\b/i.test(line);
+  // In Stellic audit exports, TE/PT indicate transfer or test/placement-equivalent credit.
+  return /(?:Fall|Winter|Spring|Summer)\s*'?(\d{2})\s*(?:TE|PT)\b/i.test(line) || /\b(?:TE|PT)\b/i.test(line);
+}
+
+function shouldIgnoreStellicCourseLine(line: string): boolean {
+  return /\(courses:\s*\(|\bcredits in plan\b|\(through\b|\bremaining\b/i.test(line);
 }
 
 function decodeAuditPdfText(pdfBase64: string): Promise<string> {
@@ -192,30 +215,15 @@ function parseStellicCoursesFromText(text: string): ParsedStellicCourse[] {
 
   const results: ParsedStellicCourse[] = [];
   const seen = new Set<string>();
-
-  let currentTerm: ParsedStellicCourse['termName'] = null;
-  let currentYear: number | null = null;
   let sectionMode: 'taken' | 'planned' = 'planned';
 
-  const termRegex = /\b(Fall|Winter|Spring|Summer)\s+(20\d{2})\b/i;
+  // Match both "Fall 2025" and "Fall '25" formats
+  // Don't use trailing \b since it won't match when followed by letter grades like 'TE', 'A+', etc.
+  const termRegex = /\b(Fall|Winter|Spring|Summer)\s+(?:'(\d{2})|(20\d{2}))/i;
   const courseCodeRegex = /\b([A-Z]{2,4})\s?-?(\d{4})\b/g;
 
   for (const rawLine of lines) {
     const line = rawLine.replace(/\s+/g, ' ');
-
-    const termMatch = line.match(termRegex);
-    if (termMatch) {
-      const termValue = termMatch[1].toLowerCase();
-      currentTerm =
-        termValue === 'fall'
-          ? 'Fall'
-          : termValue === 'winter'
-            ? 'Winter'
-            : termValue === 'spring'
-              ? 'Spring'
-              : 'Summer';
-      currentYear = Number.parseInt(termMatch[2], 10);
-    }
 
     const lowerLine = line.toLowerCase();
     if (/completed|taken|earned|fulfilled/.test(lowerLine)) {
@@ -223,6 +231,33 @@ function parseStellicCoursesFromText(text: string): ParsedStellicCourse[] {
     }
     if (/planned|in progress|enrolled|future/.test(lowerLine)) {
       sectionMode = 'planned';
+    }
+
+    if (shouldIgnoreStellicCourseLine(line)) {
+      continue;
+    }
+
+    const termMatch = line.match(termRegex);
+    let lineTerm: ParsedStellicCourse['termName'] = null;
+    let lineYear: number | null = null;
+
+    if (termMatch) {
+      const termValue = termMatch[1].toLowerCase();
+      lineTerm =
+        termValue === 'fall'
+          ? 'Fall'
+          : termValue === 'winter'
+            ? 'Winter'
+            : termValue === 'spring'
+              ? 'Spring'
+              : 'Summer';
+
+      if (termMatch[2]) {
+        const twoDigitYear = Number.parseInt(termMatch[2], 10);
+        lineYear = twoDigitYear <= 30 ? 2000 + twoDigitYear : 1900 + twoDigitYear;
+      } else {
+        lineYear = Number.parseInt(termMatch[3], 10);
+      }
     }
 
     const matches = Array.from(line.matchAll(courseCodeRegex));
@@ -236,7 +271,7 @@ function parseStellicCoursesFromText(text: string): ParsedStellicCourse[] {
           : null;
       const courseStatus = statusFromLine ?? sectionMode;
 
-      const dedupeKey = `${code}|${currentTerm ?? 'none'}|${currentYear ?? 'none'}|${courseStatus}`;
+      const dedupeKey = `${code}|${lineTerm ?? 'none'}|${lineYear ?? 'none'}|${courseStatus}`;
       if (seen.has(dedupeKey)) continue;
       seen.add(dedupeKey);
 
@@ -253,8 +288,8 @@ function parseStellicCoursesFromText(text: string): ParsedStellicCourse[] {
 
       results.push({
         courseCode: code,
-        termName: currentTerm,
-        year: currentYear,
+        termName: lineTerm,
+        year: lineYear,
         status: courseStatus,
         credits,
       });
@@ -431,13 +466,35 @@ export async function createForumPost(title: string, body: string, attachedPlanI
   }
 
   let validatedPlanId: string | null = null;
+  let planSnapshot: any = null;
+  
   if (attachedPlanId && attachedPlanId.trim() !== '') {
     const plan = await prisma.plan.findFirst({
       where: {
         id: attachedPlanId,
         userId: user.id,
       },
-      select: { id: true },
+      select: {
+        id: true,
+        title: true,
+        semesters: {
+          orderBy: { termOrder: 'asc' },
+          select: {
+            id: true,
+            termName: true,
+            termOrder: true,
+            year: true,
+            courses: {
+              orderBy: { courseCode: 'asc' },
+              select: {
+                id: true,
+                courseCode: true,
+                credits: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!plan) {
@@ -445,6 +502,11 @@ export async function createForumPost(title: string, body: string, attachedPlanI
     }
 
     validatedPlanId = plan.id;
+    // Capture a snapshot of the plan at the time of posting
+    planSnapshot = {
+      title: plan.title,
+      semesters: plan.semesters,
+    };
   }
 
   await prisma.forumPost.create({
@@ -453,6 +515,7 @@ export async function createForumPost(title: string, body: string, attachedPlanI
       title: trimmedTitle,
       body: trimmedBody,
       attachedPlanId: validatedPlanId,
+      planSnapshot: planSnapshot,
     },
   });
 
@@ -1051,8 +1114,35 @@ export async function getPlanBuilderData() {
   };
 }
 
-export async function getAttachedPlanViewData(planId: string) {
+export async function getAttachedPlanViewData(planId: string): Promise<AttachedPlanViewData | { error: 'not_found' | 'forbidden' }> {
   const currentUser = await getCurrentUser();
+
+  // Check if this plan is attached to a forum post with a snapshot
+  const attachedPost = await prisma.forumPost.findFirst({
+    where: { attachedPlanId: planId },
+    select: { 
+      id: true,
+      planSnapshot: true,
+      author: {
+        select: {
+          displayName: true,
+        },
+      },
+    },
+  });
+
+  // If there's a snapshot, use that instead of the live plan
+  if (attachedPost?.planSnapshot) {
+    const snapshot = attachedPost.planSnapshot as any;
+    return {
+      plan: {
+        id: planId,
+        title: snapshot.title,
+        ownerDisplayName: attachedPost.author.displayName,
+        semesters: snapshot.semesters,
+      },
+    };
+  }
 
   const plan = await prisma.plan.findFirst({
     where: { id: planId },
@@ -1093,11 +1183,7 @@ export async function getAttachedPlanViewData(planId: string) {
   let attachedToForumPost = false;
 
   if (!ownedByCurrentUser) {
-    const attachedPost = await prisma.forumPost.findFirst({
-      where: { attachedPlanId: plan.id },
-      select: { id: true },
-    });
-    attachedToForumPost = Boolean(attachedPost);
+    attachedToForumPost = Boolean(attachedPost?.id);
   }
 
   if (!ownedByCurrentUser && !attachedToForumPost) {
@@ -1428,7 +1514,11 @@ export async function importPlanFromStellicPdf(input: {
 
   try {
     const auditText = await decodeAuditPdfText(input.pdfBase64);
-    const parsedCourses = parseStellicCoursesFromText(auditText);
+    const transferAndExtraCourses = extractAuditCompletedCoursesFromText(auditText, 'transfer');
+    const excludedCourseCodes = new Set(transferAndExtraCourses.map((course) => course.courseCode.toUpperCase()));
+    const parsedCourses = parseStellicCoursesFromText(auditText).filter(
+      (course) => !excludedCourseCodes.has(course.courseCode.toUpperCase())
+    );
 
     if (parsedCourses.length === 0) {
       return { error: 'No courses were detected in the uploaded Stellic audit report PDF.' };
@@ -1557,15 +1647,14 @@ export async function importPlanFromStellicPdf(input: {
       }
     }
 
-    const externalCompletedCourses = extractAuditCompletedCoursesFromText(auditText, 'transfer');
-    if (externalCompletedCourses.length > 0) {
+    if (transferAndExtraCourses.length > 0) {
       const existingCompleted = await prisma.completedCourse.findMany({
         where: { userId: user.id },
         select: { courseCode: true },
       });
       const existingSet = new Set(existingCompleted.map((c) => c.courseCode.toUpperCase()));
 
-      const newCompleted = externalCompletedCourses.filter((course) => !existingSet.has(course.courseCode));
+      const newCompleted = transferAndExtraCourses.filter((course) => !existingSet.has(course.courseCode));
       if (newCompleted.length > 0) {
         await prisma.completedCourse.createMany({
           data: newCompleted.map((course) => ({

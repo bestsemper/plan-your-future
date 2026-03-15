@@ -88,6 +88,7 @@ model ForumPost {
   title          String
   body           String
   attachedPlanId String?
+  planSnapshot   Json?         // Snapshot of attached plan at time of posting
   viewCount      Int           @default(0)
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt

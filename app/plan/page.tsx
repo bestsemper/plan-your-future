@@ -175,7 +175,7 @@ export default function PlanBuilderPage() {
   const [semesterActionError, setSemesterActionError] = useState<string | null>(null);
   const [collapsedSchoolYears, setCollapsedSchoolYears] = useState<Record<number, boolean>>({});
   const [dataLoaded, setDataLoaded] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isImportAuditOpen, setIsImportAuditOpen] = useState(false);
   const [isRenamePlanOpen, setIsRenamePlanOpen] = useState(false);
   const [importMode, setImportMode] = useState<'new' | 'overwrite'>('new');
   const [importNewPlanTitle, setImportNewPlanTitle] = useState('');
@@ -756,7 +756,7 @@ export default function PlanBuilderPage() {
         pdfBase64: dataUrl,
         mode: importMode,
         overwritePlanId: importMode === 'overwrite' ? importOverwritePlanId : undefined,
-        newPlanTitle: importMode === 'new' ? importNewPlanTitle : undefined,
+        newPlanTitle: importMode === 'new' ? importNewPlanTitle || undefined : undefined,
       });
 
       if (res?.error) {
@@ -770,6 +770,7 @@ export default function PlanBuilderPage() {
       setImportOverwritePlanId('');
       setImportMode('new');
       setIsImportPlanDropdownOpen(false);
+      setIsImportAuditOpen(false);
       setImportingPdf(false);
       void loadData(res?.planId);
     } catch {
@@ -963,13 +964,17 @@ export default function PlanBuilderPage() {
                   <button
                     type="button"
                     onClick={() => {
-                      setIsSettingsOpen(true);
+                      setIsImportAuditOpen(true);
                       setIsMoreMenuOpen(false);
+                      setImportMode('new');
+                      setImportOverwritePlanId('');
+                      setIsImportPlanDropdownOpen(false);
+                      setImportError(null);
                     }}
                     className="w-full px-3 py-2 rounded-lg text-left text-sm text-text-primary hover:bg-hover-bg transition-colors cursor-pointer flex items-center gap-2.5"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-text-secondary"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="17 3 21 3 21 7"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                    Import Audit Report PDF
+                    Import Audit Report
                   </button>
                   <div className="my-1 border-t border-panel-border" />
                   <button
@@ -1216,48 +1221,17 @@ export default function PlanBuilderPage() {
         )}
       </div>
 
-      {isSettingsOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setIsSettingsOpen(false)}>
+      {isImportAuditOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setIsImportAuditOpen(false)}>
           <div className="bg-panel-bg-alt border border-panel-border rounded-2xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-bold text-xl text-heading">Settings</h2>
-              <button onClick={() => setIsSettingsOpen(false)} className="text-text-muted hover:text-text-secondary cursor-pointer" aria-label="Close settings">
+              <h2 className="font-bold text-xl text-heading">Import Audit Report</h2>
+              <button onClick={() => setIsImportAuditOpen(false)} className="text-text-muted hover:text-text-secondary cursor-pointer" aria-label="Close import audit report">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
               </button>
             </div>
 
-            <div className="space-y-2 mb-4">
-              <label className="block text-xs font-semibold uppercase tracking-wide text-text-secondary">Plan Name</label>
-              <input
-                type="text"
-                value={planTitle}
-                onChange={(e) => setPlanTitle(e.target.value)}
-                className="w-full px-3 py-2 border border-panel-border rounded-xl bg-input-bg text-text-primary outline-none"
-                disabled={!activePlan}
-              />
-              <button
-                onClick={() => void handleRenamePlan()}
-                disabled={!activePlan || savingTitle}
-                className="w-full border border-panel-border-strong py-2 rounded-xl font-semibold text-text-primary hover:bg-hover-bg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {savingTitle ? 'Saving...' : 'Save Name'}
-              </button>
-            </div>
-
-            <button
-              onClick={() => void handleGenerate()}
-              disabled={loading || !userId}
-              className="w-full bg-uva-blue/90 flex justify-center text-white py-2.5 rounded-xl font-bold hover:bg-uva-blue transition-colors mt-2 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
-            >
-              {loading ? 'Generating...' : 'Auto-Generate CSV Plan'}
-            </button>
-
-            <div className="mt-4 pt-4 border-t border-panel-border space-y-3">
-              <h3 className="text-sm font-semibold text-heading">Import Audit Report PDF</h3>
-              <p className="text-xs text-text-secondary leading-relaxed">
-                In Stellic: Track Progress &rarr; Print Audit Report (printer icon) &rarr; Create Audit Report, then upload that PDF here.
-              </p>
-
+            <div className="space-y-3">
               <div className="flex gap-2">
                 <button
                   type="button"
@@ -1274,6 +1248,7 @@ export default function PlanBuilderPage() {
                   type="button"
                   onClick={() => {
                     setImportMode('overwrite');
+                    setImportOverwritePlanId((prev) => prev || activePlan?.id || '');
                     setImportError(null);
                   }}
                   className={`px-3 py-2 text-sm font-semibold rounded-xl border transition-colors cursor-pointer ${importMode === 'overwrite' ? 'bg-uva-blue/90 text-white border-uva-blue' : 'border-panel-border-strong text-text-primary hover:bg-hover-bg'}`}
@@ -1304,27 +1279,27 @@ export default function PlanBuilderPage() {
                     }
                     className="w-full px-4 py-2.5 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between hover:border-panel-border-strong transition-colors"
                   >
-                      <span className="truncate text-sm font-medium">{importPlanLabel}</span>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`w-4 h-4 text-text-secondary transition-transform duration-200 ${isImportPlanDropdownOpen ? 'rotate-180' : ''}`}><path d="m6 9 6 6 6-6" /></svg>
+                    <span className="truncate text-sm font-medium">{importPlanLabel}</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`w-4 h-4 text-text-secondary transition-transform duration-200 ${isImportPlanDropdownOpen ? 'rotate-180' : ''}`}><path d="m6 9 6 6 6-6" /></svg>
                   </button>
 
                   {isImportPlanDropdownOpen && (
-                      <div className="absolute z-10 mt-1.5 w-full rounded-xl border border-panel-border bg-panel-bg shadow-lg overflow-hidden">
-                        <div className="max-h-40 overflow-y-auto p-1.5 space-y-0.5">
-                      {optimisticPlans.map((plan) => (
-                        <button
-                          key={plan.id}
-                          type="button"
-                          onClick={() => {
-                            setImportOverwritePlanId(plan.id);
-                            setIsImportPlanDropdownOpen(false);
-                          }}
+                    <div className="absolute z-10 mt-1.5 w-full rounded-xl border border-panel-border bg-panel-bg shadow-lg overflow-hidden">
+                      <div className="max-h-40 overflow-y-auto p-1.5 space-y-0.5">
+                        {optimisticPlans.map((plan) => (
+                          <button
+                            key={plan.id}
+                            type="button"
+                            onClick={() => {
+                              setImportOverwritePlanId(plan.id);
+                              setIsImportPlanDropdownOpen(false);
+                            }}
                             className={`w-full px-3 py-2 text-left text-sm rounded-lg cursor-pointer transition-colors ${importOverwritePlanId === plan.id ? 'bg-uva-blue/10 text-uva-blue font-semibold' : 'text-text-primary hover:bg-hover-bg'}`}
-                        >
-                          {plan.title}
-                        </button>
-                      ))}
-                        </div>
+                          >
+                            {plan.title}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
