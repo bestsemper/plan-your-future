@@ -19,6 +19,7 @@ import {
   importPlanFromStellicPdf,
   removeCourseFromSemester,
   renamePlan,
+  checkPlanPrerequisites,
   checkCoursePrerequisites,
 } from '../actions';
 
@@ -310,6 +311,7 @@ function isDisplayedRequirementUnsatisfied(requirement: string, unmetRequirement
 export default function PlanBuilderPage() {
   const router = useRouter();
   const isMountedRef = useRef(true);
+  const lastPlanPrereqCheckKeyRef = useRef('');
   const newCourseInputRef = useRef<HTMLInputElement | null>(null);
   const [userId, setUserId] = useState('');
   const [optimisticPlans, setOptimisticPlans] = useState<PlanItem[]>([]);
@@ -420,42 +422,42 @@ export default function PlanBuilderPage() {
   // Check all existing courses in the plan for prerequisite violations
   useEffect(() => {
     const checkExistingCoursesPrerequisites = async () => {
-      if (!activePlan || !completedCourses) return;
+      if (!activePlan || completedCourses.length === 0 && activePlan.semesters.length === 0) return;
+
+      const checkKey = JSON.stringify({
+        planId: activePlan.id,
+        completedCourses: [...completedCourses].sort(),
+        semesters: activePlan.semesters.map((semester) => ({
+          id: semester.id,
+          termOrder: semester.termOrder,
+          courses: semester.courses.map((course) => course.courseCode).sort(),
+        })),
+      });
+
+      if (lastPlanPrereqCheckKeyRef.current === checkKey) {
+        return;
+      }
+      lastPlanPrereqCheckKeyRef.current = checkKey;
+
+      const res = await checkPlanPrerequisites({
+        completedCourses,
+        planSemesters: activePlan.semesters,
+      });
 
       const newProblematicCourses = new Map<string, Map<string, RequirementMissing[]>>();
-
-      for (const semester of activePlan.semesters) {
-        for (const course of semester.courses) {
-          const result = await checkCoursePrerequisites({
-            courseCode: course.courseCode,
-            completedCourses,
-            planSemesters: activePlan.semesters,
-            currentSemesterTermOrder: semester.termOrder,
-            currentSemesterCourseCodes: semester.courses.map((courseInSemester) => courseInSemester.courseCode),
-          });
-
-          // If prerequisites are not satisfied and it's not a 1000-level course without prerequisites
-          if (!result.isSatisfied && !(result.hasNoPrerequisites && result.hasUnknownPrerequisites)) {
-            const existing = newProblematicCourses.get(semester.id) || new Map<string, RequirementMissing[]>();
-            
-            // Use detailed requirements if available, otherwise create from missing courses
-            let requirements = result.detailedRequirements || [];
-            if (requirements.length === 0 && result.missingCourses.length > 0) {
-              // Fallback: create requirement entries from missing courses
-              requirements = result.missingCourses.map(courseCode => ({
-                type: 'course' as const,
-                description: courseCode,
-                missingCourses: [courseCode],
-              }));
-            }
-            
-            existing.set(course.courseCode, requirements);
-            newProblematicCourses.set(semester.id, existing);
-          }
+      for (const [semesterId, courseMap] of Object.entries(res.problematicBySemester ?? {})) {
+        const courseEntries = new Map<string, RequirementMissing[]>();
+        for (const [courseCode, requirements] of Object.entries(courseMap ?? {})) {
+          courseEntries.set(courseCode, requirements as RequirementMissing[]);
+        }
+        if (courseEntries.size > 0) {
+          newProblematicCourses.set(semesterId, courseEntries);
         }
       }
 
-      setSemestersProblematicCourses(newProblematicCourses);
+      if (isMountedRef.current) {
+        setSemestersProblematicCourses(newProblematicCourses);
+      }
     };
 
     void checkExistingCoursesPrerequisites();

@@ -23,7 +23,6 @@ async function main() {
       computingId: 'wahoo99',
       displayName: 'Mock User',
       major: 'Computer Science (BA)',
-      gradYear: 2026,
     }
   })
 

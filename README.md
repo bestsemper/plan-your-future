@@ -8,4 +8,4 @@ Live website: https://hoosplan.vercel.app
 
 - [ ] Page for course prerequisite tree visualization
 - [ ] Course search page
-- [ ] Auto generate plan algorithm that takes major(s), number of semesters to graduate, etc.
+- [ ] Auto generate plan algorithm that takes major(s), number of semesters to graduate, and courses taken to satisfy major graduation requirements

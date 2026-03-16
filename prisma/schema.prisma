@@ -15,7 +15,7 @@ model User {
   school      String?
   major       String?
   additionalPrograms String[]   @default([])
-  gradYear    Int?
+  currentAcademicYear Int?
   bio         String?
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt

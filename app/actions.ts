@@ -384,7 +384,7 @@ export async function updateCurrentUserProfile(data: {
   school?: string;
   major?: string;
   additionalPrograms?: string;
-  gradYear?: string;
+  currentAcademicYear?: string;
   bio?: string;
 }) {
   const user = await getCurrentUser();
@@ -405,13 +405,13 @@ export async function updateCurrentUserProfile(data: {
     .map((entry) => entry.trim())
     .filter(Boolean);
 
-  let gradYear: number | null = null;
-  if (data.gradYear && data.gradYear.trim() !== '') {
-    const parsed = Number.parseInt(data.gradYear, 10);
-    if (Number.isNaN(parsed) || parsed < 1900 || parsed > 3000) {
-      return { error: 'Graduation year must be a valid year.' };
+  let currentAcademicYear: number | null = null;
+  if (data.currentAcademicYear && data.currentAcademicYear.trim() !== '') {
+    const parsed = Number.parseInt(data.currentAcademicYear, 10);
+    if (Number.isNaN(parsed) || parsed < 1 || parsed > 10) {
+      return { error: 'Current academic year must be between 1 and 10.' };
     }
-    gradYear = parsed;
+    currentAcademicYear = parsed;
   }
 
   await prisma.user.update({
@@ -421,7 +421,7 @@ export async function updateCurrentUserProfile(data: {
       school,
       major,
       additionalPrograms,
-      gradYear,
+      currentAcademicYear,
       bio,
     },
   });
@@ -1993,7 +1993,10 @@ export async function checkCoursePrerequisites(input: {
   try {
     const { checkPrerequisites } = await import('./utils/prerequisiteChecker');
     const user = await getCurrentUser();
-    
+    const currentSemester = input.planSemesters.find(
+      (sem) => sem.termOrder === input.currentSemesterTermOrder
+    );
+
     // Get courses from past semesters (earlier termOrder)
     const pastCourseCodes = input.planSemesters
       .filter((sem) => sem.termOrder < input.currentSemesterTermOrder)
@@ -2008,6 +2011,9 @@ export async function checkCoursePrerequisites(input: {
         school: user?.school ?? null,
         major: user?.major ?? null,
         additionalPrograms: user?.additionalPrograms ?? [],
+        currentAcademicYear: user?.currentAcademicYear ?? null,
+        currentTermName: currentSemester?.termName ?? null,
+        currentYear: currentSemester?.year ?? null,
       }
     );
 
@@ -2034,6 +2040,70 @@ export async function checkCoursePrerequisites(input: {
   }
 }
 
+export async function checkPlanPrerequisites(input: {
+  completedCourses: string[];
+  planSemesters: Array<{
+    id: string;
+    termName: string;
+    year: number;
+    termOrder: number;
+    courses: Array<{ courseCode: string }>;
+  }>;
+}) {
+  'use server';
+
+  try {
+    const { checkPrerequisites } = await import('./utils/prerequisiteChecker');
+    const user = await getCurrentUser();
+
+    const problematicBySemester: Record<string, Record<string, any[]>> = {};
+
+    for (const semester of input.planSemesters) {
+      const pastCourseCodes = input.planSemesters
+        .filter((sem) => sem.termOrder < semester.termOrder)
+        .flatMap((sem) => sem.courses.map((course) => course.courseCode));
+
+      for (const course of semester.courses) {
+        const result = checkPrerequisites(
+          course.courseCode,
+          input.completedCourses,
+          pastCourseCodes,
+          semester.courses.map((courseInSemester) => courseInSemester.courseCode),
+          {
+            school: user?.school ?? null,
+            major: user?.major ?? null,
+            additionalPrograms: user?.additionalPrograms ?? [],
+            currentAcademicYear: user?.currentAcademicYear ?? null,
+            currentTermName: semester.termName,
+            currentYear: semester.year,
+          }
+        );
+
+        if (!result.isSatisfied && !(result.hasNoPrerequisites && result.hasUnknownPrerequisites)) {
+          const requirements = (result.detailedRequirements?.length ?? 0) > 0
+            ? result.detailedRequirements
+            : result.missingCourses.map((courseCode) => ({
+                type: 'course',
+                description: courseCode,
+                missingCourses: [courseCode],
+              }));
+
+          if (!problematicBySemester[semester.id]) {
+            problematicBySemester[semester.id] = {};
+          }
+          problematicBySemester[semester.id][course.courseCode] = requirements;
+        }
+      }
+    }
+
+    return { problematicBySemester };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Plan prerequisite check error:', message);
+    return { problematicBySemester: {} as Record<string, Record<string, any[]>> };
+  }
+}
+
 export async function getUserProfile(computingId: string) {
   try {
     const user = await prisma.user.findUnique({
@@ -2045,7 +2115,7 @@ export async function getUserProfile(computingId: string) {
         school: true,
         major: true,
         additionalPrograms: true,
-        gradYear: true,
+        currentAcademicYear: true,
         bio: true,
       },
     });

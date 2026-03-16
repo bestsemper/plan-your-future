@@ -11,7 +11,7 @@ type EditProfileFormProps = {
   school: string | null;
   major: string | null;
   additionalPrograms: string[];
-  gradYear: number | null;
+  currentAcademicYear: number | null;
   bio: string | null;
 };
 
@@ -20,7 +20,7 @@ export default function EditProfileForm({
   school,
   major,
   additionalPrograms,
-  gradYear,
+  currentAcademicYear,
   bio,
 }: EditProfileFormProps) {
   const router = useRouter();
@@ -32,7 +32,7 @@ export default function EditProfileForm({
   const [formSchool, setFormSchool] = useState(school ?? '');
   const [formMajor, setFormMajor] = useState(major ?? '');
   const [formAdditionalPrograms, setFormAdditionalPrograms] = useState(additionalPrograms.join('\n'));
-  const [formGradYear, setFormGradYear] = useState(gradYear ? String(gradYear) : '');
+  const [formCurrentAcademicYear, setFormCurrentAcademicYear] = useState(currentAcademicYear ? String(currentAcademicYear) : '');
   const [formBio, setFormBio] = useState(bio ?? '');
 
   const schoolOptions = useMemo(
@@ -51,12 +51,23 @@ export default function EditProfileForm({
       .map((option) => ({ value: option, label: option }));
   }, [formMajor]);
 
+  const academicYearOptions = useMemo(
+    () => [
+      { value: '1', label: '1st Year' },
+      { value: '2', label: '2nd Year' },
+      { value: '3', label: '3rd Year' },
+      { value: '4', label: '4th Year' },
+      { value: '5', label: 'Graduate' },
+    ],
+    [],
+  );
+
   const handleCancel = () => {
     setFormDisplayName(displayName);
     setFormSchool(school ?? '');
     setFormMajor(major ?? '');
     setFormAdditionalPrograms(additionalPrograms.join('\n'));
-    setFormGradYear(gradYear ? String(gradYear) : '');
+    setFormCurrentAcademicYear(currentAcademicYear ? String(currentAcademicYear) : '');
     setFormBio(bio ?? '');
     setError(null);
     setIsEditing(false);
@@ -71,7 +82,7 @@ export default function EditProfileForm({
         school: formSchool,
         major: formMajor,
         additionalPrograms: formAdditionalPrograms,
-        gradYear: formGradYear,
+        currentAcademicYear: formCurrentAcademicYear,
         bio: formBio,
       });
 
@@ -170,13 +181,13 @@ export default function EditProfileForm({
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-text-secondary mb-2">Graduation Year</label>
-              <input
-                type="number"
-                value={formGradYear}
-                onChange={(e) => setFormGradYear(e.target.value)}
-                placeholder="e.g., 2026"
-                className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary outline-none focus:border-uva-blue focus:ring-2 focus:ring-uva-blue/20 transition-all"
+              <label className="block text-sm font-semibold text-text-secondary mb-2">Current Academic Year</label>
+              <CustomSelect
+                value={formCurrentAcademicYear}
+                onChange={setFormCurrentAcademicYear}
+                options={academicYearOptions}
+                placeholder="Select current academic year"
+                emptyLabel="No year selected"
               />
             </div>
 

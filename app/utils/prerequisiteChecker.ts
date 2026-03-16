@@ -74,7 +74,84 @@ type UserEnrollmentProfile = {
   school?: string | null;
   major?: string | null;
   additionalPrograms?: string[];
+  currentAcademicYear?: number | null;
+  currentTermName?: string | null;
+  currentYear?: number | null;
 };
+
+function parseYearLevels(requirement: string): Set<number> {
+  const normalized = requirement.toLowerCase();
+  const levels = new Set<number>();
+  const tokenToLevel: Record<string, number> = {
+    first: 1,
+    '1st': 1,
+    second: 2,
+    '2nd': 2,
+    third: 3,
+    '3rd': 3,
+    fourth: 4,
+    '4th': 4,
+  };
+
+  for (const [token, level] of Object.entries(tokenToLevel)) {
+    const pattern = new RegExp(`\\b${token}(?:[-\\s]year)?\\b`, 'i');
+    if (pattern.test(normalized)) {
+      levels.add(level);
+    }
+  }
+
+  return levels;
+}
+
+function getAcademicYearStart(termName: string, calendarYear: number): number {
+  return termName.toLowerCase() === 'fall' ? calendarYear : calendarYear - 1;
+}
+
+function getCurrentSchoolYearStart(): number {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  // Academic year rolls over at the start of August.
+  return month >= 7 ? year : year - 1;
+}
+
+function getUndergraduateStanding(profile?: UserEnrollmentProfile): number | null {
+  if (profile?.currentAcademicYear && profile.currentAcademicYear > 0) {
+    if (!profile.currentTermName || !profile.currentYear) {
+      return profile.currentAcademicYear;
+    }
+
+    const baselineSchoolYearStart = getCurrentSchoolYearStart();
+    const targetSchoolYearStart = getAcademicYearStart(profile.currentTermName, profile.currentYear);
+    const adjustedStanding = profile.currentAcademicYear + (targetSchoolYearStart - baselineSchoolYearStart);
+    return Math.max(1, adjustedStanding);
+  }
+
+  return null;
+}
+
+function isYearRequirementSatisfied(requirement: string, profile?: UserEnrollmentProfile): boolean {
+  const normalized = requirement.toLowerCase();
+  const standing = getUndergraduateStanding(profile);
+  if (standing === null) {
+    return false;
+  }
+
+  if (/\bundergrad(?:uate)?\b/.test(normalized)) {
+    return standing >= 1 && standing <= 4;
+  }
+
+  if (/\bgrad(?:uate)?\b/.test(normalized)) {
+    return standing >= 5;
+  }
+
+  const levels = parseYearLevels(requirement);
+  if (levels.size > 0) {
+    return levels.has(standing);
+  }
+
+  return false;
+}
 
 function normalizeEnrollmentText(text: string): string {
   return text
@@ -337,7 +414,7 @@ export function evaluateTreeRecursive(
   }
 
   if (tree.type === 'year') {
-    return true;
+    return isYearRequirementSatisfied(tree.requirement, profile);
   }
 
   if (tree.type === 'count') {
@@ -511,7 +588,10 @@ export function getDetailedMissingRequirements(
   }
 
   if (tree.type === 'year') {
-    return [];
+    if (isYearRequirementSatisfied(tree.requirement, profile)) {
+      return [];
+    }
+    return [{ type: 'year', description: `Year Requirement: ${formatRequirementText(tree.requirement)}`, missingCourses: [] }];
   }
 
   if (tree.type === 'school') {

@@ -29,7 +29,7 @@ export default async function Profile() {
             <div className="min-w-0 w-full">
               <h1 className="text-2xl md:text-3xl font-bold mb-1 text-heading break-words">Hi, {user.displayName}</h1>
               <p className="text-text-secondary text-base md:text-lg font-medium break-words">
-                {[user.school, user.major || 'Undeclared', `Class of ${user.gradYear || '2026'}`].filter(Boolean).join(' • ')}
+                {[user.school, user.major || 'Undeclared', user.currentAcademicYear ? `Year ${user.currentAcademicYear}` : null].filter(Boolean).join(' • ')}
               </p>
               {user.additionalPrograms.length > 0 && (
                 <p className="text-text-secondary text-sm md:text-base mt-2 break-words">Programs: {user.additionalPrograms.join(', ')}</p>
@@ -45,7 +45,7 @@ export default async function Profile() {
                 school={user.school}
                 major={user.major}
                 additionalPrograms={user.additionalPrograms}
-                gradYear={user.gradYear}
+                currentAcademicYear={user.currentAcademicYear}
                 bio={user.bio}
               />
               <EditCompletedCourses />
