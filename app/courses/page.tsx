@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from 'react';
-import { getCourseInfoFromCSV, getCourseCreditsFromCSV } from '../actions';
+import { getCourseInfoFromJSON, getCourseCreditsFromJSON } from '../actions';
 
 interface CourseInfo {
   courseCode: string;
@@ -73,7 +73,7 @@ export default function CoursesPage() {
     setShowDropdown(false);
     
     try {
-      const info = await getCourseInfoFromCSV(code);
+      const info = await getCourseInfoFromJSON(code);
       setSelectedCourseInfo(info);
     } catch (error) {
       console.error('Failed to get course info:', error);
@@ -104,47 +104,57 @@ export default function CoursesPage() {
 
   return (
     <div className="w-full pt-0 pb-6">
-      <div className="mb-6 border-b border-panel-border pb-4">
+      <div className="mb-6 border-b border-panel-border pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h1 className="text-3xl font-bold text-heading">Course Search</h1>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Search Panel */}
         <div className="lg:col-span-1">
-          <div className="bg-panel-bg p-6 rounded-xl border border-panel-border">
-            <label className="block text-sm font-semibold text-heading mb-3">Search Courses</label>
-            <div className="relative">
-              <input
-                ref={searchInputRef}
-                type="text"
-                placeholder="Enter course code or name..."
-                value={courseCode}
-                onChange={(e) => handleCourseSearchChange(e.target.value)}
-                onFocus={() => setShowDropdown(true)}
-                onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
-                className="w-full px-3 py-2.5 bg-panel-bg-alt border border-panel-border-strong rounded-lg text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-uva-blue/30"
+          <div className="relative flex-1">
+            <span className="sr-only">Search courses</span>
+            <svg
+              className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-text-tertiary"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                fillRule="evenodd"
+                d="M8.5 3a5.5 5.5 0 014.396 8.804l3.65 3.65a.75.75 0 11-1.06 1.06l-3.65-3.65A5.5 5.5 0 118.5 3zm0 1.5a4 4 0 100 8 4 4 0 000-8z"
+                clipRule="evenodd"
               />
-              
-              {showDropdown && filteredCourses.length > 0 && (
-                <div className="absolute z-10 left-0 top-full w-full mt-1.5 bg-panel-bg border border-panel-border rounded-lg shadow-lg overflow-hidden">
-                  <div className="max-h-64 overflow-y-auto p-1.5 space-y-0.5">
-                    {filteredCourses.map((course) => (
-                      <div
-                        key={course.code}
-                        className="px-3 py-2 rounded-lg hover:bg-hover-bg transition-colors cursor-pointer"
-                        onMouseDown={(e) => e.preventDefault()}
-                        onClick={() => handleSelectCourse(course.code)}
-                      >
-                        <div className="text-sm font-medium text-text-primary">{course.code}</div>
-                        {course.title && (
-                          <div className="text-xs text-text-muted truncate">{course.title}</div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+            </svg>
+            <input
+              ref={searchInputRef}
+              type="text"
+              placeholder="Search courses"
+              value={courseCode}
+              onChange={(e) => handleCourseSearchChange(e.target.value)}
+              onFocus={() => setShowDropdown(true)}
+              onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
+              className="w-full h-[42px] pl-10 pr-4 border border-panel-border rounded-full bg-input-bg text-text-primary outline-none focus:border-uva-blue/40 focus:ring-2 focus:ring-uva-blue/15"
+            />
+            
+            {showDropdown && filteredCourses.length > 0 && (
+              <div className="absolute z-10 left-0 top-full w-full mt-2 bg-panel-bg border border-panel-border rounded-xl shadow-lg overflow-hidden">
+                <div className="max-h-64 overflow-y-auto p-1.5 space-y-0.5">
+                  {filteredCourses.map((course) => (
+                    <div
+                      key={course.code}
+                      className="px-3 py-2 rounded-lg hover:bg-hover-bg transition-colors cursor-pointer"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => handleSelectCourse(course.code)}
+                    >
+                      <div className="text-sm font-medium text-text-primary">{course.code}</div>
+                      {course.title && (
+                        <div className="text-xs text-text-muted truncate">{course.title}</div>
+                      )}
+                    </div>
+                  ))}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
 
