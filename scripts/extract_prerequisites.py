@@ -241,18 +241,18 @@ def extract_major_program_requirements(enrollment_requirements: str) -> List[Any
     )
     school_pattern = re.compile(
         r'\b(?:'
-        r'SEAS|E-?SCHOOL|SCHOOL\s+OF\s+ENGINEERING(?:\s+AND\s+APPLIED\s+SCIENCE)?|(?:UNDERGRADUATE\s+)?ENGINEERING(?:\s+STUDENTS?)?|'
-        r'CLAS|A\s*&\s*S|ARTS\s*&\s*SCIENCES|COLLEGE\s+(?:AND\s+GRADUATE\s+SCHOOL\s+OF\s+)?ARTS\s*&\s*SCIENCES|'
-        r'SCHOOL\s+OF\s+ARCHITECTURE|ARCH|'
-        r'MCINTIRE|SCHOOL\s+OF\s+COMMERCE|COMMERCE\s+SCHOOL|'
+        r'SEAS|ENU|E-?SCHOOL|SCHOOL\s+OF\s+ENGINEERING(?:\s+AND\s+APPLIED\s+SCIENCE)?|(?:UNDERGRADUATE\s+)?ENGINEERING(?:\s+STUDENTS?)?|'
+        r'CLAS|ASU|A\s*&\s*S|ARTS\s*&\s*SCIENCES|COLLEGE\s+(?:AND\s+GRADUATE\s+SCHOOL\s+OF\s+)?ARTS\s*&\s*SCIENCES|'
+        r'ARU|SCHOOL\s+OF\s+ARCHITECTURE|ARCH|'
+        r'MCU|MCINTIRE|SCHOOL\s+OF\s+COMMERCE|COMMERCE\s+SCHOOL|'
         r'DARDEN|DARDEN\s+SCHOOL\s+OF\s+BUSINESS|'
         r'BATTEN|FRANK\s+BATTEN\s+SCHOOL\s+OF\s+LEADERSHIP\s+AND\s+PUBLIC\s+POLICY|'
+        r'CUU|CURRY|SCHOOL\s+OF\s+EDUCATION\s+AND\s+HUMAN\s+DEVELOPMENT|EDUCATION\s+AND\s+HUMAN\s+DEVELOPMENT|EHD|'
         r'SCHOOL\s+OF\s+CONTINUING\s*&\s*PROFESSIONAL\s+STUDIES|SCHOOL\s+OF\s+CONTINUING\s+AND\s+PROFESSIONAL\s+STUDIES|SCPS|'
         r'SCHOOL\s+OF\s+DATA\s+SCIENCE|DATA\s+SCIENCE\s+SCHOOL|SDS|'
-        r'SCHOOL\s+OF\s+EDUCATION\s+AND\s+HUMAN\s+DEVELOPMENT|EDUCATION\s+AND\s+HUMAN\s+DEVELOPMENT|EHD|'
         r'SCHOOL\s+OF\s+LAW|LAW\s+SCHOOL|'
         r'SCHOOL\s+OF\s+MEDICINE|MEDICAL\s+SCHOOL|'
-        r'SCHOOL\s+OF\s+NURSING|NURS'
+        r'NRU|SCHOOL\s+OF\s+NURSING|NURS'
         r')\b',
         re.IGNORECASE,
     )
@@ -363,19 +363,19 @@ def extract_major_program_requirements(enrollment_requirements: str) -> List[Any
                 return 'Graduate'
             return default
 
-        if 'SEAS' in upper_raw or 'ENGINEERING' in upper_raw or 'E-SCHOOL' in upper_raw:
+        if 'SEAS' in upper_raw or 'ENU' in upper_raw or 'ENGINEERING' in upper_raw or 'E-SCHOOL' in upper_raw:
             return 'School of Engineering and Applied Science'
 
-        if 'CLAS' in upper_raw or ('ARTS' in upper_raw and 'SCIENCES' in upper_raw) or upper_raw == 'A&S':
+        if 'CLAS' in upper_raw or 'ASU' in upper_raw or ('ARTS' in upper_raw and 'SCIENCES' in upper_raw) or upper_raw == 'A&S':
             level = infer_level('Undergraduate')
             if level == 'Graduate':
                 return 'Graduate School of Arts & Sciences'
             return 'College of Arts & Sciences'
 
-        if 'ARCH' in upper_raw or 'ARCHITECTURE' in upper_raw:
+        if 'ARU' in upper_raw or 'ARCH' in upper_raw or 'ARCHITECTURE' in upper_raw:
             return 'School of Architecture'
 
-        if 'NURS' in upper_raw or 'NURSING' in upper_raw:
+        if 'NRU' in upper_raw or 'NURS' in upper_raw or 'NURSING' in upper_raw:
             return 'School of Nursing'
 
         if 'MEDICINE' in upper_raw or 'MEDICAL SCHOOL' in upper_raw:
@@ -390,10 +390,10 @@ def extract_major_program_requirements(enrollment_requirements: str) -> List[Any
         if 'DATA SCIENCE' in upper_raw or upper_raw == 'SDS':
             return 'School of Data Science'
 
-        if ('EDUCATION' in upper_raw and 'HUMAN DEVELOPMENT' in upper_raw) or upper_raw == 'EHD':
+        if 'CUU' in upper_raw or 'CURRY' in upper_raw or ('EDUCATION' in upper_raw and 'HUMAN DEVELOPMENT' in upper_raw) or upper_raw == 'EHD':
             return 'School of Education and Human Development'
 
-        if 'COMMERCE' in upper_raw or 'MCINTIRE' in upper_raw:
+        if 'MCU' in upper_raw or 'COMMERCE' in upper_raw or 'MCINTIRE' in upper_raw:
             return 'McIntire School of Commerce'
 
         if 'DARDEN' in upper_raw:

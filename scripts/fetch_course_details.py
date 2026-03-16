@@ -32,9 +32,25 @@ def sorted_courses(courses_by_key: dict[str, dict]) -> list[dict]:
         courses_by_key.values(),
         key=lambda c: (
             " ".join(str(c.get("course_code", "")).split()).upper(),
-            str(c.get("crse_id", "")),
+            normalize_text(c.get("title", "")).upper(),
         ),
     )
+
+
+def serialize_course(course: dict) -> dict:
+    return {
+        "course_code": course.get("course_code", ""),
+        "title": course.get("title", ""),
+        "description": course.get("description", ""),
+        "enrollment_requirements": course.get("enrollment_requirements", ""),
+        "grading_basis": format_grading_basis(course.get("grading_basis", "")),
+        "credits": format_credits(course.get("credits", "")),
+        "components": format_components(course.get("components", "")),
+        "requirement_designation": course.get("requirement_designation", ""),
+        "course_attributes": course.get("course_attributes", []),
+        "career": course.get("career", ""),
+        "terms": format_open_terms(course.get("open_terms", [])),
+    }
 
 
 def load_existing_courses(filename: Path) -> dict[str, dict]:
@@ -50,13 +66,14 @@ def load_existing_courses(filename: Path) -> dict[str, dict]:
         result: dict[str, dict] = {}
         for item in data:
             if isinstance(item, dict) and item.get("course_code"):
-                result[course_key(item)] = item
+                result[course_key(item)] = serialize_course(item)
         return result
     except Exception:
         return {}
 
 
 def normalize_text(value: object) -> str:
+    """Normalize known SIS text artifacts while preserving content."""
     text = str(value or "")
     text = text.replace("\u00a0", " ").replace("\xa0", " ")
     text = text.replace("\ufffd", "")
@@ -64,28 +81,100 @@ def normalize_text(value: object) -> str:
     return text.strip()
 
 
-def format_credit_value(units_minimum, units_maximum) -> str:
-    minimum = str(units_minimum or "").strip()
-    maximum = str(units_maximum or "").strip()
+def format_credit_number(value: object) -> str:
+    text = normalize_text(value)
+    if not text:
+        return ""
 
-    if minimum and maximum:
-        return minimum if minimum == maximum else f"{minimum}-{maximum}"
-    return minimum or maximum
-
-
-def extract_credits_from_class_details(class_details_data: dict) -> str:
     try:
-        units = (
-            class_details_data
-            .get("section_info", {})
-            .get("class_details", {})
-            .get("units", "")
-        )
-        match = re.search(r"\d+(?:\.\d+)?(?:\s*-\s*\d+(?:\.\d+)?)?", str(units))
-        return match.group(0).replace(" ", "") if match else ""
-    except Exception:
-        pass
-    return ""
+        number = float(text)
+    except (TypeError, ValueError):
+        return text
+
+    if number.is_integer():
+        return str(int(number))
+    return str(number).rstrip("0").rstrip(".")
+
+
+def format_credits(raw_credits: object) -> str:
+    if isinstance(raw_credits, str):
+        return normalize_text(raw_credits)
+
+    if isinstance(raw_credits, dict):
+        minimum = format_credit_number(raw_credits.get("units_minimum", ""))
+        maximum = format_credit_number(raw_credits.get("units_maximum", ""))
+
+        if minimum and maximum:
+            return minimum if minimum == maximum else f"{minimum}-{maximum}"
+        return minimum or maximum
+
+    return format_credit_number(raw_credits)
+
+
+def format_grading_basis(raw_grading_basis: object) -> str:
+    if isinstance(raw_grading_basis, dict):
+        return normalize_text(raw_grading_basis.get("descr", "") or raw_grading_basis.get("code", ""))
+
+    return normalize_text(raw_grading_basis)
+
+
+def format_components(raw_components: object) -> str:
+    if isinstance(raw_components, str):
+        return normalize_text(raw_components)
+
+    if not isinstance(raw_components, list):
+        return ""
+
+    descriptions: list[str] = []
+    seen: set[str] = set()
+    for component in raw_components:
+        if isinstance(component, dict):
+            description = normalize_text(component.get("descr", ""))
+            optional_flag = normalize_text(component.get("optional", "")).upper()
+            if description and optional_flag == "N":
+                description = f"{description} - Required"
+            elif description and optional_flag == "Y":
+                description = f"{description} - Optional"
+        else:
+            description = normalize_text(component)
+
+        if description and description not in seen:
+            seen.add(description)
+            descriptions.append(description)
+
+    return ", ".join(descriptions)
+
+
+def format_open_terms(raw_open_terms: object) -> str:
+    if isinstance(raw_open_terms, str):
+        return normalize_text(raw_open_terms)
+
+    if not isinstance(raw_open_terms, list):
+        return ""
+
+    term_codes: list[str] = []
+    seen: set[str] = set()
+    for term in raw_open_terms:
+        if isinstance(term, dict):
+            code = normalize_text(term.get("strm", ""))
+        else:
+            code = normalize_text(term)
+
+        if code and code not in seen:
+            seen.add(code)
+            term_codes.append(code)
+
+    return ", ".join(term_codes)
+
+
+def get_nested_value(payload: dict, path: list[str], default: object = "") -> object:
+    """Get a nested value from a dict using an exact key path."""
+    current: object = payload
+    for key in path:
+        if not isinstance(current, dict) or key not in current:
+            return default
+        current = current[key]
+    return current
 
 
 def extract_subjects(text: str) -> list[tuple[str, str]]:
@@ -147,11 +236,6 @@ def get_courses_by_subject(subject: str) -> list[dict]:
         return []
 
 
-def get_sections_for_course(course_id: str, term: str) -> list[dict]:
-    """Get sections for a course with specific term"""
-    return get_sections_for_course_with_career(course_id, term, "")
-
-
 def get_sections_for_course_with_career(course_id: str, term: str, x_acad_career: str = "") -> list[dict]:
     """Get sections for a course with specific term and career filter"""
     params = {
@@ -176,6 +260,27 @@ def get_sections_for_course_with_career(course_id: str, term: str, x_acad_career
         return []
 
 
+def extract_term_data(offerings: object) -> object:
+    """Extract raw open_terms payload from catalog offerings."""
+    if not isinstance(offerings, list) or not offerings:
+        return []
+
+    first_offering = offerings[0] if isinstance(offerings[0], dict) else {}
+    return first_offering.get("open_terms", []) if isinstance(first_offering, dict) else []
+
+
+def extract_term_candidates(open_terms: object) -> list[str]:
+    """Choose term codes from raw catalog open_terms payload for section lookup."""
+    if not isinstance(open_terms, list):
+        return []
+
+    default_terms = [term for term in open_terms if isinstance(term, dict) and term.get("default_term") and term.get("strm")]
+    if default_terms:
+        return [str(term["strm"]) for term in default_terms]
+
+    return [str(term["strm"]) for term in open_terms if isinstance(term, dict) and term.get("strm")]
+
+
 def get_class_details(class_nbr: str, term: str) -> dict:
     """Get class details including description and enrollment requirements"""
     params = {
@@ -194,37 +299,27 @@ def get_class_details(class_nbr: str, term: str) -> dict:
 
 def extract_description(class_details_data: dict) -> str:
     """Extract course description from class details"""
-    try:
-        if "section_info" in class_details_data:
-            section_info = class_details_data["section_info"]
-            if "catalog_descr" in section_info:
-                catalog_descr = section_info["catalog_descr"]
-                if "crse_catalog_description" in catalog_descr:
-                    return normalize_text(catalog_descr["crse_catalog_description"])
-    except Exception:
-        pass
-    return ""
+    return normalize_text(get_nested_value(
+        class_details_data,
+        ["section_info", "catalog_descr", "crse_catalog_description"],
+        "",
+    ))
 
 
 def extract_enrollment_requirements(class_details_data: dict) -> str:
     """Extract enrollment requirements from class details"""
-    try:
-        if "section_info" in class_details_data:
-            section_info = class_details_data["section_info"]
-            if "enrollment_information" in section_info:
-                enrollment_info = section_info["enrollment_information"]
-                if "enroll_requirements" in enrollment_info:
-                    return str(enrollment_info["enroll_requirements"] or "")
-    except Exception:
-        pass
-    return ""
+    return normalize_text(get_nested_value(
+        class_details_data,
+        ["section_info", "enrollment_information", "enroll_requirements"],
+        "",
+    ))
 
 
-def get_catalog_details(crse_id: str, subject: str, catalog_nbr: str) -> dict:
-    """Fetch title, description, and credits from catalog details endpoint"""
+def get_catalog_details(course_id: str, subject: str, catalog_nbr: str) -> dict:
+    """Fetch raw course details from the catalog API endpoint."""
     params = {
         "institution": "UVA01",
-        "course_id": crse_id,
+        "course_id": course_id,
         "use_catalog_print": "Y",
         "effdt": "",
         "crse_offer_nbr": "1",
@@ -239,41 +334,63 @@ def get_catalog_details(crse_id: str, subject: str, catalog_nbr: str) -> dict:
 
         if "course_details" in data:
             course_details = data["course_details"]
+            open_terms = extract_term_data(course_details.get("offerings", []))
             return {
                 "title": normalize_text(course_details.get("course_title", "")),
                 "description": normalize_text(course_details.get("descrlong", "")),
-                "credits": format_credit_value(
-                    course_details.get("units_minimum"),
-                    course_details.get("units_maximum"),
-                ),
+                "grading_basis": format_grading_basis({
+                    "code": course_details.get("grading_basis", ""),
+                    "descr": normalize_text(course_details.get("grading_basis_descr", "")),
+                }),
+                "credits": format_credits({
+                    "units_minimum": course_details.get("units_minimum", ""),
+                    "units_maximum": course_details.get("units_maximum", ""),
+                }),
+                "components": format_components(course_details.get("components", [])),
+                "requirement_designation": course_details.get("rqmnt_designtn", ""),
+                "course_attributes": course_details.get("attributes", []),
+                "open_terms": open_terms,
             }
-    except Exception:
-        pass
-    return {"title": "", "description": "", "credits": ""}
+    except Exception as e:
+        import sys
+        print(f"ERROR in get_catalog_details for {subject}/{catalog_nbr}: {e}", file=sys.stderr, flush=True)
+    return {
+        "title": "",
+        "description": "",
+        "grading_basis": "",
+        "credits": "",
+        "components": "",
+        "requirement_designation": "",
+        "course_attributes": [],
+        "open_terms": [],
+    }
 
 
 def process_course(subject: str, course: dict) -> dict | None:
     """Process a single course and extract details"""
     try:
-        crse_id = course.get("crse_id")
+        course_id = course.get("crse_id")
         course_code = course.get("subject", subject)
         catalog_nbr = course.get("catalog_nbr", "")
         
-        if not crse_id:
+        if not course_id:
             return None
         
         full_course_code = f"{course_code} {catalog_nbr}"
 
-        # Get title/description/credits from catalog endpoint.
-        catalog_details = get_catalog_details(crse_id, subject, catalog_nbr)
+        catalog_details = get_catalog_details(course_id, subject, catalog_nbr)
         title = normalize_text(catalog_details.get("title") or course.get("descr", ""))
         description = normalize_text(catalog_details.get("description") or course.get("descr", ""))
+        grading_basis = catalog_details.get("grading_basis", "")
         credits = catalog_details.get("credits", "")
+        components = catalog_details.get("components", "")
+        requirement_designation = catalog_details.get("requirement_designation", "")
+        course_attributes = catalog_details.get("course_attributes", [])
+        open_terms = catalog_details.get("open_terms", [])
         acad_career = normalize_text(course.get("acad_career", ""))
 
-        # Try to find sections and enrollment requirements
-        best_term = None
-        class_nbr = None
+        selected_term = None
+        selected_class_nbr = None
         enrollment_reqs = ""
         sections: list[dict] = []
         career_filters = []
@@ -281,41 +398,42 @@ def process_course(subject: str, course: dict) -> dict | None:
             career_filters.append(acad_career)
         career_filters.append("")
 
-        for term in ("1268", "1262"):
+        for term_code in extract_term_candidates(open_terms):
             found = False
             for career in career_filters:
-                current_sections = get_sections_for_course_with_career(crse_id, term, career)
+                current_sections = get_sections_for_course_with_career(course_id, term_code, career)
                 if current_sections:
                     sections = current_sections
-                    best_term = term
+                    selected_term = term_code
                     found = True
                     break
             if found:
                 break
         
-        # If we have sections, get enrollment requirements
-        if best_term and sections:
+        if selected_term and sections:
             first_section = sections[0]
-            class_nbr = first_section.get("class_nbr")
+            selected_class_nbr = first_section.get("class_nbr")
             
-            if class_nbr:
-                class_details_data = get_class_details(str(class_nbr), best_term)
+            if selected_class_nbr:
+                class_details_data = get_class_details(str(selected_class_nbr), selected_term)
                 enrollment_reqs = extract_enrollment_requirements(class_details_data) if class_details_data else ""
-                if class_details_data and not credits:
-                    credits = extract_credits_from_class_details(class_details_data)
+                if class_details_data and not description:
+                    description = extract_description(class_details_data)
         
         result = {
             "course_code": full_course_code,
             "title": title,
-            "credits": credits,
-            "crse_id": crse_id,
-            "class_nbr": class_nbr,
-            "term": best_term,
-            "career": acad_career,
             "description": description,
             "enrollment_requirements": enrollment_reqs,
+            "grading_basis": grading_basis,
+            "credits": credits,
+            "components": components,
+            "requirement_designation": requirement_designation,
+            "course_attributes": course_attributes,
+            "career": acad_career,
+            "open_terms": open_terms,
         }
-        return result
+        return serialize_course(result)
 
     except Exception:
         return None
@@ -415,6 +533,7 @@ def main() -> None:
         f"saved_this_run={saved_this_run} | failed={failed} | total_in_json={len(courses_by_key)}"
     )
 
+
 def save_to_json(courses: list[dict], filename: Path, quiet: bool = False) -> None:
     """Save courses to JSON file"""
     if not courses:
@@ -423,6 +542,7 @@ def save_to_json(courses: list[dict], filename: Path, quiet: bool = False) -> No
         return
     
     try:
+        # Courses are already serialized in process_course, don't serialize again
         with open(filename, 'w', encoding='utf-8') as f:
             json.dump(courses, f, indent=2, ensure_ascii=False)
 
