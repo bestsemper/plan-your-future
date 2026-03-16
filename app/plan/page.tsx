@@ -1021,6 +1021,7 @@ export default function PlanBuilderPage() {
                 if (!open) setHoveredPlanId(null);
               }}
               disabled={optimisticPlans.length === 0}
+              className="flex-1"
               trigger={
                 <button
                   type="button"
