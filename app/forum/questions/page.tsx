@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useTransition } from 'react';
+import { CustomDropdown, CustomDropdownContent, CustomDropdownItem } from '../../components/CustomDropdown';
 import { createForumPost, getForumPageData } from '../../actions';
 
 export default function ForumQuestionsPage() {
@@ -122,79 +123,63 @@ export default function ForumQuestionsPage() {
             className="w-full p-3 border border-panel-border rounded-xl bg-input-bg text-text-primary outline-none"
             disabled={!canPost || isPending}
           />
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => {
-                setIsPlanDropdownOpen((prev) => !prev);
-                setHoveredPlanId(null);
-              }}
-              onBlur={() =>
-                setTimeout(() => {
-                  setIsPlanDropdownOpen(false);
-                  setHoveredPlanId(null);
-                }, 150)
-              }
-              className="w-full px-4 py-2.5 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between focus:outline-none hover:border-panel-border-strong transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={!canPost || isPending}
-            >
-              <span className="truncate text-sm font-medium">{selectedPlanLabel}</span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className={`w-4 h-4 ml-2 shrink-0 text-text-secondary transition-transform duration-200 ${isPlanDropdownOpen ? 'rotate-180' : ''}`}
+          <CustomDropdown
+            isOpen={isPlanDropdownOpen}
+            onOpenChange={(open) => {
+              setIsPlanDropdownOpen(open);
+              if (!open) setHoveredPlanId(null);
+            }}
+            disabled={!canPost || isPending}
+            trigger={
+              <button
+                type="button"
+                disabled={!canPost || isPending}
+                className="w-full px-4 py-2.5 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between focus:outline-none hover:border-panel-border-strong transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <path d="m6 9 6 6 6-6" />
-              </svg>
-            </button>
-
-            {isPlanDropdownOpen && canPost && !isPending && (
-              <div className="absolute z-10 w-full mt-1.5 bg-panel-bg border border-panel-border rounded-xl shadow-lg overflow-hidden">
-                <div className="max-h-48 overflow-y-auto p-1.5 space-y-0.5">
-                  <div
-                    onMouseEnter={() => setHoveredPlanId('__none__')}
-                    onMouseLeave={() => setHoveredPlanId(null)}
-                    className={`px-3 py-2 text-sm cursor-pointer rounded-lg transition-colors flex items-center justify-between gap-2 ${attachedPlanId === '' ? 'bg-uva-blue/10 text-uva-blue font-semibold' : 'text-text-primary hover:bg-hover-bg'}`}
-                    onClick={() => {
-                      setAttachedPlanId('');
-                      setHoveredPlanId(null);
-                      setIsPlanDropdownOpen(false);
-                    }}
-                  >
-                    <span>No plan attached</span>
-                    {attachedPlanId === '' && (
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 shrink-0 text-uva-blue"><polyline points="20 6 9 17 4 12" /></svg>
-                    )}
-                  </div>
-                  {plans.map((plan) => (
-                    <div
-                      key={plan.id}
-                      onMouseEnter={() => setHoveredPlanId(plan.id)}
-                      onMouseLeave={() => setHoveredPlanId(null)}
-                      className={`px-3 py-2 text-sm cursor-pointer rounded-lg transition-colors flex items-center justify-between gap-2 ${attachedPlanId === plan.id ? 'bg-uva-blue/10 text-uva-blue font-semibold' : 'text-text-primary hover:bg-hover-bg'}`}
-                      onClick={() => {
-                        setAttachedPlanId(plan.id);
-                        setHoveredPlanId(null);
-                        setIsPlanDropdownOpen(false);
-                      }}
-                    >
-                      <span className="truncate">Attach: {plan.title}</span>
-                      {attachedPlanId === plan.id && (
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 shrink-0 text-uva-blue"><polyline points="20 6 9 17 4 12" /></svg>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+                <span className="truncate text-sm font-medium">{selectedPlanLabel}</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className={`w-4 h-4 ml-2 shrink-0 text-text-secondary transition-transform duration-200 ${isPlanDropdownOpen ? 'rotate-180' : ''}`}
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </button>
+            }
+          >
+            <CustomDropdownContent>
+              <CustomDropdownItem
+                selected={attachedPlanId === ''}
+                onClick={() => {
+                  setAttachedPlanId('');
+                  setHoveredPlanId(null);
+                  setIsPlanDropdownOpen(false);
+                }}
+              >
+                No plan attached
+              </CustomDropdownItem>
+              {plans.map((plan) => (
+                <CustomDropdownItem
+                  key={plan.id}
+                  selected={attachedPlanId === plan.id}
+                  onClick={() => {
+                    setAttachedPlanId(plan.id);
+                    setHoveredPlanId(null);
+                    setIsPlanDropdownOpen(false);
+                  }}
+                >
+                  Attach: {plan.title}
+                </CustomDropdownItem>
+              ))}
+            </CustomDropdownContent>
+          </CustomDropdown>
           <button
             type="button"
             onClick={handleCreateQuestion}

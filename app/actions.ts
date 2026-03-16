@@ -1824,7 +1824,7 @@ type CourseDetailsJsonRecord = {
   credits?: string;
   description?: string;
   enrollment_requirements?: string;
-  term?: string;
+  terms?: string;
 };
 
 type AggregatedCourseDetails = {
@@ -1960,9 +1960,15 @@ function loadCourseDetailsFromJSON(): {
       existing.prerequisites.add(prereqText);
     }
 
-    const termLabel = formatTermLabel(record.term ?? '');
-    if (termLabel) {
-      existing.terms.add(termLabel);
+    const termsString = record.terms ?? '';
+    if (termsString) {
+      const termCodes = termsString.split(',').map(t => t.trim()).filter(t => t.length > 0);
+      for (const termCode of termCodes) {
+        const termLabel = formatTermLabel(termCode);
+        if (termLabel) {
+          existing.terms.add(termLabel);
+        }
+      }
     }
 
     detailsMap.set(courseCode, existing);

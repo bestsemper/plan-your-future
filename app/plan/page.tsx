@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import type { RequirementMissing } from '../utils/prerequisiteChecker';
-import ConfirmModal from '../components/ConfirmModal';
+import { default as ConfirmModal } from '../components/ConfirmModal';
+import { CustomDropdown, CustomDropdownContent, CustomDropdownItem } from '../components/CustomDropdown';
 import {
   addSchoolYearToPlan,
   addSemesterToPlan,
@@ -1013,58 +1014,45 @@ export default function PlanBuilderPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <h1 className="text-3xl font-bold text-heading">Plan Builder</h1>
           <div className="flex w-full sm:w-auto sm:min-w-[320px] items-center gap-2">
-            <div className="relative flex-1">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsPlanDropdownOpen((prev) => !prev);
-                  setHoveredPlanId(null);
-                }}
-                onBlur={() =>
-                  setTimeout(() => {
-                    setIsPlanDropdownOpen(false);
-                    setHoveredPlanId(null);
-                  }, 150)
-                }
-                disabled={optimisticPlans.length === 0}
-                className="w-full px-4 py-2.5 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between transition-all disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none hover:border-panel-border-strong"
-              >
-                <span className="truncate text-sm font-medium">{selectedPlanLabel}</span>
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`w-4 h-4 ml-2 shrink-0 text-text-secondary transition-transform duration-200 ${isPlanDropdownOpen ? 'rotate-180' : ''}`}>
-                  <path d="m6 9 6 6 6-6" />
-                </svg>
-              </button>
-
-              {isPlanDropdownOpen && optimisticPlans.length > 0 && (
-                <div className="absolute z-10 w-full mt-1.5 bg-panel-bg border border-panel-border rounded-xl shadow-lg overflow-hidden">
-                  <div className="max-h-48 overflow-y-auto p-1.5 space-y-0.5">
-                    {optimisticPlans.map((p) => {
-                      const isSelected = selectedPlanId === p.id;
-                      return (
-                        <div
-                          key={p.id}
-                          onMouseEnter={() => setHoveredPlanId(p.id)}
-                          onMouseLeave={() => setHoveredPlanId(null)}
-                          className={`px-3 py-2 text-sm cursor-pointer rounded-lg transition-colors flex items-center justify-between gap-2 ${isSelected ? 'bg-uva-blue/10 text-uva-blue font-semibold' : 'text-text-primary hover:bg-hover-bg'}`}
-                          onClick={() => {
-                            setSelectedPlanId(p.id);
-                            setHoveredPlanId(null);
-                            setIsPlanDropdownOpen(false);
-                          }}
-                        >
-                          <span className="truncate">{p.title}</span>
-                          {isSelected && (
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 shrink-0 text-uva-blue">
-                              <polyline points="20 6 9 17 4 12" />
-                            </svg>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
+            <CustomDropdown
+              isOpen={isPlanDropdownOpen}
+              onOpenChange={(open) => {
+                setIsPlanDropdownOpen(open);
+                if (!open) setHoveredPlanId(null);
+              }}
+              disabled={optimisticPlans.length === 0}
+              trigger={
+                <button
+                  type="button"
+                  disabled={optimisticPlans.length === 0}
+                  className="w-full px-4 py-2.5 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between transition-all disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none hover:border-panel-border-strong"
+                >
+                  <span className="truncate text-sm font-medium">{selectedPlanLabel}</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`w-4 h-4 ml-2 shrink-0 text-text-secondary transition-transform duration-200 ${isPlanDropdownOpen ? 'rotate-180' : ''}`}>
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </button>
+              }
+            >
+              <CustomDropdownContent>
+                {optimisticPlans.map((p) => {
+                  const isSelected = selectedPlanId === p.id;
+                  return (
+                    <CustomDropdownItem
+                      key={p.id}
+                      selected={isSelected}
+                      onClick={() => {
+                        setSelectedPlanId(p.id);
+                        setHoveredPlanId(null);
+                        setIsPlanDropdownOpen(false);
+                      }}
+                    >
+                      {p.title}
+                    </CustomDropdownItem>
+                  );
+                })}
+              </CustomDropdownContent>
+            </CustomDropdown>
 
             <div className="relative shrink-0">
               <button
@@ -1462,41 +1450,34 @@ export default function PlanBuilderPage() {
               )}
 
               {importMode === 'overwrite' && (
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => setIsImportPlanDropdownOpen((prev) => !prev)}
-                    onBlur={() =>
-                      setTimeout(() => {
-                        setIsImportPlanDropdownOpen(false);
-                      }, 150)
-                    }
-                    className="w-full px-4 py-2.5 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between hover:border-panel-border-strong transition-colors"
-                  >
-                    <span className="truncate text-sm font-medium">{importPlanLabel}</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`w-4 h-4 text-text-secondary transition-transform duration-200 ${isImportPlanDropdownOpen ? 'rotate-180' : ''}`}><path d="m6 9 6 6 6-6" /></svg>
-                  </button>
-
-                  {isImportPlanDropdownOpen && (
-                    <div className="absolute z-10 mt-1.5 w-full rounded-xl border border-panel-border bg-panel-bg shadow-lg overflow-hidden">
-                      <div className="max-h-40 overflow-y-auto p-1.5 space-y-0.5">
-                        {optimisticPlans.map((plan) => (
-                          <button
-                            key={plan.id}
-                            type="button"
-                            onClick={() => {
-                              setImportOverwritePlanId(plan.id);
-                              setIsImportPlanDropdownOpen(false);
-                            }}
-                            className={`w-full px-3 py-2 text-left text-sm rounded-lg cursor-pointer transition-colors ${importOverwritePlanId === plan.id ? 'bg-uva-blue/10 text-uva-blue font-semibold' : 'text-text-primary hover:bg-hover-bg'}`}
-                          >
-                            {plan.title}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
+                <CustomDropdown
+                  isOpen={isImportPlanDropdownOpen}
+                  onOpenChange={setIsImportPlanDropdownOpen}
+                  trigger={
+                    <button
+                      type="button"
+                      className="w-full px-4 py-2.5 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between hover:border-panel-border-strong transition-colors"
+                    >
+                      <span className="truncate text-sm font-medium">{importPlanLabel}</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`w-4 h-4 text-text-secondary transition-transform duration-200 ${isImportPlanDropdownOpen ? 'rotate-180' : ''}`}><path d="m6 9 6 6 6-6" /></svg>
+                    </button>
+                  }
+                >
+                  <CustomDropdownContent maxHeight="max-h-40">
+                    {optimisticPlans.map((plan) => (
+                      <CustomDropdownItem
+                        key={plan.id}
+                        selected={importOverwritePlanId === plan.id}
+                        onClick={() => {
+                          setImportOverwritePlanId(plan.id);
+                          setIsImportPlanDropdownOpen(false);
+                        }}
+                      >
+                        {plan.title}
+                      </CustomDropdownItem>
+                    ))}
+                  </CustomDropdownContent>
+                </CustomDropdown>
               )}
 
               <input
@@ -1784,6 +1765,7 @@ export default function PlanBuilderPage() {
           </div>
         </div>
       )}
+
     </div>
   );
 }
