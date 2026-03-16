@@ -2,6 +2,11 @@
   "groups": [
     ["APMA 1090", "MATH 1310"],
     ["APMA 1110", "MATH 1320"],
-    ["APMA 2120", "MATH 2310", "MATH 2315"]
+    ["APMA 2120", "MATH 2310", "MATH 2315"],
+    ["APMA 3100", "MATH 3100"],
+    ["APMA 2130", "MATH 3250"],
+    ["MATH 3350", "APMA 3080", "MATH 3351"],
+    ["MATH 4220", "APMA 3140"],
+    ["MATH 3340", "APMA 3340"] 
   ]
 }
