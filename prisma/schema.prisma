@@ -16,6 +16,7 @@ model User {
   major       String?
   additionalPrograms String[]   @default([])
   currentAcademicYear Int?
+  gradYear    Int?
   bio         String?
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt

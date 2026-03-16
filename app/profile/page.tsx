@@ -17,6 +17,11 @@ export default async function Profile() {
   // Also pre-fetch some minimal stats like plan count, post count
   const planCount = await prisma.plan.count({ where: { userId: user.id } });
   const postCount = await prisma.forumPost.count({ where: { authorId: user.id } });
+  const profileSummary = [
+    user.major || 'Undeclared',
+    user.currentAcademicYear ? `Year ${user.currentAcademicYear}` : null,
+    user.gradYear ? `Class of ${user.gradYear}` : null,
+  ].filter(Boolean).join(' • ');
 
   return (
     <div className="max-w-5xl mx-auto py-4 md:py-8">
@@ -29,7 +34,7 @@ export default async function Profile() {
             <div className="min-w-0 w-full">
               <h1 className="text-2xl md:text-3xl font-bold mb-1 text-heading break-words">Hi, {user.displayName}</h1>
               <p className="text-text-secondary text-base md:text-lg font-medium break-words">
-                {[user.school, user.major || 'Undeclared', user.currentAcademicYear ? `Year ${user.currentAcademicYear}` : null].filter(Boolean).join(' • ')}
+                {profileSummary}
               </p>
               {user.additionalPrograms.length > 0 && (
                 <p className="text-text-secondary text-sm md:text-base mt-2 break-words">Programs: {user.additionalPrograms.join(', ')}</p>
@@ -42,10 +47,10 @@ export default async function Profile() {
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-start w-full">
               <EditProfileForm
                 displayName={user.displayName}
-                school={user.school}
                 major={user.major}
                 additionalPrograms={user.additionalPrograms}
                 currentAcademicYear={user.currentAcademicYear}
+                gradYear={user.gradYear}
                 bio={user.bio}
               />
               <EditCompletedCourses />

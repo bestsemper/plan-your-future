@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "generated_at": "2026-03-16T02:50:00.623085+00:00",
+    "generated_at": "2026-03-16T07:01:27.726709+00:00",
     "source_url": "https://sisuva.admin.virginia.edu/psc/ihprd/UVSS/SA/s/WEBLIB_HCX_CM.H_CLASS_SEARCH.FieldFormula.IScript_Main",
     "institution": "University of Virginia",
     "term": "1262",
@@ -520,1707 +520,2389 @@
     {
       "code": "ACCOUN-CRT",
       "name": "Accounting (Cert)",
-      "displayName": "Accounting (Cert)"
+      "displayName": "Accounting (Cert)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "ACCT-MS",
       "name": "Accounting (MS)",
-      "displayName": "Accounting (MS)"
+      "displayName": "Accounting (MS)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "ADMIN-EDD",
       "name": "Administration and Supervision (EDD)",
-      "displayName": "Administration and Supervision (EDD)"
+      "displayName": "Administration and Supervision (EDD)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "ADMIN-MED",
       "name": "Administration and Supervision (MED)",
-      "displayName": "Administration and Supervision (MED)"
+      "displayName": "Administration and Supervision (MED)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "ASCCN0-CRT",
       "name": "Adult-Gerontology Acute Care Clinical Nurse Specialist (PMCert)",
-      "displayName": "Adult-Gerontology Acute Care Clinical Nurse Specialist (PMCert)"
+      "displayName": "Adult-Gerontology Acute Care Clinical Nurse Specialist (PMCert)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "ACNP1-CRT",
       "name": "Adult-Gerontology Acute Care Nurse Practitioner (MSCert)",
-      "displayName": "Adult-Gerontology Acute Care Nurse Practitioner (MSCert)"
+      "displayName": "Adult-Gerontology Acute Care Nurse Practitioner (MSCert)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "ACNP0-CRT",
       "name": "Adult-Gerontology Acute Care Nurse Practitioner (PMCert)",
-      "displayName": "Adult-Gerontology Acute Care Nurse Practitioner (PMCert)"
+      "displayName": "Adult-Gerontology Acute Care Nurse Practitioner (PMCert)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "AERO-BS",
       "name": "Aerospace Engineering (BS)",
-      "displayName": "Aerospace Engineering (BS)"
+      "displayName": "Aerospace Engineering (BS)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "AFRAM-BA",
       "name": "African-American and African Studies (BA)",
-      "displayName": "African-American and African Studies (BA)"
+      "displayName": "African-American and African Studies (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "AFRAM-MIN",
       "name": "African-American and African Studies (Min)",
-      "displayName": "African-American and African Studies (Min)"
+      "displayName": "African-American and African Studies (Min)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "AFRICA-CRT",
       "name": "Africana Studies (Cert)",
-      "displayName": "Africana Studies (Cert)"
+      "displayName": "Africana Studies (Cert)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "ASL-MIN",
       "name": "American Sign Language (Min)",
-      "displayName": "American Sign Language (Min)"
+      "displayName": "American Sign Language (Min)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "INAMST-BA",
       "name": "Interdisciplinary - American Studies (BA)",
-      "displayName": "American Studies (BA)"
+      "displayName": "American Studies (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "AMST-CRT",
       "name": "American Studies (Cert)",
-      "displayName": "American Studies (Cert)"
+      "displayName": "American Studies (Cert)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "ANTHRO-BA",
       "name": "Anthropology (BA)",
-      "displayName": "Anthropology (BA)"
+      "displayName": "Anthropology (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "ANTHRO-MA",
       "name": "Anthropology (MA)",
-      "displayName": "Anthropology (MA)"
+      "displayName": "Anthropology (MA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "ANTHRO-PHD",
       "name": "Anthropology (PhD)",
-      "displayName": "Anthropology (PhD)"
+      "displayName": "Anthropology (PhD)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "ABA-CRT",
       "name": "Applied Behavioral Analysis",
-      "displayName": "Applied Behavioral Analysis"
+      "displayName": "Applied Behavioral Analysis",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "STAT-BA",
       "name": "Applied Statistics (BA)",
-      "displayName": "Applied Statistics (BA)"
+      "displayName": "Applied Statistics (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "INARCY-BA",
       "name": "Interdisciplinary - Archaeology (BA)",
-      "displayName": "Archaeology (BA)"
+      "displayName": "Archaeology (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "ARH-BARH",
       "name": "Architectural History (BARH)",
-      "displayName": "Architectural History (BARH)"
+      "displayName": "Architectural History (BARH)",
+      "schoolCode": "ARCH",
+      "schoolName": "School of Architecture"
     },
     {
       "code": "ARH-MARH",
       "name": "Architectural History (MARH)",
-      "displayName": "Architectural History (MARH)"
+      "displayName": "Architectural History (MARH)",
+      "schoolCode": "ARCH",
+      "schoolName": "School of Architecture"
     },
     {
       "code": "ARCH-BS",
       "name": "Architecture (BS)",
-      "displayName": "Architecture (BS)"
+      "displayName": "Architecture (BS)",
+      "schoolCode": "ARCH",
+      "schoolName": "School of Architecture"
     },
     {
       "code": "ARCH-MAR",
       "name": "Architecture (MArch)",
-      "displayName": "Architecture (MArch)"
+      "displayName": "Architecture (MArch)",
+      "schoolCode": "ARCH",
+      "schoolName": "School of Architecture"
     },
     {
       "code": "UNDAR-ARU",
       "name": "Architecture Undeclared",
-      "displayName": "Architecture Undeclared"
+      "displayName": "Architecture Undeclared",
+      "schoolCode": "ARCH",
+      "schoolName": "School of Architecture"
     },
     {
       "code": "ARLAMR-BA",
       "name": "Area Studies - Latin American Studies (BA)",
-      "displayName": "Area Studies - Latin American Studies (BA)"
+      "displayName": "Area Studies - Latin American Studies (BA)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "ARTH-BA",
       "name": "Art - Art History (BA)",
-      "displayName": "Art - Art History (BA)"
+      "displayName": "Art - Art History (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "ARTS-BA",
       "name": "Art - Studio Art (BA)",
-      "displayName": "Art - Studio Art (BA)"
+      "displayName": "Art - Studio Art (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "UNDBA-ASU",
       "name": "Arts & Sciences Undeclared",
-      "displayName": "Arts & Sciences Undeclared"
+      "displayName": "Arts & Sciences Undeclared",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "ASTRON-BA",
       "name": "Astronomy (BA)",
-      "displayName": "Astronomy (BA)"
+      "displayName": "Astronomy (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "ASTRON-MS",
       "name": "Astronomy (MS)",
-      "displayName": "Astronomy (MS)"
+      "displayName": "Astronomy (MS)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "ASTRON-PHD",
       "name": "Astronomy (PhD)",
-      "displayName": "Astronomy (PhD)"
+      "displayName": "Astronomy (PhD)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "ASTPHY-BA",
       "name": "Astronomy-Physics (BA)",
-      "displayName": "Astronomy-Physics (BA)"
+      "displayName": "Astronomy-Physics (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "ASTPHY-BS",
       "name": "Astronomy-Physics (BS)",
-      "displayName": "Astronomy-Physics (BS)"
+      "displayName": "Astronomy-Physics (BS)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "ATHTRN-MS",
       "name": "Athletic Training (MS)",
-      "displayName": "Athletic Training (MS)"
+      "displayName": "Athletic Training (MS)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "BEHNES-BS",
       "name": "Behavioral Neuroscience (BS)",
-      "displayName": "Behavioral Neuroscience (BS)"
+      "displayName": "Behavioral Neuroscience (BS)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "BIOMOL-PHD",
       "name": "Biochemistry and Molecular Genetics (PhD)",
-      "displayName": "Biochemistry and Molecular Genetics (PhD)"
+      "displayName": "Biochemistry and Molecular Genetics (PhD)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "BIOLPS-MS",
       "name": "Biological and Physical Sciences (MS)",
-      "displayName": "Biological and Physical Sciences (MS)"
+      "displayName": "Biological and Physical Sciences (MS)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "BIOL-BA",
       "name": "Biology (BA)",
-      "displayName": "Biology (BA)"
+      "displayName": "Biology (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "BIOL-BS",
       "name": "Biology (BS)",
-      "displayName": "Biology (BS)"
+      "displayName": "Biology (BS)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "BIOL-MA",
       "name": "Biology (MA)",
-      "displayName": "Biology (MA)"
+      "displayName": "Biology (MA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "BIOL-MS",
       "name": "Biology (MS)",
-      "displayName": "Biology (MS)"
+      "displayName": "Biology (MS)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "BIOL-PHD",
       "name": "Biology (PhD)",
-      "displayName": "Biology (PhD)"
+      "displayName": "Biology (PhD)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "BIOMEN-BS",
       "name": "Biomedical Engineering (BS)",
-      "displayName": "Biomedical Engineering (BS)"
+      "displayName": "Biomedical Engineering (BS)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "BIOMEN-ME",
       "name": "Biomedical Engineering (ME)",
-      "displayName": "Biomedical Engineering (ME)"
+      "displayName": "Biomedical Engineering (ME)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "BIOMEN-MS",
       "name": "Biomedical Engineering (MS)",
-      "displayName": "Biomedical Engineering (MS)"
+      "displayName": "Biomedical Engineering (MS)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "BIOMEN-PHD",
       "name": "Biomedical Engineering (PhD)",
-      "displayName": "Biomedical Engineering (PhD)"
+      "displayName": "Biomedical Engineering (PhD)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "UNDE-BIMS",
       "name": "Biomedical Sciences Undeclared",
-      "displayName": "Biomedical Sciences Undeclared"
+      "displayName": "Biomedical Sciences Undeclared",
+      "schoolCode": "MDS",
+      "schoolName": "Medical School - BIMS/PHS"
     },
     {
       "code": "BIOP-PHD",
       "name": "Biophysics (PhD)",
-      "displayName": "Biophysics (PhD)"
+      "displayName": "Biophysics (PhD)",
+      "schoolCode": "MDS",
+      "schoolName": "Medical School - BIMS/PHS"
     },
     {
       "code": "BUSADM-MBA",
       "name": "Business Administration (FMBA)",
-      "displayName": "Business Administration (FMBA)"
+      "displayName": "Business Administration (FMBA)",
+      "schoolCode": "MCDG",
+      "schoolName": "McIntire Darden Grad Business"
     },
     {
       "code": "BUSADM-PHD",
       "name": "Business Administration (PhD)",
-      "displayName": "Business Administration (PhD)"
+      "displayName": "Business Administration (PhD)",
+      "schoolCode": "MCDG",
+      "schoolName": "McIntire Darden Grad Business"
     },
     {
       "code": "BSADPT-MBA",
       "name": "Business Administration (PMBA)",
-      "displayName": "Business Administration (PMBA)"
+      "displayName": "Business Administration (PMBA)",
+      "schoolCode": "MCDG",
+      "schoolName": "McIntire Darden Grad Business"
     },
     {
       "code": "BUSADMNV-E",
       "name": "Business Administration for Executives (EMBA)",
-      "displayName": "Business Administration for Executives (EMBA)"
+      "displayName": "Business Administration for Executives (EMBA)",
+      "schoolCode": "MCDG",
+      "schoolName": "McIntire Darden Grad Business"
     },
     {
       "code": "BUSADMNV-G",
       "name": "Business Administration for Executives Global (GEMBA)",
-      "displayName": "Business Administration for Executives Global (GEMBA)"
+      "displayName": "Business Administration for Executives Global (GEMBA)",
+      "schoolCode": "MCDG",
+      "schoolName": "McIntire Darden Grad Business"
     },
     {
       "code": "BUSANA-MS",
       "name": "Business Analytics (MS)",
-      "displayName": "Business Analytics (MS)"
+      "displayName": "Business Analytics (MS)",
+      "schoolCode": "MCDG",
+      "schoolName": "McIntire Darden Grad Business"
     },
     {
       "code": "BUSNANA-MS",
       "name": "Business Analytics (MS)",
-      "displayName": "Business Analytics (MS)"
+      "displayName": "Business Analytics (MS)",
+      "schoolCode": "MCDG",
+      "schoolName": "McIntire Darden Grad Business"
     },
     {
       "code": "CELL-PHD",
       "name": "Cell Biology (PhD)",
-      "displayName": "Cell Biology (PhD)"
+      "displayName": "Cell Biology (PhD)",
+      "schoolCode": "MDS",
+      "schoolName": "Medical School - BIMS/PHS"
     },
     {
       "code": "CHEMEN-BS",
       "name": "Chemical Engineering (BS)",
-      "displayName": "Chemical Engineering (BS)"
+      "displayName": "Chemical Engineering (BS)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "CHEMEN-ME",
       "name": "Chemical Engineering (ME)",
-      "displayName": "Chemical Engineering (ME)"
+      "displayName": "Chemical Engineering (ME)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "CHEMEN-CGE",
       "name": "Chemical Engineering (ME-VEO)",
-      "displayName": "Chemical Engineering (ME-VEO)"
+      "displayName": "Chemical Engineering (ME-VEO)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "CHEMEN-MS",
       "name": "Chemical Engineering (MS)",
-      "displayName": "Chemical Engineering (MS)"
+      "displayName": "Chemical Engineering (MS)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "CHEMEN-PHD",
       "name": "Chemical Engineering (PhD)",
-      "displayName": "Chemical Engineering (PhD)"
+      "displayName": "Chemical Engineering (PhD)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "CHEM-BA",
       "name": "Chemistry (BA)",
-      "displayName": "Chemistry (BA)"
+      "displayName": "Chemistry (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "CHEM-BS",
       "name": "Chemistry (BS)",
-      "displayName": "Chemistry (BS)"
+      "displayName": "Chemistry (BS)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "CHEM-MA",
       "name": "Chemistry (MA)",
-      "displayName": "Chemistry (MA)"
+      "displayName": "Chemistry (MA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "CHEM-MS",
       "name": "Chemistry (MS)",
-      "displayName": "Chemistry (MS)"
+      "displayName": "Chemistry (MS)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "CHEM-PHD",
       "name": "Chemistry (PhD)",
-      "displayName": "Chemistry (PhD)"
+      "displayName": "Chemistry (PhD)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "CHEMBI-BS",
       "name": "Chemistry - Biochemistry (BS)",
-      "displayName": "Chemistry - Biochemistry (BS)"
+      "displayName": "Chemistry - Biochemistry (BS)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "CHEMED-BS",
       "name": "Chemistry - Chemical Education (BS)",
-      "displayName": "Chemistry - Chemical Education (BS)"
+      "displayName": "Chemistry - Chemical Education (BS)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "CHEMPH-BS",
       "name": "Chemistry - Chemical Physics (BS)",
-      "displayName": "Chemistry - Chemical Physics (BS)"
+      "displayName": "Chemistry - Chemical Physics (BS)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "CHEMEV-BS",
       "name": "Chemistry - Environmental Chemistry (BS)",
-      "displayName": "Chemistry - Environmental Chemistry (BS)"
+      "displayName": "Chemistry - Environmental Chemistry (BS)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "CHEMMA-BS",
       "name": "Chemistry - Materials (BS)",
-      "displayName": "Chemistry - Materials (BS)"
+      "displayName": "Chemistry - Materials (BS)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "INCHIN-BA",
       "name": "Interdisciplinary - Chinese Language and Literature (BA)",
-      "displayName": "Chinese Language and Literature (BA)"
+      "displayName": "Chinese Language and Literature (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "CHIN-MIN",
       "name": "Chinese Language and Literature (Min)",
-      "displayName": "Chinese Language and Literature (Min)"
+      "displayName": "Chinese Language and Literature (Min)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "CIVIL-BS",
       "name": "Civil Engineering (BS)",
-      "displayName": "Civil Engineering (BS)"
+      "displayName": "Civil Engineering (BS)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "CIVIL-ME",
       "name": "Civil Engineering (ME)",
-      "displayName": "Civil Engineering (ME)"
+      "displayName": "Civil Engineering (ME)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "CIVIL-CGE",
       "name": "Civil Engineering (ME-VEO)",
-      "displayName": "Civil Engineering (ME-VEO)"
+      "displayName": "Civil Engineering (ME-VEO)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "CIVIL-MS",
       "name": "Civil Engineering (MS)",
-      "displayName": "Civil Engineering (MS)"
+      "displayName": "Civil Engineering (MS)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "CIVIL-PHD",
       "name": "Civil Engineering (PhD)",
-      "displayName": "Civil Engineering (PhD)"
+      "displayName": "Civil Engineering (PhD)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "CLAS-BA",
       "name": "Classics (BA)",
-      "displayName": "Classics (BA)"
+      "displayName": "Classics (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "CLAS-MA",
       "name": "Classics (MA)",
-      "displayName": "Classics (MA)"
+      "displayName": "Classics (MA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "CLAS-PHD",
       "name": "Classics (PhD)",
-      "displayName": "Classics (PhD)"
+      "displayName": "Classics (PhD)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "CLNPSY-PHD",
       "name": "Clinical Psychology (PhD)",
-      "displayName": "Clinical Psychology (PhD)"
+      "displayName": "Clinical Psychology (PhD)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "CLNRES-MS",
       "name": "Clinical Research (MS)",
-      "displayName": "Clinical Research (MS)"
+      "displayName": "Clinical Research (MS)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "CLOUD-CRT",
       "name": "Cloud Computing (Cert)",
-      "displayName": "Cloud Computing (Cert)"
+      "displayName": "Cloud Computing (Cert)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "INCOGS-BA",
       "name": "Interdisciplinary - Cognitive Science (BA)",
-      "displayName": "Cognitive Science (BA)"
+      "displayName": "Cognitive Science (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "COMM-BSC",
       "name": "Commerce (BSC)",
-      "displayName": "Commerce (BSC)"
+      "displayName": "Commerce (BSC)",
+      "schoolCode": "COMM",
+      "schoolName": "McIntire School of Commerce"
     },
     {
       "code": "COMM-MS",
       "name": "Commerce (MS)",
-      "displayName": "Commerce (MS)"
+      "displayName": "Commerce (MS)",
+      "schoolCode": "COMM",
+      "schoolName": "McIntire School of Commerce"
     },
     {
       "code": "SPATH-MED",
       "name": "Communication Sciences and Disorders (MED)",
-      "displayName": "Communication Sciences and Disorders (MED)"
+      "displayName": "Communication Sciences and Disorders (MED)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "CPGNP1-CRT",
       "name": "Community and Public Health - Geriatric Nurse Practitioner (MSCert)",
-      "displayName": "Community and Public Health - Geriatric Nurse Practitioner (MSCert)"
+      "displayName": "Community and Public Health - Geriatric Nurse Practitioner (MSCert)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "COMPLT-CRT",
       "name": "Comparative Literature (Cert)",
-      "displayName": "Comparative Literature (Cert)"
+      "displayName": "Comparative Literature (Cert)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "COMBIO-PHD",
       "name": "Computational Biology (PHD)",
-      "displayName": "Computational Biology (PHD)"
+      "displayName": "Computational Biology (PHD)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "COMPEN-BS",
       "name": "Computer Engineering (BS)",
-      "displayName": "Computer Engineering (BS)"
+      "displayName": "Computer Engineering (BS)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "COMPEN-ME",
       "name": "Computer Engineering (ME)",
-      "displayName": "Computer Engineering (ME)"
+      "displayName": "Computer Engineering (ME)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "COMPEN-MS",
       "name": "Computer Engineering (MS)",
-      "displayName": "Computer Engineering (MS)"
+      "displayName": "Computer Engineering (MS)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "COMPEN-PHD",
       "name": "Computer Engineering (PhD)",
-      "displayName": "Computer Engineering (PhD)"
+      "displayName": "Computer Engineering (PhD)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "CS-BA",
       "name": "Computer Science (BA)",
-      "displayName": "Computer Science (BA)"
+      "displayName": "Computer Science (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "COMPSC-BS",
       "name": "Computer Science (BS)",
-      "displayName": "Computer Science (BS)"
+      "displayName": "Computer Science (BS)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "COMPSC-MCS",
       "name": "Computer Science (MCS)",
-      "displayName": "Computer Science (MCS)"
+      "displayName": "Computer Science (MCS)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "COMPSC-MS",
       "name": "Computer Science (MS)",
-      "displayName": "Computer Science (MS)"
+      "displayName": "Computer Science (MS)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "COMPSC-PHD",
       "name": "Computer Science (PhD)",
-      "displayName": "Computer Science (PhD)"
+      "displayName": "Computer Science (PhD)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "CONSTR-PHD",
       "name": "Constructed Environment (PhD)",
-      "displayName": "Constructed Environment (PhD)"
+      "displayName": "Constructed Environment (PhD)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "COUNS-MED",
       "name": "Counselor Education (MED)",
-      "displayName": "Counselor Education (MED)"
+      "displayName": "Counselor Education (MED)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "WRITE-MFA",
       "name": "Creative Writing (MFA)",
-      "displayName": "Creative Writing (MFA)"
+      "displayName": "Creative Writing (MFA)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "CREWRI-MIN",
       "name": "Creative Writing (Min)",
-      "displayName": "Creative Writing (Min)"
+      "displayName": "Creative Writing (Min)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "CRMJUG-CRT",
       "name": "Criminal Justice Education",
-      "displayName": "Criminal Justice Education"
+      "displayName": "Criminal Justice Education",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "CURRIN-EDD",
       "name": "Curriculum and Instruction (EDD)",
-      "displayName": "Curriculum and Instruction (EDD)"
+      "displayName": "Curriculum and Instruction (EDD)",
+      "schoolCode": "EDUC",
+      "schoolName": "School of Education & HumanDev"
     },
     {
       "code": "CURRIN-EDS",
       "name": "Curriculum and Instruction (EDS)",
-      "displayName": "Curriculum and Instruction (EDS)"
+      "displayName": "Curriculum and Instruction (EDS)",
+      "schoolCode": "EDUC",
+      "schoolName": "School of Education & HumanDev"
     },
     {
       "code": "CURRIN-MED",
       "name": "Curriculum and Instruction (MED)",
-      "displayName": "Curriculum and Instruction (MED)"
+      "displayName": "Curriculum and Instruction (MED)",
+      "schoolCode": "EDUC",
+      "schoolName": "School of Education & HumanDev"
     },
     {
       "code": "CPS-CRT",
       "name": "Cyber-Physical Systems (Cert)",
-      "displayName": "Cyber-Physical Systems (Cert)"
+      "displayName": "Cyber-Physical Systems (Cert)",
+      "schoolCode": "MDS",
+      "schoolName": "Medical School - BIMS/PHS"
     },
     {
       "code": "CYBERS-CRT",
       "name": "Cybersecurity Analysis (Cert)",
-      "displayName": "Cybersecurity Analysis (Cert)"
+      "displayName": "Cybersecurity Analysis (Cert)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "INFOSM-CRT",
       "name": "Cybersecurity Management (Cert)",
-      "displayName": "Cybersecurity Management (Cert)"
+      "displayName": "Cybersecurity Management (Cert)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "DATANA-MIN",
       "name": "Data Analytics (Min)",
-      "displayName": "Data Analytics (Min)"
+      "displayName": "Data Analytics (Min)",
+      "schoolCode": "DSCI",
+      "schoolName": "School of Data Science"
     },
     {
       "code": "DATASCI-BS",
       "name": "Data Science (BS)",
-      "displayName": "Data Science (BS)"
+      "displayName": "Data Science (BS)",
+      "schoolCode": "DSCI",
+      "schoolName": "School of Data Science"
     },
     {
       "code": "DATASCI-MS",
       "name": "Data Science (MS)",
-      "displayName": "Data Science (MS)"
+      "displayName": "Data Science (MS)",
+      "schoolCode": "DSCI",
+      "schoolName": "School of Data Science"
     },
     {
       "code": "DS-PHD",
       "name": "Data Science (PHD)",
-      "displayName": "Data Science (PHD)"
+      "displayName": "Data Science (PHD)",
+      "schoolCode": "DSCI",
+      "schoolName": "School of Data Science"
     },
     {
       "code": "DH-CRT",
       "name": "Digital Humanities (Cert)",
-      "displayName": "Digital Humanities (Cert)"
+      "displayName": "Digital Humanities (Cert)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "DRAMA-BA",
       "name": "Drama (BA)",
-      "displayName": "Drama (BA)"
+      "displayName": "Drama (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "DRAMA-MFA",
       "name": "Drama (MFA)",
-      "displayName": "Drama (MFA)"
+      "displayName": "Drama (MFA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "ERCH-BSED",
       "name": "Early Childhood Education (BSED)",
-      "displayName": "Early Childhood Education (BSED)"
+      "displayName": "Early Childhood Education (BSED)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "INEAST-BA",
       "name": "Interdisciplinary - East Asian Studies (BA)",
-      "displayName": "East Asian Studies (BA)"
+      "displayName": "East Asian Studies (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "EASIAN-MA",
       "name": "East Asian Studies (MA)",
-      "displayName": "East Asian Studies (MA)"
+      "displayName": "East Asian Studies (MA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "INECHL-BA",
       "name": "Interdisciplinary - Echols Scholar (BA)",
-      "displayName": "Echols Scholar (BA)"
+      "displayName": "Echols Scholar (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "ECON-BA",
       "name": "Economics (BA)",
-      "displayName": "Economics (BA)"
+      "displayName": "Economics (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "ECON-MA",
       "name": "Economics (MA)",
-      "displayName": "Economics (MA)"
+      "displayName": "Economics (MA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "ECON-PHD",
       "name": "Economics (PhD)",
-      "displayName": "Economics (PhD)"
+      "displayName": "Economics (PhD)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "EDUC-PHD",
       "name": "Education (PhD)",
-      "displayName": "Education (PhD)"
+      "displayName": "Education (PhD)",
+      "schoolCode": "EDUC",
+      "schoolName": "School of Education & HumanDev"
     },
     {
       "code": "ELEM-PGM",
       "name": "Education - Elementary Education (PGMT",
-      "displayName": "Education - Elementary Education (PGMT"
+      "displayName": "Education - Elementary Education (PGMT",
+      "schoolCode": "EDUC",
+      "schoolName": "School of Education & HumanDev"
     },
     {
       "code": "ESLED-PGM",
       "name": "Education - English as a Second Language (PGMT",
-      "displayName": "Education - English as a Second Language (PGMT"
+      "displayName": "Education - English as a Second Language (PGMT",
+      "schoolCode": "EDUC",
+      "schoolName": "School of Education & HumanDev"
     },
     {
       "code": "ENGLED-PGM",
       "name": "Education - English Education (PGMT)",
-      "displayName": "Education - English Education (PGMT)"
+      "displayName": "Education - English Education (PGMT)",
+      "schoolCode": "EDUC",
+      "schoolName": "School of Education & HumanDev"
     },
     {
       "code": "KINES-MT",
       "name": "Education - Kinesiology (MT)",
-      "displayName": "Education - Kinesiology (MT)"
+      "displayName": "Education - Kinesiology (MT)",
+      "schoolCode": "EDUC",
+      "schoolName": "School of Education & HumanDev"
     },
     {
       "code": "MATHED-PGM",
       "name": "Education - Mathematics Education (PGMT)",
-      "displayName": "Education - Mathematics Education (PGMT)"
+      "displayName": "Education - Mathematics Education (PGMT)",
+      "schoolCode": "EDUC",
+      "schoolName": "School of Education & HumanDev"
     },
     {
       "code": "SCIED-PGM",
       "name": "Education - Science Education (PGMT)",
-      "displayName": "Education - Science Education (PGMT)"
+      "displayName": "Education - Science Education (PGMT)",
+      "schoolCode": "EDUC",
+      "schoolName": "School of Education & HumanDev"
     },
     {
       "code": "SOCED-PGM",
       "name": "Education - Social Studies Education (PGMT)",
-      "displayName": "Education - Social Studies Education (PGMT)"
+      "displayName": "Education - Social Studies Education (PGMT)",
+      "schoolCode": "EDUC",
+      "schoolName": "School of Education & HumanDev"
     },
     {
       "code": "SPCED-PGM",
       "name": "Education - Special Education (PGMT)",
-      "displayName": "Education - Special Education (PGMT)"
+      "displayName": "Education - Special Education (PGMT)",
+      "schoolCode": "EDUC",
+      "schoolName": "School of Education & HumanDev"
     },
     {
       "code": "EDPSYC-MED",
       "name": "Educational Psychology (MED)",
-      "displayName": "Educational Psychology (MED)"
+      "displayName": "Educational Psychology (MED)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "ELECT-BS",
       "name": "Electrical Engineering (BS)",
-      "displayName": "Electrical Engineering (BS)"
+      "displayName": "Electrical Engineering (BS)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "ELECT-ME",
       "name": "Electrical Engineering (ME)",
-      "displayName": "Electrical Engineering (ME)"
+      "displayName": "Electrical Engineering (ME)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "ELECT-CGE",
       "name": "Electrical Engineering (ME-VEO)",
-      "displayName": "Electrical Engineering (ME-VEO)"
+      "displayName": "Electrical Engineering (ME-VEO)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "ELECT-MS",
       "name": "Electrical Engineering (MS)",
-      "displayName": "Electrical Engineering (MS)"
+      "displayName": "Electrical Engineering (MS)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "ELECT-PHD",
       "name": "Electrical Engineering (PhD)",
-      "displayName": "Electrical Engineering (PhD)"
+      "displayName": "Electrical Engineering (PhD)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "ELEM-BSED",
       "name": "Elementary Education (BSED)",
-      "displayName": "Elementary Education (BSED)"
+      "displayName": "Elementary Education (BSED)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "ENGSCI-BS",
       "name": "Engineering Science (BS)",
-      "displayName": "Engineering Science (BS)"
+      "displayName": "Engineering Science (BS)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "UNDBS-ENU",
       "name": "Engineering Undeclared",
-      "displayName": "Engineering Undeclared"
+      "displayName": "Engineering Undeclared",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "ENGL-BA",
       "name": "English (BA)",
-      "displayName": "English (BA)"
+      "displayName": "English (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "ENGL-MA",
       "name": "English (MA)",
-      "displayName": "English (MA)"
+      "displayName": "English (MA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "ENGL-PHD",
       "name": "English (PhD)",
-      "displayName": "English (PhD)"
+      "displayName": "English (PhD)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "ENGLMR-BA",
       "name": "English - Medieval and Renaissance Studies (BA)",
-      "displayName": "English - Medieval and Renaissance Studies (BA)"
+      "displayName": "English - Medieval and Renaissance Studies (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "ENGLMO-BA",
       "name": "English - Modern Literature and Culture (BA)",
-      "displayName": "English - Modern Literature and Culture (BA)"
+      "displayName": "English - Modern Literature and Culture (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "ENGLPW-BA",
       "name": "English - Poetry Writing (BA)",
-      "displayName": "English - Poetry Writing (BA)"
+      "displayName": "English - Poetry Writing (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "EH-CRT",
       "name": "Environmental Humanities (Cert)",
-      "displayName": "Environmental Humanities (Cert)"
+      "displayName": "Environmental Humanities (Cert)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "EVSC-BA",
       "name": "Environmental Sciences (BA)",
-      "displayName": "Environmental Sciences (BA)"
+      "displayName": "Environmental Sciences (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "EVSC-BS",
       "name": "Environmental Sciences (BS)",
-      "displayName": "Environmental Sciences (BS)"
+      "displayName": "Environmental Sciences (BS)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "EVSC-MA",
       "name": "Environmental Sciences (MA)",
-      "displayName": "Environmental Sciences (MA)"
+      "displayName": "Environmental Sciences (MA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "EVSC-MS",
       "name": "Environmental Sciences (MS)",
-      "displayName": "Environmental Sciences (MS)"
+      "displayName": "Environmental Sciences (MS)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "EVSC-PHD",
       "name": "Environmental Sciences (PhD)",
-      "displayName": "Environmental Sciences (PhD)"
+      "displayName": "Environmental Sciences (PhD)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "INETP-BA",
       "name": "Interdisciplinary - Environmental Thought and Practice (BA)",
-      "displayName": "Environmental Thought and Practice (BA)"
+      "displayName": "Environmental Thought and Practice (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "EUROPE-MA",
       "name": "European Studies (MA)",
-      "displayName": "European Studies (MA)"
+      "displayName": "European Studies (MA)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "EXPATH-PHD",
       "name": "Experimental Pathology (PhD)",
-      "displayName": "Experimental Pathology (PhD)"
+      "displayName": "Experimental Pathology (PhD)",
+      "schoolCode": "MDS",
+      "schoolName": "Medical School - BIMS/PHS"
     },
     {
       "code": "FNP0-CRT",
       "name": "Family Nurse Practitioner (PMCert)",
-      "displayName": "Family Nurse Practitioner (PMCert)"
+      "displayName": "Family Nurse Practitioner (PMCert)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "FORAFF-BA",
       "name": "Foreign Affairs (BA)",
-      "displayName": "Foreign Affairs (BA)"
+      "displayName": "Foreign Affairs (BA)",
+      "schoolCode": "PROV",
+      "schoolName": "Executive VP & Provost"
     },
     {
       "code": "FORAFF-MA",
       "name": "Foreign Affairs (MA)",
-      "displayName": "Foreign Affairs (MA)"
+      "displayName": "Foreign Affairs (MA)",
+      "schoolCode": "PROV",
+      "schoolName": "Executive VP & Provost"
     },
     {
       "code": "FORAFF-PHD",
       "name": "Foreign Affairs (PhD)",
-      "displayName": "Foreign Affairs (PhD)"
+      "displayName": "Foreign Affairs (PhD)",
+      "schoolCode": "PROV",
+      "schoolName": "Executive VP & Provost"
     },
     {
       "code": "FRENCH-BA",
       "name": "French (BA)",
-      "displayName": "French (BA)"
+      "displayName": "French (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "FRENCH-MA",
       "name": "French (MA)",
-      "displayName": "French (MA)"
+      "displayName": "French (MA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "FRENCH-PHD",
       "name": "French (PhD)",
-      "displayName": "French (PhD)"
+      "displayName": "French (PhD)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "GSS-CRT",
       "name": "Gender and Sexuality Studies",
-      "displayName": "Gender and Sexuality Studies"
+      "displayName": "Gender and Sexuality Studies",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "GERMAN-BA",
       "name": "German (BA)",
-      "displayName": "German (BA)"
+      "displayName": "German (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "INGERM-BA",
       "name": "Interdisciplinary - German Studies (BA)",
-      "displayName": "German Studies (BA)"
+      "displayName": "German Studies (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "GFTLRN-CRT",
       "name": "Gifted Learners in Pre-K - 12 Education",
-      "displayName": "Gifted Learners in Pre-K - 12 Education"
+      "displayName": "Gifted Learners in Pre-K - 12 Education",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "GLBCOM-MS",
       "name": "Global Commerce (MS)",
-      "displayName": "Global Commerce (MS)"
+      "displayName": "Global Commerce (MS)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "GLOBAL-MIN",
       "name": "Global Culture and Commerce (Min)",
-      "displayName": "Global Culture and Commerce (Min)"
+      "displayName": "Global Culture and Commerce (Min)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "INGLBL-BA",
       "name": "Interdisciplinary - Global Development Studies (BA)",
-      "displayName": "Global Development Studies (BA)"
+      "displayName": "Global Development Studies (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "INGLST-BA",
       "name": "Interdisciplinary - Global Studies (BA)",
-      "displayName": "Global Studies (BA)"
+      "displayName": "Global Studies (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "GOVT-BA",
       "name": "Government (BA)",
-      "displayName": "Government (BA)"
+      "displayName": "Government (BA)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "GOVT-MA",
       "name": "Government (MA)",
-      "displayName": "Government (MA)"
+      "displayName": "Government (MA)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "GOVT-PHD",
       "name": "Government (PhD)",
-      "displayName": "Government (PhD)"
+      "displayName": "Government (PhD)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "GOVFOR-BA",
       "name": "Government - Foreign Affairs (BA)",
-      "displayName": "Government - Foreign Affairs (BA)"
+      "displayName": "Government - Foreign Affairs (BA)",
+      "schoolCode": "PROV",
+      "schoolName": "Executive VP & Provost"
     },
     {
       "code": "CRMJGR-CRT",
       "name": "Graduate Criminal Justice Education",
-      "displayName": "Graduate Criminal Justice Education"
+      "displayName": "Graduate Criminal Justice Education",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "HSMGT-BPS",
       "name": "Health Sciences Management (BPS)",
-      "displayName": "Health Sciences Management (BPS)"
+      "displayName": "Health Sciences Management (BPS)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "HSMGT-CRT",
       "name": "Health Sciences Management (Cert)",
-      "displayName": "Health Sciences Management (Cert)"
+      "displayName": "Health Sciences Management (Cert)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "BIOETH-MIN",
       "name": "Health, Ethics, & Society (mn)",
-      "displayName": "Health, Ethics, & Society (mn)"
+      "displayName": "Health, Ethics, & Society (mn)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "HIGHED-EDD",
       "name": "Higher Education (EDD)",
-      "displayName": "Higher Education (EDD)"
+      "displayName": "Higher Education (EDD)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "HIGHED-MED",
       "name": "Higher Education (MED)",
-      "displayName": "Higher Education (MED)"
+      "displayName": "Higher Education (MED)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "PRES-CRT",
       "name": "Historic Preservation (Cert)",
-      "displayName": "Historic Preservation (Cert)"
+      "displayName": "Historic Preservation (Cert)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "HIST-BA",
       "name": "History (BA)",
-      "displayName": "History (BA)"
+      "displayName": "History (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "HIST-MA",
       "name": "History (MA)",
-      "displayName": "History (MA)"
+      "displayName": "History (MA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "HIST-PHD",
       "name": "History (PhD)",
-      "displayName": "History (PhD)"
+      "displayName": "History (PhD)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "ARTH-MA",
       "name": "History of Art (MA)",
-      "displayName": "History of Art (MA)"
+      "displayName": "History of Art (MA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "ARTH-PHD",
       "name": "History of Art (PhD)",
-      "displayName": "History of Art (PhD)"
+      "displayName": "History of Art (PhD)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "ARTARC-MA",
       "name": "History of Art and Architecture (MA)",
-      "displayName": "History of Art and Architecture (MA)"
+      "displayName": "History of Art and Architecture (MA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "ARTARC-PHD",
       "name": "History of Art and Architecture (PhD)",
-      "displayName": "History of Art and Architecture (PhD)"
+      "displayName": "History of Art and Architecture (PhD)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "HSCITC-MIN",
       "name": "History of Science and Technology (Min)",
-      "displayName": "History of Science and Technology (Min)"
+      "displayName": "History of Science and Technology (Min)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "INHBIO-BA",
       "name": "Interdisciplinary - Human Biology (BA)",
-      "displayName": "Human Biology (BA)"
+      "displayName": "Human Biology (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "INFOTE-CRT",
       "name": "Information Technology (Cert)",
-      "displayName": "Information Technology (Cert)"
+      "displayName": "Information Technology (Cert)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "INDES-CRT",
       "name": "Instructional Design and Technology (Cert)",
-      "displayName": "Instructional Design and Technology (Cert)"
+      "displayName": "Instructional Design and Technology (Cert)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "ATHADM-CRT",
       "name": "Intercollegiate Athletics Administration (CERT)",
-      "displayName": "Intercollegiate Athletics Administration (CERT)"
+      "displayName": "Intercollegiate Athletics Administration (CERT)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "INIMP-BA",
       "name": "Interdisciplinary (BA)",
-      "displayName": "Interdisciplinary (BA)"
+      "displayName": "Interdisciplinary (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "IDST-BIS",
       "name": "Interdisciplinary Studies (BIS)",
-      "displayName": "Interdisciplinary Studies (BIS)"
+      "displayName": "Interdisciplinary Studies (BIS)",
+      "schoolCode": "SCPS",
+      "schoolName": "Continuing & Prof Studies"
     },
     {
       "code": "ITAL-BA",
       "name": "Italian (BA)",
-      "displayName": "Italian (BA)"
+      "displayName": "Italian (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "INJAPN-BA",
       "name": "Interdisciplinary - Japanese Language and Literature (BA)",
-      "displayName": "Japanese Language and Literature (BA)"
+      "displayName": "Japanese Language and Literature (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "JAPN-MIN",
       "name": "Japanese Language and Literature (Min)",
-      "displayName": "Japanese Language and Literature (Min)"
+      "displayName": "Japanese Language and Literature (Min)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "INJWST-BA",
       "name": "Interdisciplinary - Jewish Studies (BA)",
-      "displayName": "Jewish Studies (BA)"
+      "displayName": "Jewish Studies (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "KINES-BSED",
       "name": "Kinesiology (BSED)",
-      "displayName": "Kinesiology (BSED)"
+      "displayName": "Kinesiology (BSED)",
+      "schoolCode": "EDUC",
+      "schoolName": "School of Education & HumanDev"
     },
     {
       "code": "KINES-MED",
       "name": "Kinesiology (MED)",
-      "displayName": "Kinesiology (MED)"
+      "displayName": "Kinesiology (MED)",
+      "schoolCode": "EDUC",
+      "schoolName": "School of Education & HumanDev"
     },
     {
       "code": "KOREAN-MIN",
       "name": "Korean Language and Literature (Min)",
-      "displayName": "Korean Language and Literature (Min)"
+      "displayName": "Korean Language and Literature (Min)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "LAND-MLAR",
       "name": "Landscape Architecture (MLAR)",
-      "displayName": "Landscape Architecture (MLAR)"
+      "displayName": "Landscape Architecture (MLAR)",
+      "schoolCode": "ARCH",
+      "schoolName": "School of Architecture"
     },
     {
       "code": "SPAN-MIN",
       "name": "Languages, Literatures and Cultures of the Spanish-Speaking World (mn)",
-      "displayName": "Languages, Literatures and Cultures of the Spanish-Speaking World (mn)"
+      "displayName": "Languages, Literatures and Cultures of the Spanish-Speaking World (mn)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "LAW-JD",
       "name": "Law (JD)",
-      "displayName": "Law (JD)"
+      "displayName": "Law (JD)",
+      "schoolCode": "LAW",
+      "schoolName": "School of Law"
     },
     {
       "code": "LAW-LLM",
       "name": "Law (LLM)",
-      "displayName": "Law (LLM)"
+      "displayName": "Law (LLM)",
+      "schoolCode": "LAW",
+      "schoolName": "School of Law"
     },
     {
       "code": "LAW-SJD",
       "name": "Law (SJD)",
-      "displayName": "Law (SJD)"
+      "displayName": "Law (SJD)",
+      "schoolCode": "LAW",
+      "schoolName": "School of Law"
     },
     {
       "code": "LEADER-CRT",
       "name": "Leadership (Cert)",
-      "displayName": "Leadership (Cert)"
+      "displayName": "Leadership (Cert)",
+      "schoolCode": "EDUC",
+      "schoolName": "School of Education & HumanDev"
     },
     {
       "code": "HRESGR-CRT",
       "name": "Leadership in Human Resources Management (Cert)",
-      "displayName": "Leadership in Human Resources Management (Cert)"
+      "displayName": "Leadership in Human Resources Management (Cert)",
+      "schoolCode": "EDUC",
+      "schoolName": "School of Education & HumanDev"
     },
     {
       "code": "INLING-BA",
       "name": "Interdisciplinary - Linguistics (BA)",
-      "displayName": "Linguistics (BA)"
+      "displayName": "Linguistics (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "LING-MA",
       "name": "Linguistics (MA)",
-      "displayName": "Linguistics (MA)"
+      "displayName": "Linguistics (MA)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "MIT16-MS",
       "name": "Management of Information Technology",
-      "displayName": "Management of Information Technology"
+      "displayName": "Management of Information Technology",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "PUBSAF-MPS",
       "name": "Master of Public Safety",
-      "displayName": "Master of Public Safety"
+      "displayName": "Master of Public Safety",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "MSE-BS",
       "name": "Materials Science and Engineering (BS)",
-      "displayName": "Materials Science and Engineering (BS)"
+      "displayName": "Materials Science and Engineering (BS)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "MATSC-MMSE",
       "name": "Materials Science and Engineering (MMSE)",
-      "displayName": "Materials Science and Engineering (MMSE)"
+      "displayName": "Materials Science and Engineering (MMSE)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "MATSC-CGE",
       "name": "Materials Science and Engineering (MMSE-VEO)",
-      "displayName": "Materials Science and Engineering (MMSE-VEO)"
+      "displayName": "Materials Science and Engineering (MMSE-VEO)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "MATSCI-MS",
       "name": "Materials Science and Engineering (MS)",
-      "displayName": "Materials Science and Engineering (MS)"
+      "displayName": "Materials Science and Engineering (MS)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "MATSCI-PHD",
       "name": "Materials Science and Engineering (PhD)",
-      "displayName": "Materials Science and Engineering (PhD)"
+      "displayName": "Materials Science and Engineering (PhD)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "MATH-BA",
       "name": "Mathematics (BA)",
-      "displayName": "Mathematics (BA)"
+      "displayName": "Mathematics (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "MATH-MA",
       "name": "Mathematics (MA)",
-      "displayName": "Mathematics (MA)"
+      "displayName": "Mathematics (MA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "MATH-MS",
       "name": "Mathematics (MS)",
-      "displayName": "Mathematics (MS)"
+      "displayName": "Mathematics (MS)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "MATH-PHD",
       "name": "Mathematics (PhD)",
-      "displayName": "Mathematics (PhD)"
+      "displayName": "Mathematics (PhD)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "MATHFN-BA",
       "name": "Mathematics - Financial Mathematics (BA)",
-      "displayName": "Mathematics - Financial Mathematics (BA)"
+      "displayName": "Mathematics - Financial Mathematics (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "MATHGP-BA",
       "name": "Mathematics - Graduate Preparatory (BA)",
-      "displayName": "Mathematics - Graduate Preparatory (BA)"
+      "displayName": "Mathematics - Graduate Preparatory (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "MATHPS-BA",
       "name": "Mathematics - Probability and Statistics (BA)",
-      "displayName": "Mathematics - Probability and Statistics (BA)"
+      "displayName": "Mathematics - Probability and Statistics (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "MATHTE-BA",
       "name": "Mathematics - Teacher Education (BA)",
-      "displayName": "Mathematics - Teacher Education (BA)"
+      "displayName": "Mathematics - Teacher Education (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "MAE-ME",
       "name": "Mechanical and Aerospace Engineering (ME)",
-      "displayName": "Mechanical and Aerospace Engineering (ME)"
+      "displayName": "Mechanical and Aerospace Engineering (ME)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "MAE-CGE",
       "name": "Mechanical and Aerospace Engineering (ME-VEO)",
-      "displayName": "Mechanical and Aerospace Engineering (ME-VEO)"
+      "displayName": "Mechanical and Aerospace Engineering (ME-VEO)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "MAE-MS",
       "name": "Mechanical and Aerospace Engineering (MS)",
-      "displayName": "Mechanical and Aerospace Engineering (MS)"
+      "displayName": "Mechanical and Aerospace Engineering (MS)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "MAE-PHD",
       "name": "Mechanical and Aerospace Engineering (PhD)",
-      "displayName": "Mechanical and Aerospace Engineering (PhD)"
+      "displayName": "Mechanical and Aerospace Engineering (PhD)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "MECH-BS",
       "name": "Mechanical Engineering (BS)",
-      "displayName": "Mechanical Engineering (BS)"
+      "displayName": "Mechanical Engineering (BS)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "MDST-BA",
       "name": "Media Studies (BA)",
-      "displayName": "Media Studies (BA)"
+      "displayName": "Media Studies (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "MDST-PHD",
       "name": "Media Studies (PhD)",
-      "displayName": "Media Studies (PhD)"
+      "displayName": "Media Studies (PhD)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "MECULTE-MA",
       "name": "Media, Culture and Technology (MA)",
-      "displayName": "Media, Culture and Technology (MA)"
+      "displayName": "Media, Culture and Technology (MA)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "MEDIC-MD",
       "name": "Medicine (MD)",
-      "displayName": "Medicine (MD)"
+      "displayName": "Medicine (MD)",
+      "schoolCode": "MED",
+      "schoolName": "School of Medicine"
     },
     {
       "code": "INMSP-BA",
       "name": "Interdisciplinary - Medieval Studies (BA)",
-      "displayName": "Medieval Studies (BA)"
+      "displayName": "Medieval Studies (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "MICRO-PHD",
       "name": "Microbiology (PhD)",
-      "displayName": "Microbiology (PhD)"
+      "displayName": "Microbiology (PhD)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "MESA-MA",
       "name": "Middle Eastern and South Asian Studies (MA)",
-      "displayName": "Middle Eastern and South Asian Studies (MA)"
+      "displayName": "Middle Eastern and South Asian Studies (MA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "INMESL-BA",
       "name": "Interdisciplinary - Middle Eastern Languages and Literatures (BA)",
-      "displayName": "Middle Eastern Languages and Literatures (BA)"
+      "displayName": "Middle Eastern Languages and Literatures (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "INMEST-BA",
       "name": "Interdisciplinary - Middle Eastern Studies (BA)",
-      "displayName": "Middle Eastern Studies (BA)"
+      "displayName": "Middle Eastern Studies (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "MCDB-SP",
       "name": "Molecular, Cell, and Developmental Biology (SP)",
-      "displayName": "Molecular, Cell, and Developmental Biology (SP)"
+      "displayName": "Molecular, Cell, and Developmental Biology (SP)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "MUSIC-BA",
       "name": "Music (BA)",
-      "displayName": "Music (BA)"
+      "displayName": "Music (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "MUSIC-MA",
       "name": "Music (MA)",
-      "displayName": "Music (MA)"
+      "displayName": "Music (MA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "MUSIC-PHD",
       "name": "Music (PhD)",
-      "displayName": "Music (PhD)"
+      "displayName": "Music (PhD)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "NANOT-CRT",
       "name": "Nanotechnology (Cert)",
-      "displayName": "Nanotechnology (Cert)"
+      "displayName": "Nanotechnology (Cert)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "PCCGR-CRT",
       "name": "National Criminal Justice Command College (Cert)",
-      "displayName": "National Criminal Justice Command College (Cert)"
+      "displayName": "National Criminal Justice Command College (Cert)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "PCCUG-CRT",
       "name": "National Criminal Justice Command College (Cert)",
-      "displayName": "National Criminal Justice Command College (Cert)"
+      "displayName": "National Criminal Justice Command College (Cert)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "NAIS-MIN",
       "name": "Native American Indigenous Studies (Min)",
-      "displayName": "Native American Indigenous Studies (Min)"
+      "displayName": "Native American Indigenous Studies (Min)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "NNP0-CRT",
       "name": "Neonatal Nurse Practitioner (PMCert)",
-      "displayName": "Neonatal Nurse Practitioner (PMCert)"
+      "displayName": "Neonatal Nurse Practitioner (PMCert)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "INNESC-BA",
       "name": "Interdisciplinary - Neuroscience (BA)",
-      "displayName": "Neuroscience (BA)"
+      "displayName": "Neuroscience (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "NEURO-PHD",
       "name": "Neuroscience (PhD)",
-      "displayName": "Neuroscience (PhD)"
+      "displayName": "Neuroscience (PhD)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "NURS-BSN",
       "name": "Nursing (BSN)",
-      "displayName": "Nursing (BSN)"
+      "displayName": "Nursing (BSN)",
+      "schoolCode": "NURS",
+      "schoolName": "School of Nursing"
     },
     {
       "code": "NURS-MSN",
       "name": "Nursing (MSN)",
-      "displayName": "Nursing (MSN)"
+      "displayName": "Nursing (MSN)",
+      "schoolCode": "NURS",
+      "schoolName": "School of Nursing"
     },
     {
       "code": "NURS-PHD",
       "name": "Nursing (PhD)",
-      "displayName": "Nursing (PhD)"
+      "displayName": "Nursing (PhD)",
+      "schoolCode": "NURS",
+      "schoolName": "School of Nursing"
     },
     {
       "code": "NURS-RNBSN",
       "name": "Nursing (RN to BSN)",
-      "displayName": "Nursing (RN to BSN)"
+      "displayName": "Nursing (RN to BSN)",
+      "schoolCode": "NURS",
+      "schoolName": "School of Nursing"
     },
     {
       "code": "NURS-DNP",
       "name": "Nursing Practice (DNP)",
-      "displayName": "Nursing Practice (DNP)"
+      "displayName": "Nursing Practice (DNP)",
+      "schoolCode": "NURS",
+      "schoolName": "School of Nursing"
     },
     {
       "code": "PNP0-CRT",
       "name": "Pediatric Nurse Practitioner (PMCert)",
-      "displayName": "Pediatric Nurse Practitioner (PMCert)"
+      "displayName": "Pediatric Nurse Practitioner (PMCert)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "ACPNP0-CRT",
       "name": "Pediatric Nurse Practitioner-Acute Care",
-      "displayName": "Pediatric Nurse Practitioner-Acute Care"
+      "displayName": "Pediatric Nurse Practitioner-Acute Care",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "PHARM-PHD",
       "name": "Pharmacology (PhD)",
-      "displayName": "Pharmacology (PhD)"
+      "displayName": "Pharmacology (PhD)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "PHIL-BA",
       "name": "Philosophy (BA)",
-      "displayName": "Philosophy (BA)"
+      "displayName": "Philosophy (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "PHIL-MA",
       "name": "Philosophy (MA)",
-      "displayName": "Philosophy (MA)"
+      "displayName": "Philosophy (MA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "PHIL-PHD",
       "name": "Philosophy (PhD)",
-      "displayName": "Philosophy (PhD)"
+      "displayName": "Philosophy (PhD)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "PHYS-BA",
       "name": "Physics (BA)",
-      "displayName": "Physics (BA)"
+      "displayName": "Physics (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "PHYS-BS",
       "name": "Physics (BS)",
-      "displayName": "Physics (BS)"
+      "displayName": "Physics (BS)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "PHYS-MA",
       "name": "Physics (MA)",
-      "displayName": "Physics (MA)"
+      "displayName": "Physics (MA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "PHYS-MS",
       "name": "Physics (MS)",
-      "displayName": "Physics (MS)"
+      "displayName": "Physics (MS)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "PHYS-PHD",
       "name": "Physics (PhD)",
-      "displayName": "Physics (PhD)"
+      "displayName": "Physics (PhD)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "PHY-PHD",
       "name": "Physiology (PhD)",
-      "displayName": "Physiology (PhD)"
+      "displayName": "Physiology (PhD)",
+      "schoolCode": "MDS",
+      "schoolName": "Medical School - BIMS/PHS"
     },
     {
       "code": "INPST-BA",
       "name": "Interdisciplinary - Political and Social Thought (BA)",
-      "displayName": "Political and Social Thought (BA)"
+      "displayName": "Political and Social Thought (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "INPPL-BA",
       "name": "Interdisciplinary - Political Philosophy, Policy, and Law (BA)",
-      "displayName": "Political Philosophy, Policy, and Law (BA)"
+      "displayName": "Political Philosophy, Policy, and Law (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "PREMOD-CRT",
       "name": "Premodern Cultures and Communities (Cert)",
-      "displayName": "Premodern Cultures and Communities (Cert)"
+      "displayName": "Premodern Cultures and Communities (Cert)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "PROCGR-CRT",
       "name": "Procurement and Contracts Management (Cert)",
-      "displayName": "Procurement and Contracts Management (Cert)"
+      "displayName": "Procurement and Contracts Management (Cert)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "PROJMG-CRT",
       "name": "Project Management (Cert)",
-      "displayName": "Project Management (Cert)"
+      "displayName": "Project Management (Cert)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "PMHNP0-CRT",
       "name": "Psychiatric-Mental Health Nurse Practitioner (PMCert)",
-      "displayName": "Psychiatric-Mental Health Nurse Practitioner (PMCert)"
+      "displayName": "Psychiatric-Mental Health Nurse Practitioner (PMCert)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "PSYCH-BA",
       "name": "Psychology (BA)",
-      "displayName": "Psychology (BA)"
+      "displayName": "Psychology (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "PSYCH-MA",
       "name": "Psychology (MA)",
-      "displayName": "Psychology (MA)"
+      "displayName": "Psychology (MA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "PSYCH-PHD",
       "name": "Psychology (PhD)",
-      "displayName": "Psychology (PhD)"
+      "displayName": "Psychology (PhD)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "PUBAD-CRT",
       "name": "Public Administration (Cert)",
-      "displayName": "Public Administration (Cert)"
+      "displayName": "Public Administration (Cert)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "PBLHLT-CRT",
       "name": "Public Health (Cert)",
-      "displayName": "Public Health (Cert)"
+      "displayName": "Public Health (Cert)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "PUBHLT-MPH",
       "name": "Public Health (MPH)",
-      "displayName": "Public Health (MPH)"
+      "displayName": "Public Health (MPH)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "PUBHUM-MIN",
       "name": "Public Humanities in Place",
-      "displayName": "Public Humanities in Place"
+      "displayName": "Public Humanities in Place",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "PBLEAD-CRT",
       "name": "Public Leadership (Cert)",
-      "displayName": "Public Leadership (Cert)"
+      "displayName": "Public Leadership (Cert)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "PUBPOL-CRT",
       "name": "Public Policy (Cert)",
-      "displayName": "Public Policy (Cert)"
+      "displayName": "Public Policy (Cert)",
+      "schoolCode": "LEAD",
+      "schoolName": "Batten Leadership & Public Pol"
     },
     {
       "code": "PUBPOL-MPP",
       "name": "Public Policy (MPP)",
-      "displayName": "Public Policy (MPP)"
+      "displayName": "Public Policy (MPP)",
+      "schoolCode": "LEAD",
+      "schoolName": "Batten Leadership & Public Pol"
     },
     {
       "code": "PUBPL2-MPP",
       "name": "Public Policy (MPP-2yr)",
-      "displayName": "Public Policy (MPP-2yr)"
+      "displayName": "Public Policy (MPP-2yr)",
+      "schoolCode": "LEAD",
+      "schoolName": "Batten Leadership & Public Pol"
     },
     {
       "code": "PUBPOL-BA",
       "name": "Public Policy and Leadership (BA)",
-      "displayName": "Public Policy and Leadership (BA)"
+      "displayName": "Public Policy and Leadership (BA)",
+      "schoolCode": "LEAD",
+      "schoolName": "Batten Leadership & Public Pol"
     },
     {
       "code": "PBWTRH-MIN",
       "name": "Public Writing and Rhetoric (Mn)",
-      "displayName": "Public Writing and Rhetoric (Mn)"
+      "displayName": "Public Writing and Rhetoric (Mn)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "QNTANA-MED",
       "name": "Quantitative Analytics in Education and the Social Sciences (MED)",
-      "displayName": "Quantitative Analytics in Education and the Social Sciences (MED)"
+      "displayName": "Quantitative Analytics in Education and the Social Sciences (MED)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "READED-CRT",
       "name": "Reading Education (Cert)",
-      "displayName": "Reading Education (Cert)"
+      "displayName": "Reading Education (Cert)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "READED-MED",
       "name": "Reading Education (MED)",
-      "displayName": "Reading Education (MED)"
+      "displayName": "Reading Education (MED)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "REALES-CRT",
       "name": "Real Estate Design and Development (Cert)",
-      "displayName": "Real Estate Design and Development (Cert)"
+      "displayName": "Real Estate Design and Development (Cert)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "RELIG-BA",
       "name": "Religious Studies (BA)",
-      "displayName": "Religious Studies (BA)"
+      "displayName": "Religious Studies (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "RELIG-MA",
       "name": "Religious Studies (MA)",
-      "displayName": "Religious Studies (MA)"
+      "displayName": "Religious Studies (MA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "RELIG-PHD",
       "name": "Religious Studies (PhD)",
-      "displayName": "Religious Studies (PhD)"
+      "displayName": "Religious Studies (PhD)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "RUEAST-MIN",
       "name": "Russian and East European Studies (Min)",
-      "displayName": "Russian and East European Studies (Min)"
+      "displayName": "Russian and East European Studies (Min)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "SHPSYC-EDS",
       "name": "School Psychology (EDS)",
-      "displayName": "School Psychology (EDS)"
+      "displayName": "School Psychology (EDS)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "SHPSYC-MED",
       "name": "School Psychology (MED)",
-      "displayName": "School Psychology (MED)"
+      "displayName": "School Psychology (MED)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "SCITEC-MIN",
       "name": "Science and Technology Policy (Min)",
-      "displayName": "Science and Technology Policy (Min)"
+      "displayName": "Science and Technology Policy (Min)",
+      "schoolCode": "PROV",
+      "schoolName": "Executive VP & Provost"
     },
     {
       "code": "STS-MIN",
       "name": "Science, Technology, and Society",
-      "displayName": "Science, Technology, and Society"
+      "displayName": "Science, Technology, and Society",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "SLAVIC-BA",
       "name": "Slavic Languages and Literatures (BA)",
-      "displayName": "Slavic Languages and Literatures (BA)"
+      "displayName": "Slavic Languages and Literatures (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "SLAVRE-BA",
       "name": "Slavic Languages and Literatures - Russian and East European Studies (BA)",
-      "displayName": "Slavic Languages and Literatures - Russian and East European Studies (BA)"
+      "displayName": "Slavic Languages and Literatures - Russian and East European Studies (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "SOCIOL-BA",
       "name": "Sociology (BA)",
-      "displayName": "Sociology (BA)"
+      "displayName": "Sociology (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "SOCIOL-MA",
       "name": "Sociology (MA)",
-      "displayName": "Sociology (MA)"
+      "displayName": "Sociology (MA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "SOCIOL-PHD",
       "name": "Sociology (PhD)",
-      "displayName": "Sociology (PhD)"
+      "displayName": "Sociology (PhD)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "INSASL-BA",
       "name": "Interdisciplinary - South Asian Languages and Literatures (BA)",
-      "displayName": "South Asian Languages and Literatures (BA)"
+      "displayName": "South Asian Languages and Literatures (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "INSAST-BA",
       "name": "Interdisciplinary - South Asian Studies (BA)",
-      "displayName": "South Asian Studies (BA)"
+      "displayName": "South Asian Studies (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "SPAN-BA",
       "name": "Spanish (BA)",
-      "displayName": "Spanish (BA)"
+      "displayName": "Spanish (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "SPAN-MA",
       "name": "Spanish (MA)",
-      "displayName": "Spanish (MA)"
+      "displayName": "Spanish (MA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "SPAN-PHD",
       "name": "Spanish (PhD)",
-      "displayName": "Spanish (PhD)"
+      "displayName": "Spanish (PhD)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "SPCED-BSED",
       "name": "Special Education (BSED)",
-      "displayName": "Special Education (BSED)"
+      "displayName": "Special Education (BSED)",
+      "schoolCode": "EDUC",
+      "schoolName": "School of Education & HumanDev"
     },
     {
       "code": "SPCED-MED",
       "name": "Special Education (MED)",
-      "displayName": "Special Education (MED)"
+      "displayName": "Special Education (MED)",
+      "schoolCode": "EDUC",
+      "schoolName": "School of Education & HumanDev"
     },
     {
       "code": "SPEDGC-CRT",
       "name": "Special Education - General Curriculum (Cert)",
-      "displayName": "Special Education - General Curriculum (Cert)"
+      "displayName": "Special Education - General Curriculum (Cert)",
+      "schoolCode": "EDUC",
+      "schoolName": "School of Education & HumanDev"
     },
     {
       "code": "SPATH-BSED",
       "name": "Speech Communication Disorders (BSED)",
-      "displayName": "Speech Communication Disorders (BSED)"
+      "displayName": "Speech Communication Disorders (BSED)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "STATS-MIN",
       "name": "Statistical Analysis of Social Behavior (Min)",
-      "displayName": "Statistical Analysis of Social Behavior (Min)"
+      "displayName": "Statistical Analysis of Social Behavior (Min)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "INSTAT-BA",
       "name": "Interdisciplinary - Statistics (BA)",
-      "displayName": "Statistics (BA)"
+      "displayName": "Statistics (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "STATS-BS",
       "name": "Statistics (BS)",
-      "displayName": "Statistics (BS)"
+      "displayName": "Statistics (BS)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "STAT-MIN",
       "name": "Statistics (Min)",
-      "displayName": "Statistics (Min)"
+      "displayName": "Statistics (Min)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "STATS-MS",
       "name": "Statistics (MS)",
-      "displayName": "Statistics (MS)"
+      "displayName": "Statistics (MS)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "STATS-PHD",
       "name": "Statistics (PhD)",
-      "displayName": "Statistics (PhD)"
+      "displayName": "Statistics (PhD)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "SYSTEM-BS",
       "name": "Systems Engineering (BS)",
-      "displayName": "Systems Engineering (BS)"
+      "displayName": "Systems Engineering (BS)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "SYSTEM-ME",
       "name": "Systems Engineering (ME)",
-      "displayName": "Systems Engineering (ME)"
+      "displayName": "Systems Engineering (ME)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "SYSTEM-AM",
       "name": "Systems Engineering (ME-Accel)",
-      "displayName": "Systems Engineering (ME-Accel)"
+      "displayName": "Systems Engineering (ME-Accel)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "SYSTEM-CGE",
       "name": "Systems Engineering (ME-VEO)",
-      "displayName": "Systems Engineering (ME-VEO)"
+      "displayName": "Systems Engineering (ME-VEO)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "SYSTEM-MS",
       "name": "Systems Engineering (MS)",
-      "displayName": "Systems Engineering (MS)"
+      "displayName": "Systems Engineering (MS)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "SYSTEM-PHD",
       "name": "Systems Engineering (PhD)",
-      "displayName": "Systems Engineering (PhD)"
+      "displayName": "Systems Engineering (PhD)",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "ENGLRN-CRT",
       "name": "Teaching English Learners in Pre-K-12",
-      "displayName": "Teaching English Learners in Pre-K-12"
+      "displayName": "Teaching English Learners in Pre-K-12",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "TESLGR-CRT",
       "name": "Teaching English to Speakers of Other Languages (Cert)",
-      "displayName": "Teaching English to Speakers of Other Languages (Cert)"
+      "displayName": "Teaching English to Speakers of Other Languages (Cert)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "TECHEN-MIN",
       "name": "Technology and Environment (Min)",
-      "displayName": "Technology and Environment (Min)"
+      "displayName": "Technology and Environment (Min)",
+      "schoolCode": null,
+      "schoolName": null
     },
     {
       "code": "TCHETH-MIN",
       "name": "Technology Ethics",
-      "displayName": "Technology Ethics"
+      "displayName": "Technology Ethics",
+      "schoolCode": "ENGR",
+      "schoolName": "Engineering & Applied Science"
     },
     {
       "code": "PLAN-BUEP",
       "name": "Urban and Environmental Planning (BUEP)",
-      "displayName": "Urban and Environmental Planning (BUEP)"
+      "displayName": "Urban and Environmental Planning (BUEP)",
+      "schoolCode": "ARCH",
+      "schoolName": "School of Architecture"
     },
     {
       "code": "URBAN-MIN",
       "name": "Urban and Environmental Planning (Min)",
-      "displayName": "Urban and Environmental Planning (Min)"
+      "displayName": "Urban and Environmental Planning (Min)",
+      "schoolCode": "ARCH",
+      "schoolName": "School of Architecture"
     },
     {
       "code": "PLAN-MUEP",
       "name": "Urban and Environmental Planning (MUEP)",
-      "displayName": "Urban and Environmental Planning (MUEP)"
+      "displayName": "Urban and Environmental Planning (MUEP)",
+      "schoolCode": "ARCH",
+      "schoolName": "School of Architecture"
     },
     {
       "code": "URBAN-CRT",
       "name": "Urban Design (Cert)",
-      "displayName": "Urban Design (Cert)"
+      "displayName": "Urban Design (Cert)",
+      "schoolCode": "ARCH",
+      "schoolName": "School of Architecture"
     },
     {
       "code": "URBAN-MUD",
       "name": "Urban Design (MUD)",
-      "displayName": "Urban Design (MUD)"
+      "displayName": "Urban Design (MUD)",
+      "schoolCode": "ARCH",
+      "schoolName": "School of Architecture"
     },
     {
       "code": "INSWAG-BA",
       "name": "Interdisciplinary - Women, Gender and Sexuality (BA)",
-      "displayName": "Women, Gender and Sexuality (BA)"
+      "displayName": "Women, Gender and Sexuality (BA)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "SWAG-MIN",
       "name": "Women, Gender and Sexuality (Min)",
-      "displayName": "Women, Gender and Sexuality (Min)"
+      "displayName": "Women, Gender and Sexuality (Min)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     },
     {
       "code": "YOUTH-BSED",
       "name": "Youth and Social Innovation (BSED)",
-      "displayName": "Youth and Social Innovation (BSED)"
+      "displayName": "Youth and Social Innovation (BSED)",
+      "schoolCode": "CGAS",
+      "schoolName": "College & Graduate Arts & Sci"
     }
   ],
   "careers": [
@@ -5496,5 +6178,63 @@
         "Women, Gender & Sexuality"
       ]
     }
-  ]
+  ],
+  "additional_programs": {
+    "certificates": [
+      {
+        "code": "CERT-ACCT",
+        "name": "Accounting (Cert)"
+      },
+      {
+        "code": "CERT-CFP",
+        "name": "Certified Financial Planning (Cert)"
+      },
+      {
+        "code": "CERT-CLOUD",
+        "name": "Cloud Computing (Cert)"
+      },
+      {
+        "code": "CERT-CYBER",
+        "name": "Cybersecurity Analysis (Cert)"
+      },
+      {
+        "code": "CERT-IT",
+        "name": "Information Technology (Cert)"
+      },
+      {
+        "code": "CERT-NCJCC",
+        "name": "National Criminal Justice Command College (Cert)"
+      }
+    ],
+    "rotc_programs": [
+      {
+        "code": "ROTC-AIRFORCE",
+        "name": "Air Force ROTC"
+      },
+      {
+        "code": "ROTC-ARMY",
+        "name": "Army ROTC"
+      }
+    ],
+    "special_programs": [
+      {
+        "code": "PROG-APPLIEDMATH",
+        "name": "Applied Mathematics Program"
+      },
+      {
+        "code": "PROG-INTERDISCIPLINARY",
+        "name": "Interdisciplinary Major Program"
+      }
+    ],
+    "honors_and_scholars": [
+      {
+        "code": "HONORS-CGAS",
+        "name": "College of Arts & Sciences Awards and Honors"
+      },
+      {
+        "code": "SCHOLARS-CGAS",
+        "name": "College of Arts & Sciences Scholars Programs"
+      }
+    ]
+  }
 }

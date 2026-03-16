@@ -4,23 +4,24 @@ import { useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { updateCurrentUserProfile } from '../actions';
 import CustomSelect from '../components/CustomSelect';
-import { PROFILE_MAJOR_OPTIONS, PROFILE_SCHOOL_OPTIONS } from './profileOptions';
+import { getDefaultGraduationYearForStanding, getDefaultStandingForGraduationYear } from '../utils/academicYear';
+import { PROFILE_SCHOOL_OPTIONS, PROFILE_MAJOR_OPTIONS, PROFILE_ADDITIONAL_PROGRAMS, MAJOR_TO_SCHOOL_MAP } from './profileOptions';
 
 type EditProfileFormProps = {
   displayName: string;
-  school: string | null;
   major: string | null;
   additionalPrograms: string[];
   currentAcademicYear: number | null;
+  gradYear: number | null;
   bio: string | null;
 };
 
 export default function EditProfileForm({
   displayName,
-  school,
   major,
   additionalPrograms,
   currentAcademicYear,
+  gradYear,
   bio,
 }: EditProfileFormProps) {
   const router = useRouter();
@@ -29,11 +30,19 @@ export default function EditProfileForm({
   const [error, setError] = useState<string | null>(null);
 
   const [formDisplayName, setFormDisplayName] = useState(displayName);
-  const [formSchool, setFormSchool] = useState(school ?? '');
   const [formMajor, setFormMajor] = useState(major ?? '');
-  const [formAdditionalPrograms, setFormAdditionalPrograms] = useState(additionalPrograms.join('\n'));
+  const [formSchool, setFormSchool] = useState<string>(() => {
+    if (major) {
+      const school = MAJOR_TO_SCHOOL_MAP.get(major);
+      return school ?? '';
+    }
+    return '';
+  });
+  const [formAdditionalPrograms, setFormAdditionalPrograms] = useState(additionalPrograms);
   const [formCurrentAcademicYear, setFormCurrentAcademicYear] = useState(currentAcademicYear ? String(currentAcademicYear) : '');
+  const [formGradYear, setFormGradYear] = useState(gradYear ? String(gradYear) : '');
   const [formBio, setFormBio] = useState(bio ?? '');
+  const startedWithNoAcademicInfo = currentAcademicYear === null && gradYear === null;
 
   const schoolOptions = useMemo(
     () => PROFILE_SCHOOL_OPTIONS.map((option) => ({ value: option, label: option })),
@@ -62,15 +71,67 @@ export default function EditProfileForm({
     [],
   );
 
+  const gradYearOptions = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    return Array.from({ length: 12 }, (_, idx) => {
+      const year = currentYear - 1 + idx;
+      return { value: String(year), label: String(year) };
+    });
+  }, []);
+
   const handleCancel = () => {
     setFormDisplayName(displayName);
-    setFormSchool(school ?? '');
     setFormMajor(major ?? '');
-    setFormAdditionalPrograms(additionalPrograms.join('\n'));
+    if (major) {
+      const school = MAJOR_TO_SCHOOL_MAP.get(major);
+      setFormSchool(school ?? '');
+    } else {
+      setFormSchool('');
+    }
+    setFormAdditionalPrograms(additionalPrograms);
     setFormCurrentAcademicYear(currentAcademicYear ? String(currentAcademicYear) : '');
+    setFormGradYear(gradYear ? String(gradYear) : '');
     setFormBio(bio ?? '');
     setError(null);
     setIsEditing(false);
+  };
+
+  const handleMajorChange = (value: string) => {
+    setFormMajor(value);
+    
+    // Auto-populate school based on major selection
+    const schoolForMajor = MAJOR_TO_SCHOOL_MAP.get(value);
+    setFormSchool(schoolForMajor ?? '');
+  };
+
+  const handleAcademicYearChange = (value: string) => {
+    setFormCurrentAcademicYear(value);
+
+    if (!startedWithNoAcademicInfo || formGradYear || !value) {
+      return;
+    }
+
+    const parsedYear = Number.parseInt(value, 10);
+    if (Number.isNaN(parsedYear) || parsedYear < 1) {
+      return;
+    }
+
+    setFormGradYear(String(getDefaultGraduationYearForStanding(parsedYear)));
+  };
+
+  const handleGradYearChange = (value: string) => {
+    setFormGradYear(value);
+
+    if (!startedWithNoAcademicInfo || formCurrentAcademicYear || !value) {
+      return;
+    }
+
+    const parsedYear = Number.parseInt(value, 10);
+    if (Number.isNaN(parsedYear)) {
+      return;
+    }
+
+    setFormCurrentAcademicYear(String(getDefaultStandingForGraduationYear(parsedYear)));
   };
 
   const handleSave = () => {
@@ -79,10 +140,11 @@ export default function EditProfileForm({
     startTransition(async () => {
       const res = await updateCurrentUserProfile({
         displayName: formDisplayName,
-        school: formSchool,
+        school: formSchool || undefined,
         major: formMajor,
-        additionalPrograms: formAdditionalPrograms,
+        additionalPrograms: formAdditionalPrograms.join('\n'),
         currentAcademicYear: formCurrentAcademicYear,
+        gradYear: formGradYear,
         bio: formBio,
       });
 
@@ -144,39 +206,42 @@ export default function EditProfileForm({
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-text-secondary mb-2">School</label>
-              <CustomSelect
-                value={formSchool}
-                onChange={setFormSchool}
-                options={schoolOptions}
-                placeholder="Select your school"
-                emptyLabel="No school selected"
-                searchable
-                searchPlaceholder="Search schools"
-              />
-            </div>
-
-            <div>
               <label className="block text-sm font-semibold text-text-secondary mb-2">Major</label>
               <CustomSelect
                 value={formMajor}
-                onChange={setFormMajor}
+                onChange={handleMajorChange}
                 options={majorOptions}
                 placeholder="Select your major"
-                emptyLabel="Undeclared"
+                emptyLabel="Select your major"
                 searchable
                 searchPlaceholder="Search majors"
               />
             </div>
 
             <div>
+              <label className="block text-sm font-semibold text-text-secondary mb-2">School</label>
+              <div className="w-full px-4 py-3 border border-panel-border rounded-xl bg-panel-bg-alt text-text-primary">
+                {formSchool || <span className="text-text-tertiary">Select a major to auto-fill school</span>}
+              </div>
+            </div>
+
+            <div>
               <label className="block text-sm font-semibold text-text-secondary mb-2">Additional Programs</label>
-              <textarea
-                value={formAdditionalPrograms}
-                onChange={(e) => setFormAdditionalPrograms(e.target.value)}
-                placeholder="One per line: minor, certificate, concentration, second major, etc."
-                rows={4}
-                className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary outline-none focus:border-uva-blue focus:ring-2 focus:ring-uva-blue/20 transition-all resize-none"
+              <p className="text-xs text-text-tertiary mb-3">Select certificates, ROTC, honors programs, and other academic opportunities</p>
+              <CustomSelect
+                value={formAdditionalPrograms[0] ?? ''}
+                onChange={(value) => {
+                  if (value) {
+                    setFormAdditionalPrograms([value]);
+                  } else {
+                    setFormAdditionalPrograms([]);
+                  }
+                }}
+                options={PROFILE_ADDITIONAL_PROGRAMS.map((program) => ({ value: program, label: program }))}
+                placeholder="Select additional programs"
+                emptyLabel="No programs selected"
+                searchable
+                searchPlaceholder="Search programs"
               />
             </div>
 
@@ -184,10 +249,23 @@ export default function EditProfileForm({
               <label className="block text-sm font-semibold text-text-secondary mb-2">Current Academic Year</label>
               <CustomSelect
                 value={formCurrentAcademicYear}
-                onChange={setFormCurrentAcademicYear}
+                onChange={handleAcademicYearChange}
                 options={academicYearOptions}
                 placeholder="Select current academic year"
                 emptyLabel="No year selected"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-text-secondary mb-2">Graduation Year</label>
+              <CustomSelect
+                value={formGradYear}
+                onChange={handleGradYearChange}
+                options={gradYearOptions}
+                placeholder="Select graduation year"
+                emptyLabel="No graduation year selected"
+                searchable
+                searchPlaceholder="Search years"
               />
             </div>
 

@@ -385,6 +385,7 @@ export async function updateCurrentUserProfile(data: {
   major?: string;
   additionalPrograms?: string;
   currentAcademicYear?: string;
+  gradYear?: string;
   bio?: string;
 }) {
   const user = await getCurrentUser();
@@ -414,6 +415,16 @@ export async function updateCurrentUserProfile(data: {
     currentAcademicYear = parsed;
   }
 
+  let gradYear: number | null = null;
+  if (data.gradYear && data.gradYear.trim() !== '') {
+    const parsed = Number.parseInt(data.gradYear, 10);
+    const currentYear = new Date().getFullYear();
+    if (Number.isNaN(parsed) || parsed < currentYear - 2 || parsed > currentYear + 12) {
+      return { error: 'Graduation year must be within a reasonable range.' };
+    }
+    gradYear = parsed;
+  }
+
   await prisma.user.update({
     where: { id: user.id },
     data: {
@@ -422,6 +433,7 @@ export async function updateCurrentUserProfile(data: {
       major,
       additionalPrograms,
       currentAcademicYear,
+      gradYear,
       bio,
     },
   });
@@ -1993,6 +2005,12 @@ export async function checkCoursePrerequisites(input: {
   try {
     const { checkPrerequisites } = await import('./utils/prerequisiteChecker');
     const user = await getCurrentUser();
+    const goalProfile = user
+      ? await prisma.goalProfile.findUnique({
+          where: { userId: user.id },
+          select: { earlyGraduation: true },
+        })
+      : null;
     const currentSemester = input.planSemesters.find(
       (sem) => sem.termOrder === input.currentSemesterTermOrder
     );
@@ -2012,8 +2030,10 @@ export async function checkCoursePrerequisites(input: {
         major: user?.major ?? null,
         additionalPrograms: user?.additionalPrograms ?? [],
         currentAcademicYear: user?.currentAcademicYear ?? null,
+        gradYear: user?.gradYear ?? null,
         currentTermName: currentSemester?.termName ?? null,
         currentYear: currentSemester?.year ?? null,
+        earlyGraduation: goalProfile?.earlyGraduation ?? false,
       }
     );
 
@@ -2055,6 +2075,12 @@ export async function checkPlanPrerequisites(input: {
   try {
     const { checkPrerequisites } = await import('./utils/prerequisiteChecker');
     const user = await getCurrentUser();
+    const goalProfile = user
+      ? await prisma.goalProfile.findUnique({
+          where: { userId: user.id },
+          select: { earlyGraduation: true },
+        })
+      : null;
 
     const problematicBySemester: Record<string, Record<string, any[]>> = {};
 
@@ -2074,8 +2100,10 @@ export async function checkPlanPrerequisites(input: {
             major: user?.major ?? null,
             additionalPrograms: user?.additionalPrograms ?? [],
             currentAcademicYear: user?.currentAcademicYear ?? null,
+            gradYear: user?.gradYear ?? null,
             currentTermName: semester.termName,
             currentYear: semester.year,
+            earlyGraduation: goalProfile?.earlyGraduation ?? false,
           }
         );
 
@@ -2116,6 +2144,7 @@ export async function getUserProfile(computingId: string) {
         major: true,
         additionalPrograms: true,
         currentAcademicYear: true,
+        gradYear: true,
         bio: true,
       },
     });

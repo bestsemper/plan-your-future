@@ -149,12 +149,17 @@ def get_courses_by_subject(subject: str) -> list[dict]:
 
 def get_sections_for_course(course_id: str, term: str) -> list[dict]:
     """Get sections for a course with specific term"""
+    return get_sections_for_course_with_career(course_id, term, "")
+
+
+def get_sections_for_course_with_career(course_id: str, term: str, x_acad_career: str = "") -> list[dict]:
+    """Get sections for a course with specific term and career filter"""
     params = {
         "institution": "UVA01",
         "campus": "",
         "location": "",
         "course_id": course_id,
-        "x_acad_career": "",
+        "x_acad_career": x_acad_career,
         "term": term,
         "crse_offer_nbr": "1",
     }
@@ -209,26 +214,9 @@ def extract_enrollment_requirements(class_details_data: dict) -> str:
             if "enrollment_information" in section_info:
                 enrollment_info = section_info["enrollment_information"]
                 if "enroll_requirements" in enrollment_info:
-                    return normalize_text(enrollment_info["enroll_requirements"])
+                    return str(enrollment_info["enroll_requirements"] or "")
     except Exception:
         pass
-    return ""
-
-
-def extract_prerequisites_from_description(description: str) -> str:
-    """Fallback: pull prerequisite text from the catalog description itself."""
-    if not description:
-        return ""
-
-    normalized = " ".join(description.split())
-    match = re.search(
-        r"((?:Pre-?requisites?|Prereq(?:uisite)?s?|Co-?requisites?)\s*:\s*.*?\.)(?:\s|$)",
-        normalized,
-        re.IGNORECASE,
-    )
-    if match:
-        return match.group(1).strip()
-
     return ""
 
 
@@ -281,20 +269,29 @@ def process_course(subject: str, course: dict) -> dict | None:
         title = normalize_text(catalog_details.get("title") or course.get("descr", ""))
         description = normalize_text(catalog_details.get("description") or course.get("descr", ""))
         credits = catalog_details.get("credits", "")
-        description_prereqs = extract_prerequisites_from_description(description)
+        acad_career = normalize_text(course.get("acad_career", ""))
 
         # Try to find sections and enrollment requirements
         best_term = None
         class_nbr = None
         enrollment_reqs = ""
-        sections = get_sections_for_course(crse_id, "1268")
-        
-        if sections and len(sections) > 0:
-            best_term = "1268"
-        else:
-            sections = get_sections_for_course(crse_id, "1262")
-            if sections and len(sections) > 0:
-                best_term = "1262"
+        sections: list[dict] = []
+        career_filters = []
+        if acad_career:
+            career_filters.append(acad_career)
+        career_filters.append("")
+
+        for term in ("1268", "1262"):
+            found = False
+            for career in career_filters:
+                current_sections = get_sections_for_course_with_career(crse_id, term, career)
+                if current_sections:
+                    sections = current_sections
+                    best_term = term
+                    found = True
+                    break
+            if found:
+                break
         
         # If we have sections, get enrollment requirements
         if best_term and sections:
@@ -306,11 +303,6 @@ def process_course(subject: str, course: dict) -> dict | None:
                 enrollment_reqs = extract_enrollment_requirements(class_details_data) if class_details_data else ""
                 if class_details_data and not credits:
                     credits = extract_credits_from_class_details(class_details_data)
-
-        if description_prereqs:
-            enrollment_reqs = description_prereqs
-        elif not enrollment_reqs:
-            enrollment_reqs = extract_prerequisites_from_description(description)
         
         result = {
             "course_code": full_course_code,
@@ -319,6 +311,7 @@ def process_course(subject: str, course: dict) -> dict | None:
             "crse_id": crse_id,
             "class_nbr": class_nbr,
             "term": best_term,
+            "career": acad_career,
             "description": description,
             "enrollment_requirements": enrollment_reqs,
         }

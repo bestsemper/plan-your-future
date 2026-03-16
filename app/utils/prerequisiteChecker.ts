@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { getAdjustedAcademicYearStanding, isFinalAcademicYear } from './academicYear';
 
 type CourseNode = {
   type: 'course';
@@ -75,8 +76,14 @@ type UserEnrollmentProfile = {
   major?: string | null;
   additionalPrograms?: string[];
   currentAcademicYear?: number | null;
+  gradYear?: number | null;
   currentTermName?: string | null;
   currentYear?: number | null;
+  earlyGraduation?: boolean;
+};
+
+type EvaluationContext = {
+  levelRequirementByCode?: Map<string, { subject: string; level: number }>;
 };
 
 function parseYearLevels(requirement: string): Set<number> {
@@ -103,34 +110,19 @@ function parseYearLevels(requirement: string): Set<number> {
   return levels;
 }
 
-function getAcademicYearStart(termName: string, calendarYear: number): number {
-  return termName.toLowerCase() === 'fall' ? calendarYear : calendarYear - 1;
-}
-
-function getCurrentSchoolYearStart(): number {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth();
-  // Academic year rolls over at the start of August.
-  return month >= 7 ? year : year - 1;
-}
-
 function getUndergraduateStanding(profile?: UserEnrollmentProfile): number | null {
-  if (profile?.currentAcademicYear && profile.currentAcademicYear > 0) {
-    if (!profile.currentTermName || !profile.currentYear) {
-      return profile.currentAcademicYear;
-    }
-
-    const baselineSchoolYearStart = getCurrentSchoolYearStart();
-    const targetSchoolYearStart = getAcademicYearStart(profile.currentTermName, profile.currentYear);
-    const adjustedStanding = profile.currentAcademicYear + (targetSchoolYearStart - baselineSchoolYearStart);
-    return Math.max(1, adjustedStanding);
-  }
-
-  return null;
+  return getAdjustedAcademicYearStanding(
+    profile?.currentAcademicYear,
+    profile?.currentTermName,
+    profile?.currentYear
+  );
 }
 
-function isYearRequirementSatisfied(requirement: string, profile?: UserEnrollmentProfile): boolean {
+function isYearRequirementSatisfied(
+  requirement: string,
+  profile?: UserEnrollmentProfile,
+  context?: EvaluationContext
+): boolean {
   const normalized = requirement.toLowerCase();
   const standing = getUndergraduateStanding(profile);
   if (standing === null) {
@@ -146,6 +138,16 @@ function isYearRequirementSatisfied(requirement: string, profile?: UserEnrollmen
   }
 
   const levels = parseYearLevels(requirement);
+
+  // A student in their final academic year can satisfy a 4th-year requirement.
+  if (
+    levels.has(4) &&
+    standing < 4 &&
+    isFinalAcademicYear(profile?.gradYear, profile?.currentTermName, profile?.currentYear)
+  ) {
+    return true;
+  }
+
   if (levels.size > 0) {
     return levels.has(standing);
   }
@@ -173,13 +175,17 @@ function normalizeEnrollmentText(text: string): string {
 function schoolAliases(text: string): Set<string> {
   const normalized = normalizeEnrollmentText(text);
   const aliases = new Set<string>([normalized]);
+  const tokens = new Set(normalized.split(' ').filter(Boolean));
+  const hasTokens = (...required: string[]) => required.every((token) => tokens.has(token));
 
   if (normalized.includes('arts sciences') || normalized.includes('arts and sciences')) {
     aliases.add('college of arts sciences');
     aliases.add('graduate school of arts sciences');
     aliases.add('arts sciences');
   }
-  if (normalized.includes('engineering applied science')) {
+  if (hasTokens('engineering', 'applied', 'science')) {
+    aliases.add('engineering applied science');
+    aliases.add('engineering and applied science');
     aliases.add('school of engineering and applied science');
     aliases.add('seas');
   }
@@ -233,6 +239,13 @@ function isSchoolRequirementSatisfied(requirement: string, profile?: UserEnrollm
       return true;
     }
   }
+
+  // Fallback for minor naming differences (e.g. "Engineering & Applied Science"
+  // vs "School of Engineering and Applied Science").
+  if (textRoughlyMatches(requirement, profile.school)) {
+    return true;
+  }
+
   return false;
 }
 
@@ -307,6 +320,7 @@ export function formatPrerequisiteTreeForDisplay(tree: PrerequisiteTree): string
 
 let cachedPrerequisites: Prerequisites | null = null;
 let cachedEquivalentCourseMap: Map<string, Set<string>> | null = null;
+let cachedCourseLevelRequirementMap: Map<string, Map<string, { subject: string; level: number }>> | null = null;
 
 function loadEquivalentCourseMap(): Map<string, Set<string>> {
   if (cachedEquivalentCourseMap) {
@@ -344,7 +358,82 @@ function loadEquivalentCourseMap(): Map<string, Set<string>> {
   return equivalentMap;
 }
 
-function courseRequirementSatisfied(courseCode: string, taken: Set<string>): boolean {
+function loadCourseRequirementContext(): {
+  levelRequirementMap: Map<string, Map<string, { subject: string; level: number }>>;
+} {
+  if (cachedCourseLevelRequirementMap) {
+    return { levelRequirementMap: cachedCourseLevelRequirementMap };
+  }
+
+  const levelRequirementMap = new Map<string, Map<string, { subject: string; level: number }>>();
+
+  try {
+    const detailsPath = path.join(process.cwd(), 'data/uva_course_details.json');
+    const rows = JSON.parse(fs.readFileSync(detailsPath, 'utf-8')) as Array<Record<string, unknown>>;
+
+    for (const row of rows) {
+      const code = String((row.course_code ?? row.code ?? '')).toUpperCase().trim();
+      if (!code) continue;
+
+      const description = String(row.description ?? '');
+      const enrollmentRequirements = String(row.enrollment_requirements ?? '');
+      const sourceText = `${description} ${enrollmentRequirements}`;
+
+      const requirementsForCourse = levelRequirementMap.get(code) ?? new Map<string, { subject: string; level: number }>();
+      const mixedLevelPattern = /\b([A-Z]{2,6})\s*(\d)000\s+or\s+\1\s*(\d)000(?:\s*[- ]?\s*level|\s+level)\b/gi;
+      let mixedLevelMatch: RegExpExecArray | null = null;
+      while ((mixedLevelMatch = mixedLevelPattern.exec(sourceText)) !== null) {
+        const subject = mixedLevelMatch[1].toUpperCase();
+        const firstLevel = Number.parseInt(mixedLevelMatch[2], 10);
+        const secondLevel = Number.parseInt(mixedLevelMatch[3], 10);
+        if (Number.isFinite(firstLevel)) {
+          requirementsForCourse.set(`${subject} ${firstLevel}000`, { subject, level: firstLevel });
+        }
+        if (Number.isFinite(secondLevel)) {
+          requirementsForCourse.set(`${subject} ${secondLevel}000`, { subject, level: secondLevel });
+        }
+      }
+
+      const levelPattern = /\b([A-Z]{2,6})\s*(\d)000(?:\s*[- ]?\s*level|\s+level)\b/gi;
+      let match: RegExpExecArray | null = null;
+      while ((match = levelPattern.exec(sourceText)) !== null) {
+        const subject = match[1].toUpperCase();
+        const level = Number.parseInt(match[2], 10);
+        if (!Number.isFinite(level)) continue;
+        requirementsForCourse.set(`${subject} ${level}000`, { subject, level });
+      }
+
+      if (requirementsForCourse.size > 0) {
+        levelRequirementMap.set(code, requirementsForCourse);
+      }
+    }
+  } catch (error) {
+    console.error('Failed to load course-level requirement context:', error);
+  }
+
+  cachedCourseLevelRequirementMap = levelRequirementMap;
+  return { levelRequirementMap };
+}
+
+function courseMatchesLevelRequirement(
+  takenCourseCode: string,
+  requirement: { subject: string; level: number }
+): boolean {
+  const normalized = takenCourseCode.toUpperCase().replace(/\s+/g, ' ').trim();
+  const match = normalized.match(/^([A-Z]{2,6})\s*(\d{4})[A-Z]?$/);
+  if (!match) return false;
+  const subject = match[1].toUpperCase();
+  const numeric = Number.parseInt(match[2], 10);
+  if (!Number.isFinite(numeric)) return false;
+  const level = Math.floor(numeric / 1000);
+  return subject === requirement.subject && level === requirement.level;
+}
+
+function courseRequirementSatisfied(
+  courseCode: string,
+  taken: Set<string>,
+  context?: EvaluationContext
+): boolean {
   const normalizedCode = courseCode.toUpperCase();
   if (taken.has(normalizedCode)) {
     return true;
@@ -358,6 +447,15 @@ function courseRequirementSatisfied(courseCode: string, taken: Set<string>): boo
   for (const equivalentCode of equivalents) {
     if (taken.has(equivalentCode)) {
       return true;
+    }
+  }
+
+  const levelRequirement = context?.levelRequirementByCode?.get(normalizedCode);
+  if (levelRequirement) {
+    for (const takenCode of taken) {
+      if (courseMatchesLevelRequirement(takenCode, levelRequirement)) {
+        return true;
+      }
     }
   }
 
@@ -395,10 +493,11 @@ export function loadPrerequisites(): Prerequisites {
 export function evaluateTreeRecursive(
   tree: PrerequisiteTree,
   taken: Set<string>,
-  profile?: UserEnrollmentProfile
+  profile?: UserEnrollmentProfile,
+  context?: EvaluationContext
 ): boolean {
   if (tree.type === 'course') {
-    return courseRequirementSatisfied(tree.code, taken);
+    return courseRequirementSatisfied(tree.code, taken, context);
   }
 
   if (tree.type === 'major') {
@@ -414,25 +513,25 @@ export function evaluateTreeRecursive(
   }
 
   if (tree.type === 'year') {
-    return isYearRequirementSatisfied(tree.requirement, profile);
+    return isYearRequirementSatisfied(tree.requirement, profile, context);
   }
 
   if (tree.type === 'count') {
     // Count how many children are satisfied
     const satisfiedCount = tree.children.filter((child) =>
-      evaluateTreeRecursive(child, taken, profile)
+      evaluateTreeRecursive(child, taken, profile, context)
     ).length;
     return satisfiedCount >= tree.count;
   }
 
   if (tree.type === 'AND') {
     // All children must be satisfied
-    return tree.children.every((child) => evaluateTreeRecursive(child, taken, profile));
+    return tree.children.every((child) => evaluateTreeRecursive(child, taken, profile, context));
   }
 
   if (tree.type === 'OR') {
     // At least one child must be satisfied
-    return tree.children.some((child) => evaluateTreeRecursive(child, taken, profile));
+    return tree.children.some((child) => evaluateTreeRecursive(child, taken, profile, context));
   }
 
   return false;
@@ -444,10 +543,11 @@ export function evaluateTreeRecursive(
 export function getMissingCoursesRecursive(
   tree: PrerequisiteTree,
   taken: Set<string>,
-  profile?: UserEnrollmentProfile
+  profile?: UserEnrollmentProfile,
+  context?: EvaluationContext
 ): string[] {
   if (tree.type === 'course') {
-    if (courseRequirementSatisfied(tree.code, taken)) {
+    if (courseRequirementSatisfied(tree.code, taken, context)) {
       return [];
     }
     return [tree.code];
@@ -461,11 +561,11 @@ export function getMissingCoursesRecursive(
     // For count nodes, return all courses that haven't been taken
     const missing: string[] = [];
     for (const child of tree.children) {
-      if (child.type === 'course' && !courseRequirementSatisfied(child.code, taken)) {
+      if (child.type === 'course' && !courseRequirementSatisfied(child.code, taken, context)) {
         missing.push(child.code);
       } else if (child.type !== 'course') {
         // Recursively check complex children
-        missing.push(...getMissingCoursesRecursive(child, taken, profile));
+        missing.push(...getMissingCoursesRecursive(child, taken, profile, context));
       }
     }
     return missing;
@@ -475,7 +575,7 @@ export function getMissingCoursesRecursive(
     // All branches - collect all missing
     const missing: string[] = [];
     for (const child of tree.children) {
-      missing.push(...getMissingCoursesRecursive(child, taken, profile));
+      missing.push(...getMissingCoursesRecursive(child, taken, profile, context));
     }
     return missing;
   }
@@ -483,7 +583,7 @@ export function getMissingCoursesRecursive(
   if (tree.type === 'OR') {
     // At least one must be satisfied
     const firstSatisfied = tree.children.some((child) =>
-      evaluateTreeRecursive(child, taken, profile)
+      evaluateTreeRecursive(child, taken, profile, context)
     );
 
     if (firstSatisfied) {
@@ -493,7 +593,7 @@ export function getMissingCoursesRecursive(
     // None are satisfied - return all options
     const missing: string[] = [];
     for (const child of tree.children) {
-      missing.push(...getMissingCoursesRecursive(child, taken, profile));
+      missing.push(...getMissingCoursesRecursive(child, taken, profile, context));
     }
     return missing;
   }
@@ -509,13 +609,14 @@ export function getMissingCoursesRecursive(
 function getAllMissingCoursesFlat(
   tree: PrerequisiteTree,
   taken: Set<string>,
-  profile?: UserEnrollmentProfile
+  profile?: UserEnrollmentProfile,
+  context?: EvaluationContext
 ): Set<string> {
   const missing = new Set<string>();
 
   function traverse(node: PrerequisiteTree) {
     if (node.type === 'course') {
-      if (!courseRequirementSatisfied(node.code, taken)) {
+      if (!courseRequirementSatisfied(node.code, taken, context)) {
         missing.add(node.code);
       }
     } else if (node.type === 'major' || node.type === 'program' || node.type === 'year' || node.type === 'school') {
@@ -523,7 +624,7 @@ function getAllMissingCoursesFlat(
     } else if (node.type === 'count') {
       // For COUNT nodes, check if requirement is satisfied
       const satisfied = node.children.filter((child) =>
-        evaluateTreeRecursive(child, taken, profile)
+        evaluateTreeRecursive(child, taken, profile, context)
       );
       const needMore = node.count - satisfied.length;
       
@@ -537,7 +638,7 @@ function getAllMissingCoursesFlat(
     } else if (node.type === 'OR') {
       // For OR nodes, only traverse unsatisfied branches
       const isSatisfied = node.children.some((child) =>
-        evaluateTreeRecursive(child, taken, profile)
+        evaluateTreeRecursive(child, taken, profile, context)
       );
       
       if (!isSatisfied) {
@@ -557,11 +658,12 @@ function getAllMissingCoursesFlat(
 export function getDetailedMissingRequirements(
   tree: PrerequisiteTree,
   taken: Set<string>,
-  profile?: UserEnrollmentProfile
+  profile?: UserEnrollmentProfile,
+  context?: EvaluationContext
 ): RequirementMissing[] {
   if (tree.type === 'course') {
     const code = tree.code.toUpperCase();
-    if (courseRequirementSatisfied(code, taken)) {
+    if (courseRequirementSatisfied(code, taken, context)) {
       return [];
     }
     return [
@@ -588,7 +690,7 @@ export function getDetailedMissingRequirements(
   }
 
   if (tree.type === 'year') {
-    if (isYearRequirementSatisfied(tree.requirement, profile)) {
+    if (isYearRequirementSatisfied(tree.requirement, profile, context)) {
       return [];
     }
     return [{ type: 'year', description: `Year Requirement: ${formatRequirementText(tree.requirement)}`, missingCourses: [] }];
@@ -603,7 +705,7 @@ export function getDetailedMissingRequirements(
 
   if (tree.type === 'count') {
     const satisfied = tree.children.filter((child) =>
-      evaluateTreeRecursive(child, taken, profile)
+      evaluateTreeRecursive(child, taken, profile, context)
     );
     const needMore = tree.count - satisfied.length;
 
@@ -628,7 +730,7 @@ export function getDetailedMissingRequirements(
         type: 'count',
         description: `Missing: Need ${needMore} more of: ${courseOptions.join(', ')}`,
         missingCourses: courseOptions.filter(
-          (c) => !courseRequirementSatisfied(c, taken)
+          (c) => !courseRequirementSatisfied(c, taken, context)
         ),
         satisfiedCount: satisfied.length,
         requiredCount: tree.count,
@@ -640,7 +742,7 @@ export function getDetailedMissingRequirements(
     // Collect requirements from all children
     const requirements: RequirementMissing[] = [];
     for (const child of tree.children) {
-      requirements.push(...getDetailedMissingRequirements(child, taken, profile));
+      requirements.push(...getDetailedMissingRequirements(child, taken, profile, context));
     }
     return requirements;
   }
@@ -648,7 +750,7 @@ export function getDetailedMissingRequirements(
   if (tree.type === 'OR') {
     // Check if at least one branch is satisfied
     const firstSatisfied = tree.children.some((child) =>
-      evaluateTreeRecursive(child, taken, profile)
+      evaluateTreeRecursive(child, taken, profile, context)
     );
 
     if (firstSatisfied) {
@@ -661,7 +763,7 @@ export function getDetailedMissingRequirements(
     
     // For each unsatisfied branch, collect its requirements
     for (const child of tree.children) {
-      const branchReqs = getDetailedMissingRequirements(child, taken, profile);
+      const branchReqs = getDetailedMissingRequirements(child, taken, profile, context);
       
       if (branchReqs.length > 0) {
         branchRequirements.push(branchReqs);
@@ -670,7 +772,7 @@ export function getDetailedMissingRequirements(
         });
       } else if (child.type === 'course') {
         // If it's a single course that's not taken, it's a missing option
-        if (!courseRequirementSatisfied(child.code, taken)) {
+        if (!courseRequirementSatisfied(child.code, taken, context)) {
           const singleCourseReq: RequirementMissing = {
             type: 'course',
             description: `Missing: ${child.code}`,
@@ -734,6 +836,10 @@ export function checkPrerequisites(
 ): PrerequisiteCheckResult {
   const prerequisites = loadPrerequisites();
   const normalizedCode = courseCode.toUpperCase();
+  const { levelRequirementMap } = loadCourseRequirementContext();
+  const evaluationContext: EvaluationContext = {
+    levelRequirementByCode: levelRequirementMap.get(normalizedCode),
+  };
   const prerequisiteTree = prerequisites.prerequisite_trees[normalizedCode];
   const corequisiteTree = prerequisites.corequisite_trees?.[normalizedCode];
   const otherRequirementTree = prerequisites.other_requirement_trees?.[normalizedCode];
@@ -797,7 +903,7 @@ export function checkPrerequisites(
       };
     }
 
-    const isSatisfied = evaluateTreeRecursive(tree, taken, profile);
+    const isSatisfied = evaluateTreeRecursive(tree, taken, profile, evaluationContext);
     if (isSatisfied) {
       return {
         isSatisfied: true,
@@ -806,8 +912,8 @@ export function checkPrerequisites(
       };
     }
 
-    const detailedRequirements = getDetailedMissingRequirements(tree, taken, profile);
-    const allMissingFlat = Array.from(getAllMissingCoursesFlat(tree, taken, profile)).sort();
+    const detailedRequirements = getDetailedMissingRequirements(tree, taken, profile, evaluationContext);
+    const allMissingFlat = Array.from(getAllMissingCoursesFlat(tree, taken, profile, evaluationContext)).sort();
     const coveredCourses = new Set<string>();
     detailedRequirements.forEach((req) => {
       req.missingCourses.forEach((course) => coveredCourses.add(course.toUpperCase()));

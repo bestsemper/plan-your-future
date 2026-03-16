@@ -11,6 +11,11 @@ export default async function UserProfilePage({ params }: { params: Promise<{ co
   }
 
   const { user, postCount } = profileData;
+  const profileSummary = [
+    user.major || 'Undeclared',
+    user.currentAcademicYear ? `Year ${user.currentAcademicYear}` : null,
+    user.gradYear ? `Class of ${user.gradYear}` : null,
+  ].filter(Boolean).join(' • ');
 
   return (
     <div className="max-w-5xl mx-auto py-4 md:py-8">
@@ -29,7 +34,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ co
           <div className="w-full min-w-0">
             <h1 className="text-2xl md:text-3xl font-bold mb-1 text-heading break-words">{user.displayName}</h1>
             <p className="text-text-secondary text-base md:text-lg font-medium break-words">
-              {[user.school, user.major || 'Undeclared', user.currentAcademicYear ? `Year ${user.currentAcademicYear}` : null].filter(Boolean).join(' • ')}
+              {profileSummary}
             </p>
             {user.additionalPrograms.length > 0 && (
               <p className="text-text-secondary text-sm md:text-base mt-2 break-words">Programs: {user.additionalPrograms.join(', ')}</p>
