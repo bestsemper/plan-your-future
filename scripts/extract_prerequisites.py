@@ -16,9 +16,33 @@ RESTRICTION_TAIL_PATTERN = re.compile(
     r"(?:can't\s+enroll\s+if|cannot\s+enroll\s+if|may\s+not\s+enroll\s+if|credit\s+not\s+granted|not\s+open\s+to|restricted\s+to)",
     re.IGNORECASE,
 )
+RECOMMENDATION_TAIL_PATTERN = re.compile(
+    r"(?:^|[.;\n\r])\s*(?:"
+    r"strongly\s+recommended|"
+    r"recommended(?:\s+prerequisites?)?|"
+    r"it\s+is\s+recommended"
+    r")\s*[:\-]"
+    r"|(?:^|[.;\n\r])[^.;\n\r]*\b(?:is|are)\s+(?:strongly\s+)?recommended\b",
+    re.IGNORECASE,
+)
+INSTRUCTOR_PERMISSION_PATTERN = re.compile(
+    r"\b(?:or\s+)?instructor\s+permission(?:\s+by\s+audition)?\b[\s\.,;:]*",
+    re.IGNORECASE,
+)
 
-# Regex pattern for prerequisite prefix
+# Regex patterns for requisite prefixes
 PREREQ_PREFIX_PATTERN = r'(?:prerequisites?|prereqs?)(?:\s*[:\-]?)\s*'
+REQUISITE_LABEL_PATTERN = re.compile(
+    r'(?<!recommended\s)(?P<label>'
+    r'prerequisite\s*/\s*corequisite|'
+    r'prerequisite\s+or\s+corequisite|'
+    r'pre\s*(?:-|/)?\s*or\s+co\s*(?:-|/)?\s*requisites?|'
+    r'pre\s*(?:-|/)?\s*co\s*(?:-|/)?\s*requisites?|'
+    r'prerequisites?|prereqs?|'
+    r'co\s*(?:-|/)?\s*requisites?|coreqs?'
+    r')(?=\s*[:\-]|\s+[A-Z(\d]|\s+[a-z])(?:\s*[:\-]?)\s*',
+    re.IGNORECASE,
+)
 
 # Regex pattern for "N of the following" constraints
 COUNT_OF_PATTERN = r'(?:at\s+least\s+)?(\d+)\s+(?:of\s+(?:the\s+)?following|from\s+the\s+following|courses?\s+from)'
@@ -158,8 +182,21 @@ def extract_major_program_requirements(enrollment_requirements: str) -> List[Any
         r'\b(?:first|second|third|fourth|1st|2nd|3rd|4th)[-\s]year\s+(?:transfer\s+)?students?\b',
         re.IGNORECASE,
     )
+    year_token_pattern = re.compile(
+        r'\b(?:first|second|third|fourth|1st|2nd|3rd|4th)(?:[-\s]year)?\b',
+        re.IGNORECASE,
+    )
     year_short_pattern = re.compile(
         r'\b(?:first|second|third|fourth|1st|2nd|3rd|4th)[-\s]year\b',
+        re.IGNORECASE,
+    )
+    multi_year_sequence_pattern = re.compile(
+        r'\b('
+        r'(?:first|second|third|fourth|1st|2nd|3rd|4th)(?:[-\s]year)?'
+        r'(?:\s*,\s*|\s+or\s+)+'
+        r'(?:first|second|third|fourth|1st|2nd|3rd|4th)(?:[-\s]year)?'
+        r'(?:\s*(?:,\s*|\s+or\s+)\s*(?:first|second|third|fourth|1st|2nd|3rd|4th)(?:[-\s]year)?)*'
+        r')(?=\s+(?:transfer\s+)?students?\b|\s+standing\b|\s+year\b|\b)',
         re.IGNORECASE,
     )
     school_pattern = re.compile(
@@ -181,6 +218,55 @@ def extract_major_program_requirements(enrollment_requirements: str) -> List[Any
     )
     grad_standing_pattern = re.compile(r'\b(?:grad(?:uate)?|undergrad(?:uate)?)\s+standing\b', re.IGNORECASE)
     restricted_prefix_pattern = re.compile(r'\brestricted\s+to\s+([^,.;]+)', re.IGNORECASE)
+
+    def build_graduate_option_node(raw_clause: str) -> Optional[Any]:
+        """Parse graduate enrollment option lists into an OR tree.
+
+        Example:
+        "Graduate Engineering, Graduate Arts & Sciences, Graduate Education, Provost Graduate or Data Science Graduate"
+        """
+        normalized_clause = normalize_requirement_text(raw_clause)
+        if not normalized_clause:
+            return None
+
+        if ',' not in normalized_clause or not re.search(r'\bor\b', normalized_clause, re.IGNORECASE):
+            return None
+
+        options = [
+            normalize_requirement_text(part)
+            for part in re.split(r',|\bor\b', normalized_clause, flags=re.IGNORECASE)
+            if normalize_requirement_text(part)
+        ]
+        if len(options) < 2:
+            return None
+
+        # Restrict this heuristic to graduate-option lists so we do not over-interpret other clauses.
+        if not all(re.search(r'\bgraduate\b', option, re.IGNORECASE) for option in options):
+            return None
+
+        children: List[Any] = []
+        for option in options:
+            lower_option = option.lower()
+            if 'provost' in lower_option:
+                children.append(ProgramRequirementNode(requirement='provost graduate'))
+                continue
+
+            children.append(SchoolRequirementNode(requirement=canonical_school(option, normalized_clause)))
+
+        # Dedupe children while preserving order.
+        deduped_children: List[Any] = []
+        seen_child_keys = set()
+        for child in children:
+            key = (child.type, normalize_requirement_text(child.requirement).lower())
+            if key in seen_child_keys:
+                continue
+            seen_child_keys.add(key)
+            deduped_children.append(child)
+
+        if len(deduped_children) < 2:
+            return None
+
+        return OperatorNode(type='OR', children=deduped_children)
 
     def normalize_freeform_requirement(raw: str) -> str:
         text = normalize_requirement_text(raw)
@@ -206,6 +292,12 @@ def extract_major_program_requirements(enrollment_requirements: str) -> List[Any
         text = re.sub(r'\b(\d(?:st|nd|rd|th))\s*year\b', r'\1 year', text)
         text = re.sub(r'\s+', ' ', text).strip(' ,')
         return text
+
+    def normalize_year_token(raw: str) -> str:
+        text = normalize_freeform_requirement(raw)
+        if 'year' not in text and 'standing' not in text and 'student' not in text:
+            text = f'{text} year'
+        return normalize_year_requirement(text)
 
     def restriction_body(requirement: str) -> str:
         req = normalize_freeform_requirement(requirement)
@@ -275,6 +367,11 @@ def extract_major_program_requirements(enrollment_requirements: str) -> List[Any
         if "credit not granted" in lower_clause:
             continue
 
+        graduate_option_node = build_graduate_option_node(clause)
+        if graduate_option_node is not None:
+            complex_nodes.append(graduate_option_node)
+            continue
+
         clause = re.sub(r'\bor\s+permission\s+of\s+instructor\b.*$', '', clause, flags=re.IGNORECASE)
         clause = re.sub(r'\bor\s+instructor\s+permission\b.*$', '', clause, flags=re.IGNORECASE)
         clause = normalize_requirement_text(clause)
@@ -319,8 +416,28 @@ def extract_major_program_requirements(enrollment_requirements: str) -> List[Any
 
             # Extract explicit year/standing constraints into dedicated year nodes.
             occupied_year_spans = []
+            for match in multi_year_sequence_pattern.finditer(segment):
+                year_children = [
+                    YearRequirementNode(requirement=normalize_year_token(year_match.group(0)))
+                    for year_match in year_token_pattern.finditer(match.group(1))
+                ]
+                deduped_children = []
+                seen_years = set()
+                for child in year_children:
+                    key = normalize_requirement_text(child.requirement).lower()
+                    if key in seen_years:
+                        continue
+                    seen_years.add(key)
+                    deduped_children.append(child)
+                if len(deduped_children) > 1:
+                    complex_nodes.append(OperatorNode(type='OR', children=deduped_children))
+                    occupied_year_spans.append(match.span())
             for pattern in (year_standing_pattern, year_student_pattern):
                 for match in pattern.finditer(segment):
+                    start, end = match.span()
+                    overlaps_multi_year = any(start >= s and end <= e for s, e in occupied_year_spans)
+                    if overlaps_multi_year:
+                        continue
                     year_nodes.append(YearRequirementNode(requirement=normalize_requirement_text(match.group(0))))
                     occupied_year_spans.append(match.span())
 
@@ -411,6 +528,24 @@ def extract_major_program_requirements(enrollment_requirements: str) -> List[Any
 
     complex_nodes = [normalize_requirement_nodes_recursive(node) for node in complex_nodes]
 
+    # If we captured a multi-year alternative like "2nd or 3rd or 4th year" as an
+    # OR node, drop redundant standalone year nodes that are already covered by that OR.
+    year_requirements_in_or_nodes = set()
+    for node in complex_nodes:
+        if not isinstance(node, OperatorNode) or node.type != 'OR':
+            continue
+        if not node.children or not all(isinstance(child, YearRequirementNode) for child in node.children):
+            continue
+        for child in node.children:
+            year_requirements_in_or_nodes.add(normalize_requirement_text(child.requirement).lower())
+
+    if year_requirements_in_or_nodes:
+        year_nodes = [
+            node
+            for node in year_nodes
+            if normalize_requirement_text(node.requirement).lower() not in year_requirements_in_or_nodes
+        ]
+
     # Remove program requirements that are semantically subsumed by a stricter one.
     # Example: "restricted to mse majors" is subsumed by
     # "restricted to 4th year mse majors".
@@ -482,38 +617,89 @@ def extract_major_program_requirements(enrollment_requirements: str) -> List[Any
     return deduped
 
 
-def extract_prerequisite_text(description: str, enrollment_requirements: str) -> Optional[str]:
-    """Extract prerequisite text from description or enrollment requirements"""
-    enrollment_text = enrollment_requirements.strip()
-    description_text = description.strip()
+def classify_requisite_label(label: str) -> str:
+    """Classify a requisite label as prerequisite or corequisite semantics."""
+    normalized = normalize_requirement_text(label).lower()
+    normalized = normalized.replace('-', ' ').replace('/', ' ')
+    normalized = re.sub(r'\s+', ' ', normalized).strip()
+    if 'coreq' in normalized or 'corequisite' in normalized or 'co requisite' in normalized:
+        return 'corequisite'
+    return 'prerequisite'
 
-    # Enrollment requirements takes precedence.
-    if enrollment_text:
-        # Drop anti-requisite/restriction tail clauses that are not prerequisites.
-        restriction_match = RESTRICTION_TAIL_PATTERN.search(enrollment_text)
+
+def extract_requirement_snippets(description: str, enrollment_requirements: str) -> List[Tuple[str, str]]:
+    """Extract explicit prerequisite/corequisite snippets from description and enrollment text."""
+
+    def extract_labeled_snippets(text: str) -> List[Tuple[str, str]]:
+        normalized_text = text.strip()
+        if not normalized_text:
+            return []
+
+        restriction_match = RESTRICTION_TAIL_PATTERN.search(normalized_text)
         if restriction_match:
-            enrollment_text = enrollment_text[:restriction_match.start()].strip()
+            normalized_text = normalized_text[:restriction_match.start()].strip()
 
-        match = re.search(PREREQ_PREFIX_PATTERN, enrollment_text, re.IGNORECASE)
-        if match:
-            # If prefix appears after a course code (e.g., "EDLF 8382 prerequisite"),
-            # keep full text instead of slicing to the trailing prefix.
-            pre_prefix = enrollment_text[:match.start()]
-            if extract_course_codes(pre_prefix):
-                return enrollment_text
-            return enrollment_text[match.start():]
+        matches = list(REQUISITE_LABEL_PATTERN.finditer(normalized_text))
+        if not matches:
+            return []
 
-        # Enrollment requirements often omit explicit "prerequisite:" label.
-        if extract_course_codes(enrollment_text):
-            return enrollment_text
+        snippets: List[Tuple[str, str]] = []
+        for index, match in enumerate(matches):
+            start = match.start()
+            end = matches[index + 1].start() if index + 1 < len(matches) else len(normalized_text)
+            raw_snippet = normalized_text[start:end]
 
-    # Descriptions are noisy; only use them if they explicitly mention prerequisites.
+            # "Instructor permission" is advisory/administrative and should not
+            # become a hard prerequisite requirement in this planner.
+            raw_snippet = INSTRUCTOR_PERMISSION_PATTERN.sub(' ', raw_snippet)
+            raw_snippet = re.sub(r'\s+', ' ', raw_snippet).strip(' .;:,')
+
+            # Exclude recommendation-only tails from requisite snippets.
+            recommendation_match = RECOMMENDATION_TAIL_PATTERN.search(raw_snippet)
+            if recommendation_match:
+                raw_snippet = raw_snippet[:recommendation_match.start()]
+
+            snippet = normalize_requirement_text(raw_snippet)
+            if snippet:
+                snippets.append((classify_requisite_label(match.group('label')), snippet))
+        return snippets
+
+    snippets: List[Tuple[str, str]] = []
+    seen = set()
+
+    enrollment_text = enrollment_requirements.strip()
+    if enrollment_text:
+        labeled_snippets = extract_labeled_snippets(enrollment_text)
+        if labeled_snippets:
+            for kind, snippet in labeled_snippets:
+                key = (kind, snippet.lower())
+                if key in seen:
+                    continue
+                seen.add(key)
+                snippets.append((kind, snippet))
+        elif extract_course_codes(enrollment_text):
+            normalized = normalize_requirement_text(enrollment_text)
+            concurrent_language = bool(re.search(
+                r'\b(?:coreq|corequisite|co[-\s]?requisite|concurrent(?:ly)?|currently\s+enrolled|must\s+be\s+taken\s+concurrently|or\s+currently\s+enrolled)\b',
+                enrollment_text,
+                re.IGNORECASE,
+            ))
+            inferred_kind = 'corequisite' if concurrent_language else 'prerequisite'
+            key = (inferred_kind, normalized.lower())
+            if key not in seen:
+                seen.add(key)
+                snippets.append((inferred_kind, normalized))
+
+    description_text = description.strip()
     if description_text:
-        match = re.search(PREREQ_PREFIX_PATTERN, description_text, re.IGNORECASE)
-        if match:
-            return description_text[match.start():]
+        for kind, snippet in extract_labeled_snippets(description_text):
+            key = (kind, snippet.lower())
+            if key in seen:
+                continue
+            seen.add(key)
+            snippets.append((kind, snippet))
 
-    return None
+    return snippets
 
 
 def extract_course_codes(text: str) -> List[str]:
@@ -630,12 +816,43 @@ def expand_equivalent_courses(node: Optional[Any], equivalent_course_map: Dict[s
         )
 
     if isinstance(node, OperatorNode):
-        node.children = [
+        expanded_children = [
             expanded
             for child in node.children
             for expanded in [expand_equivalent_courses(child, equivalent_course_map)]
             if expanded is not None
         ]
+
+        # Flatten nested operators of the same type and dedupe equivalent children.
+        flattened_children: List[Any] = []
+        seen_child_keys = set()
+
+        def child_key(child: Any) -> str:
+            if isinstance(child, CourseNode):
+                return f"course:{normalize_course_code(child.code)}"
+            if hasattr(child, 'to_dict'):
+                return json.dumps(child.to_dict(), sort_keys=True)
+            return str(child)
+
+        for child in expanded_children:
+            if isinstance(child, OperatorNode) and child.type == node.type:
+                nested_children = child.children
+            else:
+                nested_children = [child]
+
+            for nested_child in nested_children:
+                key = child_key(nested_child)
+                if key in seen_child_keys:
+                    continue
+                seen_child_keys.add(key)
+                flattened_children.append(nested_child)
+
+        if not flattened_children:
+            return None
+        if len(flattened_children) == 1:
+            return flattened_children[0]
+
+        node.children = flattened_children
         return node
 
     if isinstance(node, CountNode):
@@ -757,8 +974,25 @@ def tokenize_prerequisite(text: str) -> List[str]:
                 cleaned_tokens.append(token)
         else:
             cleaned_tokens.append(token)
-    
-    return cleaned_tokens
+
+    # Some catalog strings drop connectors after cleanup (e.g., grade clauses),
+    # leaving adjacent course tokens. Treat adjacent operands as implicit AND.
+    with_implicit_ands: List[str] = []
+
+    def is_course_token(token: str) -> bool:
+        return bool(re.match(r'^[A-Z]{2,6}\s+\d{3,4}[A-Z]?$', token))
+
+    for token in cleaned_tokens:
+        if with_implicit_ands:
+            prev = with_implicit_ands[-1]
+            prev_is_operand = is_course_token(prev) or prev == ')'
+            curr_is_operand = is_course_token(token) or token == '(' or token.startswith('COUNT:')
+            if prev_is_operand and curr_is_operand:
+                with_implicit_ands.append('AND')
+
+        with_implicit_ands.append(token)
+
+    return with_implicit_ands
 
 
 def parse_prerequisite_tree(tokens: List[str]) -> Optional[Any]:
@@ -993,69 +1227,88 @@ def prune_self_reference(node: Optional[Any], owner_course_code: str) -> Optiona
     return node
 
 
-def process_course_prerequisite(
+def collect_course_codes(node: Optional[Any]) -> set[str]:
+    """Collect all course leaf codes from a requirement tree."""
+    if node is None:
+        return set()
+
+    if isinstance(node, CourseNode):
+        return {normalize_course_code(node.code)}
+
+    if isinstance(node, OperatorNode) or isinstance(node, CountNode):
+        collected: set[str] = set()
+        for child in node.children:
+            collected.update(collect_course_codes(child))
+        return collected
+
+    return set()
+
+
+def remove_course_codes(node: Optional[Any], blocked_codes: set[str]) -> Optional[Any]:
+    """Remove specified course leaves from a requirement tree and prune empties."""
+    if node is None:
+        return None
+
+    if isinstance(node, CourseNode):
+        return None if normalize_course_code(node.code) in blocked_codes else node
+
+    if isinstance(node, OperatorNode):
+        pruned_children: List[Any] = []
+        for child in node.children:
+            pruned = remove_course_codes(child, blocked_codes)
+            if pruned is not None:
+                pruned_children.append(pruned)
+
+        if not pruned_children:
+            return None
+        if len(pruned_children) == 1:
+            return pruned_children[0]
+
+        node.children = pruned_children
+        return node
+
+    if isinstance(node, CountNode):
+        pruned_children: List[Any] = []
+        for child in node.children:
+            pruned = remove_course_codes(child, blocked_codes)
+            if pruned is not None:
+                pruned_children.append(pruned)
+
+        if not pruned_children:
+            return None
+
+        node.children = pruned_children
+        node.count = min(node.count, len(pruned_children))
+        if node.count <= 0:
+            return None
+        return node
+
+    return node
+
+
+def build_course_requirement_tree(
     course_code: str,
-    description: str,
-    enrollment_requirements: str,
+    snippets: List[str],
     equivalent_course_map: Dict[str, List[str]],
 ) -> Optional[Any]:
-    """Process a single course and return the union of prereqs from enrollment text and description."""
+    """Build a course-only requirement tree from a list of labeled snippets."""
 
     def node_key(node: Any) -> str:
         if isinstance(node, CourseNode):
             return f"course:{node.code.upper()}"
-        if isinstance(node, MajorRequirementNode):
-            return f"major:{normalize_requirement_text(node.requirement).lower()}"
-        if isinstance(node, ProgramRequirementNode):
-            return f"program:{normalize_requirement_text(node.requirement).lower()}"
-        if isinstance(node, YearRequirementNode):
-            return f"year:{normalize_requirement_text(node.requirement).lower()}"
-        if isinstance(node, SchoolRequirementNode):
-            return f"school:{normalize_requirement_text(node.requirement).lower()}"
         if hasattr(node, 'to_dict'):
             return json.dumps(node.to_dict(), sort_keys=True)
         return str(node)
 
-    prereq_snippets: List[str] = []
-    seen_snippets = set()
-
-    enrollment_prereq = extract_prerequisite_text('', enrollment_requirements)
-    description_prereq = extract_prerequisite_text(description, '')
-
-    for snippet in (enrollment_prereq, description_prereq):
-        normalized = normalize_requirement_text(snippet) if snippet else ''
-        if not normalized:
-            continue
-        key = normalized.lower()
-        if key in seen_snippets:
-            continue
-        seen_snippets.add(key)
-        prereq_snippets.append(normalized)
-
     combined_children: List[Any] = []
     seen_children = set()
 
-    # Preserve baseline enrollment restriction extraction from full enrollment text.
-    for node in extract_major_program_requirements(enrollment_requirements):
-        key = node_key(node)
-        if key in seen_children:
-            continue
-        seen_children.add(key)
-        combined_children.append(node)
-
-    for prereq_text in prereq_snippets:
-        for node in extract_major_program_requirements(prereq_text):
-            key = node_key(node)
-            if key in seen_children:
-                continue
-            seen_children.add(key)
-            combined_children.append(node)
-
-        courses = extract_course_codes(prereq_text)
+    for requirement_text in snippets:
+        courses = extract_course_codes(requirement_text)
         if not courses:
             continue
 
-        tokens = tokenize_prerequisite(prereq_text)
+        tokens = tokenize_prerequisite(requirement_text)
         course_tree = parse_prerequisite_tree(tokens)
         course_tree = expand_equivalent_courses(course_tree, equivalent_course_map)
         course_tree = prune_self_reference(course_tree, course_code)
@@ -1082,19 +1335,139 @@ def process_course_prerequisite(
     return OperatorNode(type='AND', children=combined_children)
 
 
-def process_course_row(row: Dict[str, str], equivalent_course_map: Dict[str, List[str]]) -> Tuple[str, Optional[Any], bool]:
+def build_other_requirement_tree(texts: List[str]) -> Optional[Any]:
+    """Build a non-course enrollment-restriction tree from relevant snippets."""
+
+    def node_key(node: Any) -> str:
+        if isinstance(node, MajorRequirementNode):
+            return f"major:{normalize_requirement_text(node.requirement).lower()}"
+        if isinstance(node, ProgramRequirementNode):
+            return f"program:{normalize_requirement_text(node.requirement).lower()}"
+        if isinstance(node, YearRequirementNode):
+            return f"year:{normalize_requirement_text(node.requirement).lower()}"
+        if isinstance(node, SchoolRequirementNode):
+            return f"school:{normalize_requirement_text(node.requirement).lower()}"
+        if hasattr(node, 'to_dict'):
+            return json.dumps(node.to_dict(), sort_keys=True)
+        return str(node)
+
+    combined_children: List[Any] = []
+    seen_children = set()
+
+    for text in texts:
+        for node in extract_major_program_requirements(text):
+            key = node_key(node)
+            if key in seen_children:
+                continue
+            seen_children.add(key)
+            combined_children.append(node)
+
+    year_or_sets = []
+    for index, node in enumerate(combined_children):
+        if not isinstance(node, OperatorNode) or node.type != 'OR':
+            continue
+        if not node.children or not all(isinstance(child, YearRequirementNode) for child in node.children):
+            continue
+        normalized_years = {
+            normalize_requirement_text(child.requirement).lower()
+            for child in node.children
+        }
+        year_or_sets.append((index, normalized_years))
+
+    if year_or_sets:
+        covered_standalone_years = set().union(*(years for _, years in year_or_sets))
+        subsumed_or_indexes = set()
+        for index, years in year_or_sets:
+            for other_index, other_years in year_or_sets:
+                if index == other_index:
+                    continue
+                if years < other_years:
+                    subsumed_or_indexes.add(index)
+                    break
+
+        filtered_children = []
+        for index, node in enumerate(combined_children):
+            if isinstance(node, YearRequirementNode):
+                normalized = normalize_requirement_text(node.requirement).lower()
+                if normalized in covered_standalone_years:
+                    continue
+            if index in subsumed_or_indexes:
+                continue
+            filtered_children.append(node)
+        combined_children = filtered_children
+
+    if not combined_children:
+        return None
+    if len(combined_children) == 1:
+        return combined_children[0]
+    return OperatorNode(type='AND', children=combined_children)
+
+
+def process_course_requirements(
+    course_code: str,
+    description: str,
+    enrollment_requirements: str,
+    equivalent_course_map: Dict[str, List[str]],
+) -> Tuple[Optional[Any], Optional[Any], Optional[Any]]:
+    """Process a single course and return separate prerequisite, corequisite, and other-requirement trees."""
+
+    categorized_snippets = extract_requirement_snippets(description, enrollment_requirements)
+    prerequisite_snippets = [snippet for kind, snippet in categorized_snippets if kind == 'prerequisite']
+    corequisite_snippets = [snippet for kind, snippet in categorized_snippets if kind == 'corequisite']
+    all_requirement_texts = []
+    if enrollment_requirements.strip():
+        all_requirement_texts.append(enrollment_requirements)
+    all_requirement_texts.extend(snippet for _, snippet in categorized_snippets)
+
+    prerequisite_tree = build_course_requirement_tree(
+        course_code,
+        prerequisite_snippets,
+        equivalent_course_map,
+    )
+    corequisite_tree = build_course_requirement_tree(course_code, corequisite_snippets, equivalent_course_map)
+
+    # Prevent impossible duplication: a specific course should not be both
+    # prerequisite and corequisite for the same catalog course.
+    if prerequisite_tree is not None and corequisite_tree is not None:
+        overlapping_codes = collect_course_codes(prerequisite_tree).intersection(collect_course_codes(corequisite_tree))
+        if overlapping_codes:
+            prerequisite_tree = remove_course_codes(prerequisite_tree, overlapping_codes)
+
+    other_requirement_tree = build_other_requirement_tree(all_requirement_texts)
+    return prerequisite_tree, corequisite_tree, other_requirement_tree
+
+
+def process_course_row(
+    row: Dict[str, str],
+    equivalent_course_map: Dict[str, List[str]],
+) -> Tuple[str, Optional[Any], Optional[Any], bool, bool]:
     """Worker function to process a single course row"""
     course_code = row.get('course_code', '').strip()
     description = row.get('description', '').strip()
     enrollment_requirements = row.get('enrollment_requirements', '').strip()
     
     if not course_code:
-        return '', None, False
+        return '', None, None, None, False, False, False
     
-    tree = process_course_prerequisite(course_code, description, enrollment_requirements, equivalent_course_map)
-    has_prereq = tree is not None
+    prerequisite_tree, corequisite_tree, other_requirement_tree = process_course_requirements(
+        course_code,
+        description,
+        enrollment_requirements,
+        equivalent_course_map,
+    )
+    has_prereq = prerequisite_tree is not None
+    has_coreq = corequisite_tree is not None
+    has_other = other_requirement_tree is not None
     
-    return course_code, tree.to_dict() if tree and hasattr(tree, 'to_dict') else tree, has_prereq
+    return (
+        course_code,
+        prerequisite_tree.to_dict() if prerequisite_tree and hasattr(prerequisite_tree, 'to_dict') else prerequisite_tree,
+        corequisite_tree.to_dict() if corequisite_tree and hasattr(corequisite_tree, 'to_dict') else corequisite_tree,
+        other_requirement_tree.to_dict() if other_requirement_tree and hasattr(other_requirement_tree, 'to_dict') else other_requirement_tree,
+        has_prereq,
+        has_coreq,
+        has_other,
+    )
 
 
 def main():
@@ -1156,21 +1529,35 @@ def main():
     equivalent_course_map = build_equivalent_course_map(rows)
 
     courses_with_prereqs = {}
+    courses_with_coreqs = {}
+    courses_with_other_requirements = {}
     courses_without_prereqs = []
+    courses_without_coreqs = []
+    courses_without_other_requirements = []
     
     error_count = 0
 
     for row in rows:
         try:
-            course_code, tree, has_prereq = process_course_row(row, equivalent_course_map)
+            course_code, prereq_tree, coreq_tree, other_tree, has_prereq, has_coreq, has_other = process_course_row(row, equivalent_course_map)
 
             if not course_code:
                 continue
 
-            if tree and has_prereq:
-                courses_with_prereqs[course_code] = tree
+            if prereq_tree and has_prereq:
+                courses_with_prereqs[course_code] = prereq_tree
             else:
                 courses_without_prereqs.append(course_code)
+
+            if coreq_tree and has_coreq:
+                courses_with_coreqs[course_code] = coreq_tree
+            else:
+                courses_without_coreqs.append(course_code)
+
+            if other_tree and has_other:
+                courses_with_other_requirements[course_code] = other_tree
+            else:
+                courses_without_other_requirements.append(course_code)
 
         except Exception:
             error_count += 1
@@ -1182,9 +1569,17 @@ def main():
             "total_courses": len(courses_with_prereqs) + len(courses_without_prereqs),
             "courses_with_prerequisites": len(courses_with_prereqs),
             "courses_without_prerequisites": len(courses_without_prereqs),
+            "courses_with_corequisites": len(courses_with_coreqs),
+            "courses_without_corequisites": len(courses_without_coreqs),
+            "courses_with_other_requirements": len(courses_with_other_requirements),
+            "courses_without_other_requirements": len(courses_without_other_requirements),
         },
         "prerequisite_trees": courses_with_prereqs,
+        "corequisite_trees": courses_with_coreqs,
+        "other_requirement_trees": courses_with_other_requirements,
         "courses_without_prerequisites": courses_without_prereqs,
+        "courses_without_corequisites": courses_without_coreqs,
+        "courses_without_other_requirements": courses_without_other_requirements,
     }
     
     output_file = "data/uva_prerequisites.json"

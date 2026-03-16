@@ -41,12 +41,18 @@ type PrerequisiteTree = CourseNode | OperatorNode | CountNode | MajorRequirement
 
 export interface Prerequisites {
   prerequisite_trees: Record<string, PrerequisiteTree>;
+  corequisite_trees?: Record<string, PrerequisiteTree>;
+  other_requirement_trees?: Record<string, PrerequisiteTree>;
   prerequisite_words_by_course?: Record<string, string[]>;
   word_analysis?: Record<string, number>;
   metadata: {
     total_courses: number;
     courses_with_prerequisites: number;
     courses_without_prerequisites?: number;
+    courses_with_corequisites?: number;
+    courses_without_corequisites?: number;
+    courses_with_other_requirements?: number;
+    courses_without_other_requirements?: number;
     generated_at?: string;
   };
 }
@@ -59,6 +65,7 @@ export interface RequirementMissing {
   type: 'course' | 'count' | 'or' | 'and' | 'major' | 'program' | 'year' | 'school';
   description: string;
   missingCourses: string[];
+  requisiteType?: 'prerequisite' | 'corequisite' | 'other';
   satisfiedCount?: number; // For count nodes: how many are satisfied
   requiredCount?: number; // For count nodes: how many are needed
 }
@@ -203,6 +210,10 @@ function formatInlineRequirement(tree: PrerequisiteTree): string {
   }
 
   if (tree.type === 'OR') {
+    if (tree.children.every((child) => child.type === 'year')) {
+      return `Year Requirement: ${tree.children.map((child) => formatRequirementText(child.requirement)).join(' OR ')}`;
+    }
+
     return tree.children.map(formatInlineRequirement).join(' OR ');
   }
 
@@ -290,6 +301,8 @@ export function loadPrerequisites(): Prerequisites {
     console.error('Failed to load prerequisites:', error);
     const defaultPrereqs: Prerequisites = {
       prerequisite_trees: {},
+      corequisite_trees: {},
+      other_requirement_trees: {},
       word_analysis: {},
       metadata: {
         total_courses: 0,
@@ -594,15 +607,16 @@ export function getDetailedMissingRequirements(
       const descriptions = branchRequirements.map(branchReqs => {
         const descs = branchReqs.map(r => r.description);
         if (descs.length === 1) {
-          return descs[0];
+          return descs[0].replace(/^Missing:\s*/i, '').trim();
         }
-        return `(${descs.join(' AND ')})`;
+        const cleaned = descs.map((desc) => desc.replace(/^Missing:\s*/i, '').trim());
+        return `(${cleaned.join(' AND ')})`;
       });
       
       return [
         {
           type: 'or',
-          description: `Choose one: ${descriptions.join(' OR ')}`,
+          description: `Missing: ${descriptions.join(' OR ')}`,
           missingCourses: Array.from(allMissing),
         },
       ];
@@ -617,24 +631,40 @@ export function getDetailedMissingRequirements(
 export interface PrerequisiteCheckResult {
   isSatisfied: boolean;
   hasNoPrerequisites: boolean;
+  hasNoCorequisites: boolean;
+  hasNoOtherRequirements: boolean;
   missingCourses: string[]; // Simple list of missing course codes
   detailedRequirements: RequirementMissing[]; // Detailed requirement descriptions
+  missingPrerequisiteCourses: string[];
+  missingCorequisiteCourses: string[];
+  missingOtherRequirementCourses: string[];
+  detailedPrerequisiteRequirements: RequirementMissing[];
+  detailedCorequisiteRequirements: RequirementMissing[];
+  detailedOtherRequirements: RequirementMissing[];
   hasUnknownPrerequisites: boolean; // No prereqs but not 1000-level
+  hasUnknownCorequisites: boolean;
 }
 
 export function checkPrerequisites(
   courseCode: string,
   completedCourses: string[],
   plannedPastCourses: string[],
+  currentSemesterCourses: string[] = [],
   profile?: UserEnrollmentProfile
 ): PrerequisiteCheckResult {
   const prerequisites = loadPrerequisites();
   const normalizedCode = courseCode.toUpperCase();
-  const tree = prerequisites.prerequisite_trees[normalizedCode];
+  const prerequisiteTree = prerequisites.prerequisite_trees[normalizedCode];
+  const corequisiteTree = prerequisites.corequisite_trees?.[normalizedCode];
+  const otherRequirementTree = prerequisites.other_requirement_trees?.[normalizedCode];
 
-  // Combine completed and planned past courses
-  const taken = new Set(
+  const prerequisiteTaken = new Set(
     [...completedCourses, ...plannedPastCourses].map((c) =>
+      c.toUpperCase()
+    )
+  );
+  const corequisiteTaken = new Set(
+    [...completedCourses, ...plannedPastCourses, ...currentSemesterCourses].map((c) =>
       c.toUpperCase()
     )
   );
@@ -643,62 +673,133 @@ export function checkPrerequisites(
   const courseLevel = parseInt(normalizedCode.split(' ')[1]?.substring(0, 1) || '0', 10);
   const is1000Level = courseLevel === 1;
 
-  if (!tree) {
-    // No prerequisite data
+  if (!prerequisiteTree && !corequisiteTree && !otherRequirementTree) {
     return {
       isSatisfied: true,
       hasNoPrerequisites: true,
+      hasNoCorequisites: true,
+      hasNoOtherRequirements: true,
       missingCourses: [],
       detailedRequirements: [],
-      hasUnknownPrerequisites: !is1000Level, // Warning if not 1000-level
+      missingPrerequisiteCourses: [],
+      missingCorequisiteCourses: [],
+      missingOtherRequirementCourses: [],
+      detailedPrerequisiteRequirements: [],
+      detailedCorequisiteRequirements: [],
+      detailedOtherRequirements: [],
+      hasUnknownPrerequisites: !is1000Level,
+      hasUnknownCorequisites: false,
     };
   }
 
-  const isSatisfied = evaluateTreeRecursive(tree, taken, profile);
-  
+  const tagRequirements = (
+    requirements: RequirementMissing[],
+    requisiteType: 'prerequisite' | 'corequisite' | 'other'
+  ): RequirementMissing[] => requirements.map((requirement) => ({
+    ...requirement,
+    requisiteType,
+    description:
+      requirement.description.startsWith('Prerequisite:') || requirement.description.startsWith('Corequisite:') || requirement.description.startsWith('Other Requirement:')
+        ? requirement.description
+        : `${requisiteType === 'prerequisite' ? 'Prerequisite' : requisiteType === 'corequisite' ? 'Corequisite' : 'Other Requirement'}: ${requirement.description}`,
+  }));
+
+  const evaluateRequirementTree = (
+    tree: PrerequisiteTree | undefined,
+    taken: Set<string>,
+    requisiteType: 'prerequisite' | 'corequisite' | 'other'
+  ) => {
+    if (!tree) {
+      return {
+        isSatisfied: true,
+        missingCourses: [] as string[],
+        detailedRequirements: [] as RequirementMissing[],
+      };
+    }
+
+    const isSatisfied = evaluateTreeRecursive(tree, taken, profile);
+    if (isSatisfied) {
+      return {
+        isSatisfied: true,
+        missingCourses: [] as string[],
+        detailedRequirements: [] as RequirementMissing[],
+      };
+    }
+
+    const detailedRequirements = getDetailedMissingRequirements(tree, taken, profile);
+    const allMissingFlat = Array.from(getAllMissingCoursesFlat(tree, taken, profile)).sort();
+    const coveredCourses = new Set<string>();
+    detailedRequirements.forEach((req) => {
+      req.missingCourses.forEach((course) => coveredCourses.add(course.toUpperCase()));
+    });
+    const uncoveredFromFlat = allMissingFlat.filter(
+      (course) => !coveredCourses.has(course.toUpperCase())
+    );
+
+    const taggedRequirements = tagRequirements(detailedRequirements, requisiteType);
+    if (uncoveredFromFlat.length > 0) {
+      taggedRequirements.push({
+        type: 'course',
+        requisiteType,
+        description: `${requisiteType === 'prerequisite' ? 'Prerequisite' : requisiteType === 'corequisite' ? 'Corequisite' : 'Other Requirement'}: Also required: ${uncoveredFromFlat.join(', ')}`,
+        missingCourses: uncoveredFromFlat,
+      });
+    }
+
+    return {
+      isSatisfied: false,
+      missingCourses: allMissingFlat,
+      detailedRequirements: taggedRequirements,
+    };
+  };
+
+  const prerequisiteResult = evaluateRequirementTree(prerequisiteTree, prerequisiteTaken, 'prerequisite');
+  const corequisiteResult = evaluateRequirementTree(corequisiteTree, corequisiteTaken, 'corequisite');
+  const otherRequirementResult = evaluateRequirementTree(otherRequirementTree, prerequisiteTaken, 'other');
+  const isSatisfied = prerequisiteResult.isSatisfied && corequisiteResult.isSatisfied && otherRequirementResult.isSatisfied;
+
   if (isSatisfied) {
     return {
       isSatisfied: true,
-      hasNoPrerequisites: false,
+      hasNoPrerequisites: !prerequisiteTree,
+      hasNoCorequisites: !corequisiteTree,
+      hasNoOtherRequirements: !otherRequirementTree,
       missingCourses: [],
       detailedRequirements: [],
+      missingPrerequisiteCourses: [],
+      missingCorequisiteCourses: [],
+      missingOtherRequirementCourses: [],
+      detailedPrerequisiteRequirements: [],
+      detailedCorequisiteRequirements: [],
+      detailedOtherRequirements: [],
       hasUnknownPrerequisites: false,
+      hasUnknownCorequisites: false,
     };
   }
 
-  // Get detailed requirements from tree structure
-  const detailedRequirements = getDetailedMissingRequirements(tree, taken, profile);
-  
-  // Get comprehensive flat list of all missing courses as a safety net
-  const allMissingFlat = Array.from(getAllMissingCoursesFlat(tree, taken, profile)).sort();
-  
-  // Also get the recursive missing courses
-  const missingCourses = getMissingCoursesRecursive(tree, taken, profile);
-
-  // Ensure all missing courses from the flat list are included in detailedRequirements
-  const coveredCourses = new Set<string>();
-  detailedRequirements.forEach(req => {
-    req.missingCourses.forEach(c => coveredCourses.add(c.toUpperCase()));
-  });
-
-  // If there are missing courses not covered in detailed requirements, add a catch-all
-  const uncoveredFromFlat = allMissingFlat.filter(
-    c => !coveredCourses.has(c.toUpperCase())
-  );
-
-  if (uncoveredFromFlat.length > 0) {
-    detailedRequirements.push({
-      type: 'course',
-      description: `Also required: ${uncoveredFromFlat.join(', ')}`,
-      missingCourses: uncoveredFromFlat,
-    });
-  }
+  const combinedMissingCourses = Array.from(
+    new Set([...prerequisiteResult.missingCourses, ...corequisiteResult.missingCourses, ...otherRequirementResult.missingCourses])
+  ).sort();
+  const detailedRequirements = [
+    ...prerequisiteResult.detailedRequirements,
+    ...corequisiteResult.detailedRequirements,
+    ...otherRequirementResult.detailedRequirements,
+  ];
 
   return {
     isSatisfied: false,
-    hasNoPrerequisites: false,
-    missingCourses: allMissingFlat, // Use the comprehensive flat list
+    hasNoPrerequisites: !prerequisiteTree,
+    hasNoCorequisites: !corequisiteTree,
+    hasNoOtherRequirements: !otherRequirementTree,
+    missingCourses: combinedMissingCourses,
     detailedRequirements,
+    missingPrerequisiteCourses: prerequisiteResult.missingCourses,
+    missingCorequisiteCourses: corequisiteResult.missingCourses,
+    missingOtherRequirementCourses: otherRequirementResult.missingCourses,
+    detailedPrerequisiteRequirements: prerequisiteResult.detailedRequirements,
+    detailedCorequisiteRequirements: corequisiteResult.detailedRequirements,
+    detailedOtherRequirements: otherRequirementResult.detailedRequirements,
     hasUnknownPrerequisites: false,
+    hasUnknownCorequisites: false,
   };
 }

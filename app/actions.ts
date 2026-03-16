@@ -1747,28 +1747,51 @@ export async function getCourseInfoFromCSV(courseCode: string) {
     const details = courseDetailsByCode.get(normalizedCode);
 
     let structuredPrerequisites: string[] = [];
+    let structuredCorequisites: string[] = [];
+    let structuredOtherRequirements: string[] = [];
     try {
       const { loadPrerequisites, formatPrerequisiteTreeForDisplay } = await import('./utils/prerequisiteChecker');
       const prerequisiteData = loadPrerequisites();
-      const tree = prerequisiteData.prerequisite_trees[normalizedCode];
-      if (tree) {
-        structuredPrerequisites = formatPrerequisiteTreeForDisplay(tree);
+      const prerequisiteTree = prerequisiteData.prerequisite_trees[normalizedCode];
+      const corequisiteTree = prerequisiteData.corequisite_trees?.[normalizedCode];
+      const otherRequirementTree = prerequisiteData.other_requirement_trees?.[normalizedCode];
+      if (prerequisiteTree) {
+        structuredPrerequisites = formatPrerequisiteTreeForDisplay(prerequisiteTree);
+      }
+      if (corequisiteTree) {
+        structuredCorequisites = formatPrerequisiteTreeForDisplay(corequisiteTree);
+      }
+      if (otherRequirementTree) {
+        structuredOtherRequirements = formatPrerequisiteTreeForDisplay(otherRequirementTree);
       }
     } catch (error) {
-      console.error('Failed to load structured prerequisites for course info:', error);
+      console.error('Failed to load structured requisites for course info:', error);
     }
+
+    const hasStructuredRequirements =
+      structuredPrerequisites.length > 0 ||
+      structuredCorequisites.length > 0 ||
+      structuredOtherRequirements.length > 0;
+
+    const filteredFallbackPrerequisites = (details?.prerequisites ?? []).filter(
+      (requirement) => !/\binstructor\s+permission\b/i.test(requirement)
+    );
 
     return {
       courseCode: normalizedCode,
       title: details?.title ?? null,
       description: details?.description ?? null,
-      prerequisites: structuredPrerequisites.length > 0 ? structuredPrerequisites : (details?.prerequisites ?? []),
+      prerequisites: hasStructuredRequirements
+        ? structuredPrerequisites
+        : filteredFallbackPrerequisites,
+      corequisites: structuredCorequisites,
+      otherRequirements: structuredOtherRequirements,
       terms: details?.terms ?? [],
     };
 
   } catch (err) {
     console.error('Error reading CSV for course info:', err);
-    return { courseCode, title: null, description: null, prerequisites: [], terms: [] };
+    return { courseCode, title: null, description: null, prerequisites: [], corequisites: [], otherRequirements: [], terms: [] };
   }
 }
 
@@ -1963,6 +1986,7 @@ export async function checkCoursePrerequisites(input: {
     courses: Array<{ courseCode: string }>;
   }>;
   currentSemesterTermOrder: number;
+  currentSemesterCourseCodes?: string[];
 }) {
   'use server';
 
@@ -1979,6 +2003,7 @@ export async function checkCoursePrerequisites(input: {
       input.courseCode,
       input.completedCourses,
       pastCourseCodes,
+      input.currentSemesterCourseCodes ?? [],
       {
         school: user?.school ?? null,
         major: user?.major ?? null,
@@ -1993,9 +2018,18 @@ export async function checkCoursePrerequisites(input: {
     return {
       isSatisfied: true,
       hasNoPrerequisites: true,
+      hasNoCorequisites: true,
+      hasNoOtherRequirements: true,
       missingCourses: [],
       detailedRequirements: [],
+      missingPrerequisiteCourses: [],
+      missingCorequisiteCourses: [],
+      missingOtherRequirementCourses: [],
+      detailedPrerequisiteRequirements: [],
+      detailedCorequisiteRequirements: [],
+      detailedOtherRequirements: [],
       hasUnknownPrerequisites: false,
+      hasUnknownCorequisites: false,
     };
   }
 }

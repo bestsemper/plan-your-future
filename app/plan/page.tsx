@@ -27,8 +27,12 @@ interface CourseInfo {
   title: string | null;
   description: string | null;
   prerequisites: string[];
+  corequisites: string[];
+  otherRequirements: string[];
   terms: string[];
 }
+
+const PLAN_SELECTION_STORAGE_KEY = 'plan-builder:last-selected-plan';
 
 type CourseOption = {
   code: string;
@@ -111,7 +115,7 @@ function HoverTooltip({ message, children }: HoverTooltipProps) {
       {children}
       {isOpen && (
         <div
-          className="fixed z-[80] px-3 py-2 bg-gray-900/90 text-white text-xs rounded-lg whitespace-normal text-center shadow-lg"
+          className="fixed z-[80] px-3 py-2 bg-gray-900/90 text-white text-xs rounded-lg whitespace-pre-line text-left shadow-lg"
           style={{
             left: `${position.left}px`,
             top: `${position.top}px`,
@@ -144,6 +148,165 @@ function fileToDataUrl(file: File): Promise<string> {
   });
 }
 
+function getStoredSelectedPlanId(userId: string): string {
+  if (typeof window === 'undefined' || !userId) {
+    return '';
+  }
+
+  return window.localStorage.getItem(`${PLAN_SELECTION_STORAGE_KEY}:${userId}`) ?? '';
+}
+
+function storeSelectedPlanId(userId: string, planId: string) {
+  if (typeof window === 'undefined' || !userId) {
+    return;
+  }
+
+  const storageKey = `${PLAN_SELECTION_STORAGE_KEY}:${userId}`;
+  if (planId) {
+    window.localStorage.setItem(storageKey, planId);
+  } else {
+    window.localStorage.removeItem(storageKey);
+  }
+}
+
+function formatEnrollmentRequirement(requirement: string): { label: string; value: string } {
+  const trimmed = requirement.trim();
+  const prefixMatch = trimmed.match(/^(Major Restriction|Program Restriction|Year Requirement|School Requirement):\s*(.+)$/i);
+
+  if (prefixMatch) {
+    return {
+      label: prefixMatch[1],
+      value: prefixMatch[2],
+    };
+  }
+
+  if (trimmed.includes(' OR ')) {
+    return {
+      label: 'One Of',
+      value: trimmed,
+    };
+  }
+
+  if (trimmed.includes(' AND ')) {
+    return {
+      label: 'All Of',
+      value: trimmed,
+    };
+  }
+
+  return {
+    label: 'Course Requirement',
+    value: trimmed,
+  };
+}
+
+function splitRequirementGroups(requirements: RequirementMissing[]) {
+  return {
+    prerequisites: requirements.filter((requirement) => requirement.requisiteType === 'prerequisite'),
+    corequisites: requirements.filter((requirement) => requirement.requisiteType === 'corequisite'),
+    otherRequirements: requirements.filter((requirement) => requirement.requisiteType === 'other'),
+  };
+}
+
+function buildRequirementTooltip(requirements: RequirementMissing[]): string {
+  const groups = splitRequirementGroups(requirements);
+  const sections: string[] = [];
+
+  if (groups.prerequisites.length > 0) {
+    sections.push(`Prerequisites\n${groups.prerequisites.map((requirement) => `- ${requirement.description.replace(/^Prerequisite:\s*/i, '')}`).join('\n')}`);
+  }
+
+  if (groups.corequisites.length > 0) {
+    sections.push(`Corequisites\n${groups.corequisites.map((requirement) => `- ${requirement.description.replace(/^Corequisite:\s*/i, '')}`).join('\n')}`);
+  }
+
+  if (groups.otherRequirements.length > 0) {
+    sections.push(`Other Requirements\n${groups.otherRequirements.map((requirement) => `- ${requirement.description.replace(/^Other Requirement:\s*/i, '')}`).join('\n')}`);
+  }
+
+  return sections.join('\n\n');
+}
+
+function RequirementGroupBlock({
+  title,
+  tone,
+  requirements,
+}: {
+  title: string;
+  tone: 'blue' | 'orange' | 'slate';
+  requirements: RequirementMissing[];
+}) {
+  if (requirements.length === 0) {
+    return null;
+  }
+
+  const toneClasses = {
+    blue: 'bg-uva-blue/10 text-uva-blue',
+    orange: 'bg-uva-orange/10 text-uva-orange',
+    slate: 'bg-text-muted/10 text-text-secondary',
+  } as const;
+
+  return (
+    <div>
+      <h5 className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">{title}</h5>
+      <div className="space-y-2">
+        {requirements.map((requirement, index) => {
+          const detail = requirement.description
+            .replace(/^Prerequisite:\s*/i, '')
+            .replace(/^Corequisite:\s*/i, '')
+            .replace(/^Other Requirement:\s*/i, '');
+
+          return (
+            <div key={`${title}-${index}`} className="rounded-xl border border-panel-border bg-panel-bg-alt px-3 py-2">
+              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${toneClasses[tone]}`}>
+                {requirement.type === 'course' ? 'Course' : 'Requirement'}
+              </span>
+              <p className="mt-2 text-sm text-text-secondary leading-6">{detail}</p>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function normalizeRequirementComparisonText(text: string): string {
+  return text
+    .replace(/^Prerequisite:\s*/i, '')
+    .replace(/^Corequisite:\s*/i, '')
+    .replace(/^Other Requirement:\s*/i, '')
+    .replace(/^Missing:\s*/i, '')
+    .replace(/^Choose one:\s*/i, '')
+    .replace(/^Also required:\s*/i, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
+function extractRequirementCourseCodes(text: string): string[] {
+  const matches = text.match(/[A-Z]{2,6}\s*\d{3,4}[A-Z]?/g) ?? [];
+  return matches.map((match) => match.replace(/\s+/g, ' ').trim().toUpperCase());
+}
+
+function isDisplayedRequirementUnsatisfied(requirement: string, unmetRequirements: RequirementMissing[]): boolean {
+  if (unmetRequirements.length === 0) {
+    return false;
+  }
+
+  const requirementCourseCodes = new Set(extractRequirementCourseCodes(requirement));
+  if (requirementCourseCodes.size > 0) {
+    return unmetRequirements.some((unmetRequirement) =>
+      unmetRequirement.missingCourses.some((courseCode) => requirementCourseCodes.has(courseCode.toUpperCase()))
+    );
+  }
+
+  const normalizedRequirement = normalizeRequirementComparisonText(requirement);
+  return unmetRequirements.some((unmetRequirement) => {
+    const normalizedDescription = normalizeRequirementComparisonText(unmetRequirement.description);
+    return normalizedDescription.includes(normalizedRequirement) || normalizedRequirement.includes(normalizedDescription);
+  });
+}
+
 export default function PlanBuilderPage() {
   const router = useRouter();
   const isMountedRef = useRef(true);
@@ -165,6 +328,7 @@ export default function PlanBuilderPage() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedCourseInfo, setSelectedCourseInfo] = useState<CourseInfo | null>(null);
   const [loadingInfo, setLoadingInfo] = useState(false);
+  const [selectedCourseMissingRequirements, setSelectedCourseMissingRequirements] = useState<RequirementMissing[]>([]);
   const [deletingPlan, setDeletingPlan] = useState(false);
   const [isDeletePlanConfirmOpen, setIsDeletePlanConfirmOpen] = useState(false);
   const [semesterToDelete, setSemesterToDelete] = useState<{ id: string; label: string } | null>(null);
@@ -188,7 +352,7 @@ export default function PlanBuilderPage() {
 
   // Prerequisite tracking
   const [completedCourses, setCompletedCourses] = useState<string[]>([]);
-  const [prereqWarning, setPrereqWarning] = useState<{ type: 'info' | 'warning' | 'error'; message: string; missingCourses?: string[]; detailedRequirements?: RequirementMissing[] } | null>(null);
+  const [prereqWarning, setPrereqWarning] = useState<{ type: 'info' | 'warning' | 'error'; message: string; missingCourses?: string[]; detailedRequirements?: RequirementMissing[]; detailedPrerequisiteRequirements?: RequirementMissing[]; detailedCorequisiteRequirements?: RequirementMissing[]; detailedOtherRequirements?: RequirementMissing[] } | null>(null);
   const [showPrereqConfirm, setShowPrereqConfirm] = useState(false);
   const [pendingCourseAdd, setPendingCourseAdd] = useState<{ semesterId: string; courseCode: string; credits: number } | null>(null);
   // Map of semesterId -> Map of courseCode -> missing prerequisite codes
@@ -208,16 +372,20 @@ export default function PlanBuilderPage() {
 
     if (res && 'plans' in res) {
       const nextPlans = res.plans as PlanItem[];
+      const nextUserId = res.userId ?? '';
+      const storedSelection = getStoredSelectedPlanId(nextUserId);
       setUserId(res.userId ?? '');
       setOptimisticPlans(nextPlans);
       setAllCourses(res.allCourses ?? []);
       setCompletedCourses(res.completedCourses ?? []);
 
       const preferredSelection = preferredPlanId ? nextPlans.find((p) => p.id === preferredPlanId)?.id : undefined;
+      const storedPlanSelection = storedSelection ? nextPlans.find((p) => p.id === storedSelection)?.id : undefined;
       const validSelection = nextPlans.find((p) => p.id === selectedPlanId)?.id;
       const fallbackSelection = nextPlans[0]?.id ?? '';
-      const nextSelected = preferredSelection || validSelection || fallbackSelection;
+      const nextSelected = preferredSelection || storedPlanSelection || validSelection || fallbackSelection;
       setSelectedPlanId(nextSelected);
+      storeSelectedPlanId(nextUserId, nextSelected);
 
       const nextPlan = nextPlans.find((p) => p.id === nextSelected);
       setPlanTitle(nextPlan?.title ?? '');
@@ -239,6 +407,14 @@ export default function PlanBuilderPage() {
     setPlanTitle(selectedPlan?.title ?? '');
   }, [selectedPlanId, optimisticPlans]);
 
+  useEffect(() => {
+    if (!dataLoaded) {
+      return;
+    }
+
+    storeSelectedPlanId(userId, selectedPlanId);
+  }, [dataLoaded, selectedPlanId, userId]);
+
   const activePlan = optimisticPlans.find((p) => p.id === selectedPlanId) || optimisticPlans[0];
 
   // Check all existing courses in the plan for prerequisite violations
@@ -255,6 +431,7 @@ export default function PlanBuilderPage() {
             completedCourses,
             planSemesters: activePlan.semesters,
             currentSemesterTermOrder: semester.termOrder,
+            currentSemesterCourseCodes: semester.courses.map((courseInSemester) => courseInSemester.courseCode),
           });
 
           // If prerequisites are not satisfied and it's not a 1000-level course without prerequisites
@@ -389,6 +566,7 @@ export default function PlanBuilderPage() {
       completedCourses,
       planSemesters: activePlan.semesters,
       currentSemesterTermOrder: currentSem.termOrder,
+      currentSemesterCourseCodes: currentSem.courses.map((courseInSemester) => courseInSemester.courseCode),
     });
 
     // Handle the prerequisite result
@@ -396,46 +574,22 @@ export default function PlanBuilderPage() {
       // Prerequisites are satisfied, proceed with adding course
       setPrereqWarning(null);
       addCourseOptimistically(semesterId, code, cr);
-    } else if (result.hasNoPrerequisites && result.hasUnknownPrerequisites) {
+    } else if (result.hasNoPrerequisites && result.hasNoCorequisites && result.hasNoOtherRequirements && result.hasUnknownPrerequisites) {
       // No prerequisites found but not 1000-level - show soft warning
       setPrereqWarning({
         type: 'info',
-        message: `${code} might have prerequisites we don't have in our system (it's not a 1000-level course). It's been added anyway.`,
+        message: `${code} might have enrollment requirements we don't have in our system (it's not a 1000-level course). It's been added anyway.`,
       });
       addCourseOptimistically(semesterId, code, cr);
     } else {
-      // Prerequisites not satisfied - show hard warning and ask for confirmation
-      let detailMsg = '';
-      
-      if (result.detailedRequirements && result.detailedRequirements.length > 0) {
-        // Use detailed requirements
-        const detailParts = result.detailedRequirements.map(req => req.description);
-        
-        // Check if all missing courses are covered in detailed requirements
-        const coveredCourses = new Set<string>();
-        result.detailedRequirements.forEach(req => {
-          req.missingCourses.forEach(c => coveredCourses.add(c.toUpperCase()));
-        });
-        
-        const uncoveredCourses = result.missingCourses
-          .filter(c => !coveredCourses.has(c.toUpperCase()));
-        
-        // If there are uncovered courses, add them to the message
-        if (uncoveredCourses.length > 0) {
-          detailParts.push(`Also missing: ${uncoveredCourses.join(', ')}`);
-        }
-        
-        detailMsg = detailParts.join('; ');
-      } else {
-        // Fallback to simple missing courses list
-        detailMsg = result.missingCourses.join(', ');
-      }
-      
       setPrereqWarning({
         type: 'error',
-        message: `${code} has unmet prerequisite requirements: ${detailMsg}. Required courses must be completed or planned in an earlier semester.`,
+        message: `${code} has unmet enrollment requirements. Prerequisites must be completed or planned in an earlier semester. Corequisites may be taken in the same semester.`,
         missingCourses: result.missingCourses,
         detailedRequirements: result.detailedRequirements,
+        detailedPrerequisiteRequirements: result.detailedPrerequisiteRequirements,
+        detailedCorequisiteRequirements: result.detailedCorequisiteRequirements,
+        detailedOtherRequirements: result.detailedOtherRequirements,
       });
       setShowPrereqConfirm(true);
       setPendingCourseAdd({ semesterId, courseCode: code, credits: cr });
@@ -536,8 +690,9 @@ export default function PlanBuilderPage() {
     void loadData();
   };
 
-  const handleCourseClick = async (code: string) => {
+  const handleCourseClick = async (code: string, requirementsMissing: RequirementMissing[] = []) => {
     setLoadingInfo(true);
+    setSelectedCourseMissingRequirements(requirementsMissing);
     const info = await getCourseInfoFromCSV(code);
     setSelectedCourseInfo(info);
     setLoadingInfo(false);
@@ -1079,7 +1234,7 @@ export default function PlanBuilderPage() {
                             <h3 className="font-bold text-lg text-heading flex items-center gap-2">
                               {sem.termName} {sem.year}
                               {semestersProblematicCourses.has(sem.id) && (
-                                <HoverTooltip message={`Unsatisfied prereqs: ${Array.from(semestersProblematicCourses.get(sem.id)?.keys() || []).join(', ')}`}>
+                                <HoverTooltip message={`Courses with unsatisfied requirements\n${Array.from(semestersProblematicCourses.get(sem.id)?.keys() || []).map((courseCode) => `- ${courseCode}`).join('\n')}`}>
                                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-yellow-500 cursor-help hover:text-yellow-600 transition-colors" aria-label="Contains course(s) with unsatisfied prerequisites">
                                     <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3.05h16.94a2 2 0 0 0 1.71-3.05l-8.47-14.14a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
                                   </svg>
@@ -1106,12 +1261,10 @@ export default function PlanBuilderPage() {
                               const requirementsMissing = semestersProblematicCourses.get(sem.id)?.get(course.courseCode) ?? [];
                               const isProblematic = requirementsMissing.length > 0;
                               const tooltipMessage = requirementsMissing.length > 0
-                                ? requirementsMissing
-                                    .map(req => req.description)
-                                    .join('; ')
-                                : 'Prerequisites not satisfied';
+                                ? buildRequirementTooltip(requirementsMissing)
+                                : 'Requirements not satisfied';
                               return (
-                                <div key={course.id} onClick={() => handleCourseClick(course.courseCode)} className="px-3 bg-panel-bg-alt border border-panel-border-strong rounded-xl text-sm flex justify-between items-center hover:border-uva-blue transition-colors cursor-pointer group h-[46px]">
+                                <div key={course.id} onClick={() => handleCourseClick(course.courseCode, requirementsMissing)} className="px-3 bg-panel-bg-alt border border-panel-border-strong rounded-xl text-sm flex justify-between items-center hover:border-uva-blue transition-colors cursor-pointer group h-[46px]">
                                   <span className="font-medium text-text-primary flex items-center gap-2">
                                     {course.courseCode}
                                     {isProblematic && (
@@ -1207,6 +1360,25 @@ export default function PlanBuilderPage() {
                                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 mt-0.5 flex-shrink-0"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3.05h16.94a2 2 0 0 0 1.71-3.05l-8.47-14.14a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                                       <div>
                                         <p className="font-semibold">{prereqWarning.message}</p>
+                                        {prereqWarning.detailedRequirements && prereqWarning.detailedRequirements.length > 0 && (
+                                          <div className="mt-3 space-y-3">
+                                            <RequirementGroupBlock
+                                              title="Prerequisites"
+                                              tone="blue"
+                                              requirements={prereqWarning.detailedPrerequisiteRequirements || []}
+                                            />
+                                            <RequirementGroupBlock
+                                              title="Corequisites"
+                                              tone="orange"
+                                              requirements={prereqWarning.detailedCorequisiteRequirements || []}
+                                            />
+                                            <RequirementGroupBlock
+                                              title="Other Requirements"
+                                              tone="slate"
+                                              requirements={prereqWarning.detailedOtherRequirements || []}
+                                            />
+                                          </div>
+                                        )}
                                       </div>
                                     </div>
                                   )}
@@ -1436,8 +1608,8 @@ export default function PlanBuilderPage() {
 
       <ConfirmModal
         isOpen={showPrereqConfirm}
-        title="Missing Prerequisites"
-        message={prereqWarning?.message || `${pendingCourseAdd?.courseCode} has unmet prerequisite requirements. Are you sure you want to add this course anyway? A warning indicator will appear on this semester.`}
+        title="Missing Requirements"
+        message={prereqWarning?.message || `${pendingCourseAdd?.courseCode} has unmet enrollment requirements. Are you sure you want to add this course anyway? A warning indicator will appear on this semester.`}
         confirmLabel="Add Anyway"
         cancelLabel="Cancel"
         isConfirming={false}
@@ -1459,7 +1631,7 @@ export default function PlanBuilderPage() {
       )}
 
       {selectedCourseInfo && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setSelectedCourseInfo(null)}>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => { setSelectedCourseInfo(null); setSelectedCourseMissingRequirements([]); }}>
           <div className="bg-panel-bg p-6 rounded-2xl max-w-md w-full max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-start mb-4">
               <div>
@@ -1468,7 +1640,7 @@ export default function PlanBuilderPage() {
                   <p className="mt-1 text-sm text-text-muted">{selectedCourseInfo.title}</p>
                 )}
               </div>
-              <button onClick={() => setSelectedCourseInfo(null)} className="text-text-muted hover:text-text-secondary cursor-pointer">
+              <button onClick={() => { setSelectedCourseInfo(null); setSelectedCourseMissingRequirements([]); }} className="text-text-muted hover:text-text-secondary cursor-pointer">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
               </button>
             </div>
@@ -1481,18 +1653,112 @@ export default function PlanBuilderPage() {
                 </div>
               )}
 
-              {selectedCourseInfo.prerequisites.length > 0 && (
+              {(selectedCourseInfo.prerequisites.length > 0 || selectedCourseInfo.corequisites.length > 0 || selectedCourseInfo.otherRequirements.length > 0) && (
                 <div>
                   <h3 className="font-semibold text-text-primary mb-2 border-b border-panel-border pb-1">Enrollment Requirements</h3>
-                  {selectedCourseInfo.prerequisites.length === 1 ? (
-                    <p className="text-sm text-text-secondary leading-6">{selectedCourseInfo.prerequisites[0]}</p>
-                  ) : (
-                    <ul className="list-disc list-inside text-sm text-text-secondary space-y-1">
-                      {selectedCourseInfo.prerequisites.map((requirement, i) => (
-                        <li key={i}>{requirement}</li>
-                      ))}
-                    </ul>
-                  )}
+                  <div className="space-y-4">
+                    {selectedCourseInfo.prerequisites.length > 0 && (
+                      <div>
+                        <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">Prerequisites</h4>
+                        <div className="space-y-2">
+                          {selectedCourseInfo.prerequisites.map((requirement, i) => {
+                            const formattedRequirement = formatEnrollmentRequirement(requirement);
+                            const isUnsatisfied = isDisplayedRequirementUnsatisfied(
+                              requirement,
+                              selectedCourseMissingRequirements.filter((missingRequirement) => missingRequirement.requisiteType === 'prerequisite')
+                            );
+                            return (
+                              <div
+                                key={`${selectedCourseInfo.courseCode}-prerequisite-${i}`}
+                                className={`rounded-xl border px-3 py-2 ${
+                                  isUnsatisfied
+                                    ? 'border-red-500/40 bg-red-500/10'
+                                    : 'border-panel-border bg-hover-bg/40'
+                                }`}
+                              >
+                                <div className="mb-1 flex items-center gap-2">
+                                  <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${
+                                    isUnsatisfied ? 'bg-red-500/15 text-red-600' : 'bg-uva-blue/10 text-uva-blue'
+                                  }`}>
+                                    {formattedRequirement.label}
+                                  </span>
+                                </div>
+                                <p className="text-sm text-text-secondary leading-6">{formattedRequirement.value}</p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedCourseInfo.corequisites.length > 0 && (
+                      <div>
+                        <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">Corequisites</h4>
+                        <div className="space-y-2">
+                          {selectedCourseInfo.corequisites.map((requirement, i) => {
+                            const formattedRequirement = formatEnrollmentRequirement(requirement);
+                            const isUnsatisfied = isDisplayedRequirementUnsatisfied(
+                              requirement,
+                              selectedCourseMissingRequirements.filter((missingRequirement) => missingRequirement.requisiteType === 'corequisite')
+                            );
+                            return (
+                              <div
+                                key={`${selectedCourseInfo.courseCode}-corequisite-${i}`}
+                                className={`rounded-xl border px-3 py-2 ${
+                                  isUnsatisfied
+                                    ? 'border-red-500/40 bg-red-500/10'
+                                    : 'border-panel-border bg-hover-bg/40'
+                                }`}
+                              >
+                                <div className="mb-1 flex items-center gap-2">
+                                  <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${
+                                    isUnsatisfied ? 'bg-red-500/15 text-red-600' : 'bg-uva-orange/10 text-uva-orange'
+                                  }`}>
+                                    {formattedRequirement.label}
+                                  </span>
+                                </div>
+                                <p className="text-sm text-text-secondary leading-6">{formattedRequirement.value}</p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedCourseInfo.otherRequirements.length > 0 && (
+                      <div>
+                        <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">Other Requirements</h4>
+                        <div className="space-y-2">
+                          {selectedCourseInfo.otherRequirements.map((requirement, i) => {
+                            const formattedRequirement = formatEnrollmentRequirement(requirement);
+                            const isUnsatisfied = isDisplayedRequirementUnsatisfied(
+                              requirement,
+                              selectedCourseMissingRequirements.filter((missingRequirement) => missingRequirement.requisiteType === 'other')
+                            );
+                            return (
+                              <div
+                                key={`${selectedCourseInfo.courseCode}-other-requirement-${i}`}
+                                className={`rounded-xl border px-3 py-2 ${
+                                  isUnsatisfied
+                                    ? 'border-red-500/40 bg-red-500/10'
+                                    : 'border-panel-border bg-hover-bg/40'
+                                }`}
+                              >
+                                <div className="mb-1 flex items-center gap-2">
+                                  <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${
+                                    isUnsatisfied ? 'bg-red-500/15 text-red-600' : 'bg-text-muted/10 text-text-secondary'
+                                  }`}>
+                                    {formattedRequirement.label}
+                                  </span>
+                                </div>
+                                <p className="text-sm text-text-secondary leading-6">{formattedRequirement.value}</p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -1509,7 +1775,7 @@ export default function PlanBuilderPage() {
                 </div>
               )}
 
-              {!selectedCourseInfo.title && !selectedCourseInfo.description && selectedCourseInfo.prerequisites.length === 0 && selectedCourseInfo.terms.length === 0 && (
+              {!selectedCourseInfo.title && !selectedCourseInfo.description && selectedCourseInfo.prerequisites.length === 0 && selectedCourseInfo.corequisites.length === 0 && selectedCourseInfo.otherRequirements.length === 0 && selectedCourseInfo.terms.length === 0 && (
                 <p className="text-gray-500 italic text-sm">No course details were found for this course in the current catalog data.</p>
               )}
             </div>
