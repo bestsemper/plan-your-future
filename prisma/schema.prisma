@@ -12,7 +12,9 @@ model User {
   computingId String            @unique
   displayName String
   password    String?
+  school      String?
   major       String?
+  additionalPrograms String[]   @default([])
   gradYear    Int?
   bio         String?
   createdAt   DateTime          @default(now())

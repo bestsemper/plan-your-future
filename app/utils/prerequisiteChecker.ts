@@ -6,18 +6,38 @@ type CourseNode = {
   code: string;
 };
 
+type MajorRequirementNode = {
+  type: 'major';
+  requirement: string;
+};
+
+type ProgramRequirementNode = {
+  type: 'program';
+  requirement: string;
+};
+
+type YearRequirementNode = {
+  type: 'year';
+  requirement: string;
+};
+
+type SchoolRequirementNode = {
+  type: 'school';
+  requirement: string;
+};
+
 type OperatorNode = {
   type: 'AND' | 'OR';
-  children: (CourseNode | OperatorNode | CountNode)[];
+  children: (CourseNode | OperatorNode | CountNode | MajorRequirementNode | ProgramRequirementNode | YearRequirementNode | SchoolRequirementNode)[];
 };
 
 type CountNode = {
   type: 'count';
   count: number;
-  children: (CourseNode | OperatorNode | CountNode)[];
+  children: (CourseNode | OperatorNode | CountNode | MajorRequirementNode | ProgramRequirementNode | YearRequirementNode | SchoolRequirementNode)[];
 };
 
-type PrerequisiteTree = CourseNode | OperatorNode | CountNode;
+type PrerequisiteTree = CourseNode | OperatorNode | CountNode | MajorRequirementNode | ProgramRequirementNode | YearRequirementNode | SchoolRequirementNode;
 
 export interface Prerequisites {
   prerequisite_trees: Record<string, PrerequisiteTree>;
@@ -32,11 +52,163 @@ export interface Prerequisites {
 }
 
 export interface RequirementMissing {
-  type: 'course' | 'count' | 'or' | 'and';
+  type: 'course' | 'count' | 'or' | 'and' | 'major' | 'program' | 'year' | 'school';
   description: string;
   missingCourses: string[];
   satisfiedCount?: number; // For count nodes: how many are satisfied
   requiredCount?: number; // For count nodes: how many are needed
+}
+
+type UserEnrollmentProfile = {
+  school?: string | null;
+  major?: string | null;
+  additionalPrograms?: string[];
+};
+
+function normalizeEnrollmentText(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/\bengr\b/g, 'engineering')
+    .replace(/\bengr\.?\b/g, 'engineering')
+    .replace(/\bstudents?\b/g, ' ')
+    .replace(/\bstanding\b/g, ' ')
+    .replace(/\brestricted to\b/g, ' ')
+    .replace(/\badmission to\b/g, ' ')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function schoolAliases(text: string): Set<string> {
+  const normalized = normalizeEnrollmentText(text);
+  const aliases = new Set<string>([normalized]);
+
+  if (normalized.includes('arts sciences') || normalized.includes('arts and sciences')) {
+    aliases.add('college of arts sciences');
+    aliases.add('graduate school of arts sciences');
+    aliases.add('arts sciences');
+  }
+  if (normalized.includes('engineering applied science')) {
+    aliases.add('school of engineering and applied science');
+    aliases.add('seas');
+  }
+  if (normalized.includes('commerce')) {
+    aliases.add('mcintire school of commerce');
+    aliases.add('mcintire');
+  }
+  if (normalized.includes('darden')) {
+    aliases.add('darden school of business');
+  }
+  if (normalized.includes('education human development')) {
+    aliases.add('school of education and human development');
+  }
+  if (normalized.includes('data science')) {
+    aliases.add('school of data science');
+  }
+  if (normalized.includes('continuing and professional studies')) {
+    aliases.add('school of continuing and professional studies');
+  }
+
+  return aliases;
+}
+
+function textRoughlyMatches(left: string, right: string): boolean {
+  const leftNorm = normalizeEnrollmentText(left);
+  const rightNorm = normalizeEnrollmentText(right);
+  if (!leftNorm || !rightNorm) return false;
+  return leftNorm.includes(rightNorm) || rightNorm.includes(leftNorm);
+}
+
+function matchesAffiliation(requirement: string, candidate: string): boolean {
+  if (textRoughlyMatches(requirement, candidate)) {
+    return true;
+  }
+
+  const candidateTokens = new Set(normalizeEnrollmentText(candidate).split(' ').filter(Boolean));
+  const requirementTokens = normalizeEnrollmentText(requirement).split(' ').filter(Boolean);
+  const overlap = requirementTokens.filter((token) => candidateTokens.has(token));
+  return overlap.length >= Math.min(2, candidateTokens.size || 0) && overlap.length > 0;
+}
+
+function isSchoolRequirementSatisfied(requirement: string, profile?: UserEnrollmentProfile): boolean {
+  if (!profile?.school) {
+    return false;
+  }
+
+  const requirementAliases = schoolAliases(requirement);
+  const profileAliases = schoolAliases(profile.school);
+  for (const alias of requirementAliases) {
+    if (profileAliases.has(alias)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function isMajorRequirementSatisfied(requirement: string, profile?: UserEnrollmentProfile): boolean {
+  const affiliations = [profile?.major, ...(profile?.additionalPrograms ?? [])].filter(Boolean) as string[];
+  return affiliations.some((entry) => matchesAffiliation(requirement, entry));
+}
+
+function isProgramRequirementSatisfied(requirement: string, profile?: UserEnrollmentProfile): boolean {
+  const affiliations = [profile?.major, ...(profile?.additionalPrograms ?? [])].filter(Boolean) as string[];
+  if (affiliations.some((entry) => matchesAffiliation(requirement, entry))) {
+    return true;
+  }
+
+  if (profile?.school && textRoughlyMatches(requirement, profile.school)) {
+    return true;
+  }
+
+  return false;
+}
+
+function formatRequirementText(text: string): string {
+  if (!text) return text;
+  const cleaned = text.replace(/^[^A-Za-z0-9]+/, '').replace(/^s:\s*/i, '');
+  const capitalized = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+  return capitalized.replace(/\b(hsm|mba|jd|llm|phd|ms|ma|bs|ba|rotc|uva)\b/gi, (match) => match.toUpperCase());
+}
+
+function formatInlineRequirement(tree: PrerequisiteTree): string {
+  if (tree.type === 'course') {
+    return tree.code;
+  }
+
+  if (tree.type === 'major') {
+    return `Major Restriction: ${formatRequirementText(tree.requirement)}`;
+  }
+
+  if (tree.type === 'program') {
+    return `Program Restriction: ${formatRequirementText(tree.requirement)}`;
+  }
+
+  if (tree.type === 'year') {
+    return `Year Requirement: ${formatRequirementText(tree.requirement)}`;
+  }
+
+  if (tree.type === 'school') {
+    return `School Requirement: ${tree.requirement}`;
+  }
+
+  if (tree.type === 'count') {
+    return `${tree.count} of: ${tree.children.map(formatInlineRequirement).join(', ')}`;
+  }
+
+  if (tree.type === 'OR') {
+    return tree.children.map(formatInlineRequirement).join(' OR ');
+  }
+
+  return tree.children.map(formatInlineRequirement).join(' AND ');
+}
+
+export function formatPrerequisiteTreeForDisplay(tree: PrerequisiteTree): string[] {
+  if (tree.type === 'AND') {
+    return tree.children.map((child) => formatInlineRequirement(child));
+  }
+
+  return [formatInlineRequirement(tree)];
 }
 
 let cachedPrerequisites: Prerequisites | null = null;
@@ -69,28 +241,45 @@ export function loadPrerequisites(): Prerequisites {
 
 export function evaluateTreeRecursive(
   tree: PrerequisiteTree,
-  taken: Set<string>
+  taken: Set<string>,
+  profile?: UserEnrollmentProfile
 ): boolean {
   if (tree.type === 'course') {
     return taken.has(tree.code.toUpperCase());
   }
 
+  if (tree.type === 'major') {
+    return isMajorRequirementSatisfied(tree.requirement, profile);
+  }
+
+  if (tree.type === 'program') {
+    return isProgramRequirementSatisfied(tree.requirement, profile);
+  }
+
+  if (tree.type === 'school') {
+    return isSchoolRequirementSatisfied(tree.requirement, profile);
+  }
+
+  if (tree.type === 'year') {
+    return true;
+  }
+
   if (tree.type === 'count') {
     // Count how many children are satisfied
     const satisfiedCount = tree.children.filter((child) =>
-      evaluateTreeRecursive(child, taken)
+      evaluateTreeRecursive(child, taken, profile)
     ).length;
     return satisfiedCount >= tree.count;
   }
 
   if (tree.type === 'AND') {
     // All children must be satisfied
-    return tree.children.every((child) => evaluateTreeRecursive(child, taken));
+    return tree.children.every((child) => evaluateTreeRecursive(child, taken, profile));
   }
 
   if (tree.type === 'OR') {
     // At least one child must be satisfied
-    return tree.children.some((child) => evaluateTreeRecursive(child, taken));
+    return tree.children.some((child) => evaluateTreeRecursive(child, taken, profile));
   }
 
   return false;
@@ -101,13 +290,18 @@ export function evaluateTreeRecursive(
  */
 export function getMissingCoursesRecursive(
   tree: PrerequisiteTree,
-  taken: Set<string>
+  taken: Set<string>,
+  profile?: UserEnrollmentProfile
 ): string[] {
   if (tree.type === 'course') {
     if (taken.has(tree.code.toUpperCase())) {
       return [];
     }
     return [tree.code];
+  }
+
+  if (tree.type === 'major' || tree.type === 'program' || tree.type === 'year' || tree.type === 'school') {
+    return [];
   }
 
   if (tree.type === 'count') {
@@ -118,7 +312,7 @@ export function getMissingCoursesRecursive(
         missing.push(child.code);
       } else if (child.type !== 'course') {
         // Recursively check complex children
-        missing.push(...getMissingCoursesRecursive(child, taken));
+        missing.push(...getMissingCoursesRecursive(child, taken, profile));
       }
     }
     return missing;
@@ -128,7 +322,7 @@ export function getMissingCoursesRecursive(
     // All branches - collect all missing
     const missing: string[] = [];
     for (const child of tree.children) {
-      missing.push(...getMissingCoursesRecursive(child, taken));
+      missing.push(...getMissingCoursesRecursive(child, taken, profile));
     }
     return missing;
   }
@@ -136,7 +330,7 @@ export function getMissingCoursesRecursive(
   if (tree.type === 'OR') {
     // At least one must be satisfied
     const firstSatisfied = tree.children.some((child) =>
-      evaluateTreeRecursive(child, taken)
+      evaluateTreeRecursive(child, taken, profile)
     );
 
     if (firstSatisfied) {
@@ -146,7 +340,7 @@ export function getMissingCoursesRecursive(
     // None are satisfied - return all options
     const missing: string[] = [];
     for (const child of tree.children) {
-      missing.push(...getMissingCoursesRecursive(child, taken));
+      missing.push(...getMissingCoursesRecursive(child, taken, profile));
     }
     return missing;
   }
@@ -161,7 +355,8 @@ export function getMissingCoursesRecursive(
  */
 function getAllMissingCoursesFlat(
   tree: PrerequisiteTree,
-  taken: Set<string>
+  taken: Set<string>,
+  profile?: UserEnrollmentProfile
 ): Set<string> {
   const missing = new Set<string>();
 
@@ -170,10 +365,12 @@ function getAllMissingCoursesFlat(
       if (!taken.has(node.code.toUpperCase())) {
         missing.add(node.code);
       }
+    } else if (node.type === 'major' || node.type === 'program' || node.type === 'year' || node.type === 'school') {
+      return;
     } else if (node.type === 'count') {
       // For COUNT nodes, check if requirement is satisfied
       const satisfied = node.children.filter((child) =>
-        evaluateTreeRecursive(child, taken)
+        evaluateTreeRecursive(child, taken, profile)
       );
       const needMore = node.count - satisfied.length;
       
@@ -187,7 +384,7 @@ function getAllMissingCoursesFlat(
     } else if (node.type === 'OR') {
       // For OR nodes, only traverse unsatisfied branches
       const isSatisfied = node.children.some((child) =>
-        evaluateTreeRecursive(child, taken)
+        evaluateTreeRecursive(child, taken, profile)
       );
       
       if (!isSatisfied) {
@@ -206,7 +403,8 @@ function getAllMissingCoursesFlat(
  */
 export function getDetailedMissingRequirements(
   tree: PrerequisiteTree,
-  taken: Set<string>
+  taken: Set<string>,
+  profile?: UserEnrollmentProfile
 ): RequirementMissing[] {
   if (tree.type === 'course') {
     const code = tree.code.toUpperCase();
@@ -222,9 +420,34 @@ export function getDetailedMissingRequirements(
     ];
   }
 
+  if (tree.type === 'major') {
+    if (isMajorRequirementSatisfied(tree.requirement, profile)) {
+      return [];
+    }
+    return [{ type: 'major', description: `Major Restriction: ${formatRequirementText(tree.requirement)}`, missingCourses: [] }];
+  }
+
+  if (tree.type === 'program') {
+    if (isProgramRequirementSatisfied(tree.requirement, profile)) {
+      return [];
+    }
+    return [{ type: 'program', description: `Program Restriction: ${formatRequirementText(tree.requirement)}`, missingCourses: [] }];
+  }
+
+  if (tree.type === 'year') {
+    return [];
+  }
+
+  if (tree.type === 'school') {
+    if (isSchoolRequirementSatisfied(tree.requirement, profile)) {
+      return [];
+    }
+    return [{ type: 'school', description: `School Requirement: ${tree.requirement}`, missingCourses: [] }];
+  }
+
   if (tree.type === 'count') {
     const satisfied = tree.children.filter((child) =>
-      evaluateTreeRecursive(child, taken)
+      evaluateTreeRecursive(child, taken, profile)
     );
     const needMore = tree.count - satisfied.length;
 
@@ -261,7 +484,7 @@ export function getDetailedMissingRequirements(
     // Collect requirements from all children
     const requirements: RequirementMissing[] = [];
     for (const child of tree.children) {
-      requirements.push(...getDetailedMissingRequirements(child, taken));
+      requirements.push(...getDetailedMissingRequirements(child, taken, profile));
     }
     return requirements;
   }
@@ -269,7 +492,7 @@ export function getDetailedMissingRequirements(
   if (tree.type === 'OR') {
     // Check if at least one branch is satisfied
     const firstSatisfied = tree.children.some((child) =>
-      evaluateTreeRecursive(child, taken)
+      evaluateTreeRecursive(child, taken, profile)
     );
 
     if (firstSatisfied) {
@@ -282,7 +505,7 @@ export function getDetailedMissingRequirements(
     
     // For each unsatisfied branch, collect its requirements
     for (const child of tree.children) {
-      const branchReqs = getDetailedMissingRequirements(child, taken);
+      const branchReqs = getDetailedMissingRequirements(child, taken, profile);
       
       if (branchReqs.length > 0) {
         branchRequirements.push(branchReqs);
@@ -339,7 +562,8 @@ export interface PrerequisiteCheckResult {
 export function checkPrerequisites(
   courseCode: string,
   completedCourses: string[],
-  plannedPastCourses: string[]
+  plannedPastCourses: string[],
+  profile?: UserEnrollmentProfile
 ): PrerequisiteCheckResult {
   const prerequisites = loadPrerequisites();
   const normalizedCode = courseCode.toUpperCase();
@@ -367,7 +591,7 @@ export function checkPrerequisites(
     };
   }
 
-  const isSatisfied = evaluateTreeRecursive(tree, taken);
+  const isSatisfied = evaluateTreeRecursive(tree, taken, profile);
   
   if (isSatisfied) {
     return {
@@ -380,13 +604,13 @@ export function checkPrerequisites(
   }
 
   // Get detailed requirements from tree structure
-  const detailedRequirements = getDetailedMissingRequirements(tree, taken);
+  const detailedRequirements = getDetailedMissingRequirements(tree, taken, profile);
   
   // Get comprehensive flat list of all missing courses as a safety net
-  const allMissingFlat = Array.from(getAllMissingCoursesFlat(tree, taken)).sort();
+  const allMissingFlat = Array.from(getAllMissingCoursesFlat(tree, taken, profile)).sort();
   
   // Also get the recursive missing courses
-  const missingCourses = getMissingCoursesRecursive(tree, taken);
+  const missingCourses = getMissingCoursesRecursive(tree, taken, profile);
 
   // Ensure all missing courses from the flat list are included in detailedRequirements
   const coveredCourses = new Set<string>();

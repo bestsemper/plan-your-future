@@ -432,7 +432,7 @@ export default function PlanBuilderPage() {
       
       setPrereqWarning({
         type: 'error',
-        message: `${code} is missing prerequisites: ${detailMsg}. These courses are not marked as completed or planned in an earlier semester.`,
+        message: `${code} has unmet prerequisite requirements: ${detailMsg}. Required courses must be completed or planned in an earlier semester.`,
         missingCourses: result.missingCourses,
         detailedRequirements: result.detailedRequirements,
       });
@@ -1425,7 +1425,7 @@ export default function PlanBuilderPage() {
       <ConfirmModal
         isOpen={showPrereqConfirm}
         title="Missing Prerequisites"
-        message={`${pendingCourseAdd?.courseCode} requires: ${prereqWarning?.missingCourses?.join(', ') || 'unknown courses'}. Are you sure you want to add this course anyway? A warning indicator will appear on this semester.`}
+        message={prereqWarning?.message || `${pendingCourseAdd?.courseCode} has unmet prerequisite requirements. Are you sure you want to add this course anyway? A warning indicator will appear on this semester.`}
         confirmLabel="Add Anyway"
         cancelLabel="Cancel"
         isConfirming={false}
@@ -1471,12 +1471,16 @@ export default function PlanBuilderPage() {
 
               {selectedCourseInfo.prerequisites.length > 0 && (
                 <div>
-                  <h3 className="font-semibold text-text-primary mb-2 border-b border-panel-border pb-1">Prerequisites / Enrollment Requirements</h3>
-                  <ul className="list-disc list-inside text-sm text-text-secondary space-y-1">
-                    {selectedCourseInfo.prerequisites.map((requirement, i) => (
-                      <li key={i}>{requirement}</li>
-                    ))}
-                  </ul>
+                  <h3 className="font-semibold text-text-primary mb-2 border-b border-panel-border pb-1">Enrollment Requirements</h3>
+                  {selectedCourseInfo.prerequisites.length === 1 ? (
+                    <p className="text-sm text-text-secondary leading-6">{selectedCourseInfo.prerequisites[0]}</p>
+                  ) : (
+                    <ul className="list-disc list-inside text-sm text-text-secondary space-y-1">
+                      {selectedCourseInfo.prerequisites.map((requirement, i) => (
+                        <li key={i}>{requirement}</li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               )}
 

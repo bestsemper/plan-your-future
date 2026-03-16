@@ -381,7 +381,9 @@ export async function getCurrentUser() {
 
 export async function updateCurrentUserProfile(data: {
   displayName: string;
+  school?: string;
   major?: string;
+  additionalPrograms?: string;
   gradYear?: string;
   bio?: string;
 }) {
@@ -395,8 +397,13 @@ export async function updateCurrentUserProfile(data: {
     return { error: 'Display name is required.' };
   }
 
+  const school = data.school?.trim() || null;
   const major = data.major?.trim() || null;
   const bio = data.bio?.trim() || null;
+  const additionalPrograms = (data.additionalPrograms ?? '')
+    .split(/\r?\n|,/)
+    .map((entry) => entry.trim())
+    .filter(Boolean);
 
   let gradYear: number | null = null;
   if (data.gradYear && data.gradYear.trim() !== '') {
@@ -411,7 +418,9 @@ export async function updateCurrentUserProfile(data: {
     where: { id: user.id },
     data: {
       displayName,
+      school,
       major,
+      additionalPrograms,
       gradYear,
       bio,
     },
@@ -1737,15 +1746,28 @@ export async function getCourseInfoFromCSV(courseCode: string) {
     const { courseDetailsByCode } = loadCourseDetailsFromJSON();
     const details = courseDetailsByCode.get(normalizedCode);
 
+    let structuredPrerequisites: string[] = [];
+    try {
+      const { loadPrerequisites, formatPrerequisiteTreeForDisplay } = await import('./utils/prerequisiteChecker');
+      const prerequisiteData = loadPrerequisites();
+      const tree = prerequisiteData.prerequisite_trees[normalizedCode];
+      if (tree) {
+        structuredPrerequisites = formatPrerequisiteTreeForDisplay(tree);
+      }
+    } catch (error) {
+      console.error('Failed to load structured prerequisites for course info:', error);
+    }
+
     return {
       courseCode: normalizedCode,
       title: details?.title ?? null,
       description: details?.description ?? null,
-      prerequisites: details?.prerequisites ?? [],
+      prerequisites: structuredPrerequisites.length > 0 ? structuredPrerequisites : (details?.prerequisites ?? []),
       terms: details?.terms ?? [],
     };
+
   } catch (err) {
-    console.error("Error reading CSV for course info:", err);
+    console.error('Error reading CSV for course info:', err);
     return { courseCode, title: null, description: null, prerequisites: [], terms: [] };
   }
 }
@@ -1946,6 +1968,7 @@ export async function checkCoursePrerequisites(input: {
 
   try {
     const { checkPrerequisites } = await import('./utils/prerequisiteChecker');
+    const user = await getCurrentUser();
     
     // Get courses from past semesters (earlier termOrder)
     const pastCourseCodes = input.planSemesters
@@ -1955,7 +1978,12 @@ export async function checkCoursePrerequisites(input: {
     const result = checkPrerequisites(
       input.courseCode,
       input.completedCourses,
-      pastCourseCodes
+      pastCourseCodes,
+      {
+        school: user?.school ?? null,
+        major: user?.major ?? null,
+        additionalPrograms: user?.additionalPrograms ?? [],
+      }
     );
 
     return result;
@@ -1980,7 +2008,9 @@ export async function getUserProfile(computingId: string) {
         id: true,
         computingId: true,
         displayName: true,
+        school: true,
         major: true,
+        additionalPrograms: true,
         gradYear: true,
         bio: true,
       },

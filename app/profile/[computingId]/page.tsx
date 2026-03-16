@@ -28,7 +28,12 @@ export default async function UserProfilePage({ params }: { params: Promise<{ co
           </div>
           <div className="w-full min-w-0">
             <h1 className="text-2xl md:text-3xl font-bold mb-1 text-heading break-words">{user.displayName}</h1>
-            <p className="text-text-secondary text-base md:text-lg font-medium break-words">{user.major || 'Undeclared'} • Class of {user.gradYear || '2026'}</p>
+            <p className="text-text-secondary text-base md:text-lg font-medium break-words">
+              {[user.school, user.major || 'Undeclared', `Class of ${user.gradYear || '2026'}`].filter(Boolean).join(' • ')}
+            </p>
+            {user.additionalPrograms.length > 0 && (
+              <p className="text-text-secondary text-sm md:text-base mt-2 break-words">Programs: {user.additionalPrograms.join(', ')}</p>
+            )}
             {user.bio && <p className="text-text-secondary text-sm md:text-base mt-2 break-words">{user.bio}</p>}
           </div>
         </div>

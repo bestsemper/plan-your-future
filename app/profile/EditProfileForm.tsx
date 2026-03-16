@@ -1,19 +1,25 @@
 "use client";
 
-import { useState, useTransition } from 'react';
+import { useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { updateCurrentUserProfile } from '../actions';
+import CustomSelect from '../components/CustomSelect';
+import { PROFILE_MAJOR_OPTIONS, PROFILE_SCHOOL_OPTIONS } from './profileOptions';
 
 type EditProfileFormProps = {
   displayName: string;
+  school: string | null;
   major: string | null;
+  additionalPrograms: string[];
   gradYear: number | null;
   bio: string | null;
 };
 
 export default function EditProfileForm({
   displayName,
+  school,
   major,
+  additionalPrograms,
   gradYear,
   bio,
 }: EditProfileFormProps) {
@@ -23,13 +29,33 @@ export default function EditProfileForm({
   const [error, setError] = useState<string | null>(null);
 
   const [formDisplayName, setFormDisplayName] = useState(displayName);
+  const [formSchool, setFormSchool] = useState(school ?? '');
   const [formMajor, setFormMajor] = useState(major ?? '');
+  const [formAdditionalPrograms, setFormAdditionalPrograms] = useState(additionalPrograms.join('\n'));
   const [formGradYear, setFormGradYear] = useState(gradYear ? String(gradYear) : '');
   const [formBio, setFormBio] = useState(bio ?? '');
 
+  const schoolOptions = useMemo(
+    () => PROFILE_SCHOOL_OPTIONS.map((option) => ({ value: option, label: option })),
+    [],
+  );
+
+  const majorOptions = useMemo(() => {
+    const options = new Set<string>(PROFILE_MAJOR_OPTIONS);
+    if (formMajor.trim()) {
+      options.add(formMajor.trim());
+    }
+
+    return Array.from(options)
+      .sort((left, right) => left.localeCompare(right))
+      .map((option) => ({ value: option, label: option }));
+  }, [formMajor]);
+
   const handleCancel = () => {
     setFormDisplayName(displayName);
+    setFormSchool(school ?? '');
     setFormMajor(major ?? '');
+    setFormAdditionalPrograms(additionalPrograms.join('\n'));
     setFormGradYear(gradYear ? String(gradYear) : '');
     setFormBio(bio ?? '');
     setError(null);
@@ -42,7 +68,9 @@ export default function EditProfileForm({
     startTransition(async () => {
       const res = await updateCurrentUserProfile({
         displayName: formDisplayName,
+        school: formSchool,
         major: formMajor,
+        additionalPrograms: formAdditionalPrograms,
         gradYear: formGradYear,
         bio: formBio,
       });
@@ -105,13 +133,39 @@ export default function EditProfileForm({
             </div>
 
             <div>
+              <label className="block text-sm font-semibold text-text-secondary mb-2">School</label>
+              <CustomSelect
+                value={formSchool}
+                onChange={setFormSchool}
+                options={schoolOptions}
+                placeholder="Select your school"
+                emptyLabel="No school selected"
+                searchable
+                searchPlaceholder="Search schools"
+              />
+            </div>
+
+            <div>
               <label className="block text-sm font-semibold text-text-secondary mb-2">Major</label>
-              <input
-                type="text"
+              <CustomSelect
                 value={formMajor}
-                onChange={(e) => setFormMajor(e.target.value)}
-                placeholder="e.g., Computer Science"
-                className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary outline-none focus:border-uva-blue focus:ring-2 focus:ring-uva-blue/20 transition-all"
+                onChange={setFormMajor}
+                options={majorOptions}
+                placeholder="Select your major"
+                emptyLabel="Undeclared"
+                searchable
+                searchPlaceholder="Search majors"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-text-secondary mb-2">Additional Programs</label>
+              <textarea
+                value={formAdditionalPrograms}
+                onChange={(e) => setFormAdditionalPrograms(e.target.value)}
+                placeholder="One per line: minor, certificate, concentration, second major, etc."
+                rows={4}
+                className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary outline-none focus:border-uva-blue focus:ring-2 focus:ring-uva-blue/20 transition-all resize-none"
               />
             </div>
 

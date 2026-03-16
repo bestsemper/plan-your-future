@@ -1,0 +1,5500 @@
+{
+  "metadata": {
+    "generated_at": "2026-03-16T02:50:00.623085+00:00",
+    "source_url": "https://sisuva.admin.virginia.edu/psc/ihprd/UVSS/SA/s/WEBLIB_HCX_CM.H_CLASS_SEARCH.FieldFormula.IScript_Main",
+    "institution": "University of Virginia",
+    "term": "1262",
+    "term_descr": "2026 Spring",
+    "career": "",
+    "school_count": 15,
+    "major_count": 341,
+    "department_count": 85,
+    "subject_count": 202,
+    "majors_source": "audit_requirements.csv"
+  },
+  "schools": [
+    {
+      "code": "LEAD",
+      "name": "Batten Leadership & Public Pol",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "CGAS",
+      "name": "College & Graduate Arts & Sci",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "SCPS",
+      "name": "Continuing & Prof Studies",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "GBUS",
+      "name": "Darden Grad School of Business",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "ENGR",
+      "name": "Engineering & Applied Science",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "PROV",
+      "name": "Executive VP & Provost",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "MCDG",
+      "name": "McIntire Darden Grad Business",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "COMM",
+      "name": "McIntire School of Commerce",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "MDS",
+      "name": "Medical School - BIMS/PHS",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "ARCH",
+      "name": "School of Architecture",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "DSCI",
+      "name": "School of Data Science",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "EDUC",
+      "name": "School of Education & HumanDev",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "LAW",
+      "name": "School of Law",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "MED",
+      "name": "School of Medicine",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "NURS",
+      "name": "School of Nursing",
+      "institution": "University of Virginia"
+    }
+  ],
+  "departments": [
+    {
+      "code": "AAS",
+      "name": "African-American & African Std",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "AIRS",
+      "name": "Air Science",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "ASL",
+      "name": "American Sign Language",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "AMST",
+      "name": "American Studies",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "ANTH",
+      "name": "Anthropology",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "APMA",
+      "name": "Applied Mathematics",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "ALAR",
+      "name": "Arch & Landscape Arch",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "ARH",
+      "name": "Architectural History",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "ARCHDP",
+      "name": "Architecture Department",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "ART",
+      "name": "Art",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "ASTR",
+      "name": "Astronomy",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "BIOC",
+      "name": "Biochem & Molecular Genetics",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "BIOL",
+      "name": "Biology",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "BIOM",
+      "name": "Biomedical Engineering",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "BIMS",
+      "name": "Biomedical Sciences",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "BIOP",
+      "name": "Biophysics",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "CELL",
+      "name": "Cell Biology",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "CHE",
+      "name": "Chemical Engineering",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "CHEM",
+      "name": "Chemistry",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "CEE",
+      "name": "Civil & Environmental Engr",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "CLAS",
+      "name": "Classics",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "COGS",
+      "name": "Cognitive Science",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "CGAS",
+      "name": "College & Graduate Arts & Sci",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "CS",
+      "name": "Computer Science",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "EDIS",
+      "name": "Curriculum Inst & Special Ed",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "ENGRD",
+      "name": "Dean Engineering & Applied Sci",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "ARCHD",
+      "name": "Dean of Architecture",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "CGASD",
+      "name": "Dean of Arts & Sciences",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "COMMD",
+      "name": "Dean of Commerce",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "SCPSD",
+      "name": "Dean of Continuing & Prof Stds",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "DATAD",
+      "name": "Dean of Data Science",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "EDUCD",
+      "name": "Dean of Education",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "GBUSD",
+      "name": "Dean of Graduate Business",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "LAWD",
+      "name": "Dean of Law",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "MEDD",
+      "name": "Dean of Medicine",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "NURSD",
+      "name": "Dean of Nursing",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "DRAM",
+      "name": "Drama",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "EALC",
+      "name": "East Asian Lang, Lit & Culture",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "ECON",
+      "name": "Economics",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "ECE",
+      "name": "Electrical & Computer Engr",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "STS",
+      "name": "Engineering & Society",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "ENGL",
+      "name": "English",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "ESL",
+      "name": "English as a Second Language",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "EVSC",
+      "name": "Environmental Sciences",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "ETP",
+      "name": "Environmental Thought & Pract",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "PROVD",
+      "name": "Executive VP & Provost",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "FREN",
+      "name": "French",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "GERM",
+      "name": "German",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "HIST",
+      "name": "History",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "EDHS",
+      "name": "Human Services",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "IMP",
+      "name": "Interdisciplinary Major",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "IDST",
+      "name": "Interdisciplinary Studies",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "JWST",
+      "name": "Jewish Studies",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "EDKI",
+      "name": "Kinesiology",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "LAR",
+      "name": "Landscape Architecture",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "EDLF",
+      "name": "Leadership, Foundations & Pol",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "MSE",
+      "name": "Materials Science & Engr",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "MATH",
+      "name": "Mathematics",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "MCDG",
+      "name": "McIntire Darden Grad Business",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "MAE",
+      "name": "Mechanical & Aerospace Engr",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "MDST",
+      "name": "Media Studies",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "MICR",
+      "name": "Microbiol, Immun & Cancer Biol",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "MESA",
+      "name": "Middle Eastern & South Asian",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "MISC",
+      "name": "Military Science",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "MUSI",
+      "name": "Music",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "NASC",
+      "name": "Naval Science",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "NESC",
+      "name": "Neuroscience",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "PATH",
+      "name": "Pathology",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "PHAR",
+      "name": "Pharmacology",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "PHIL",
+      "name": "Philosophy",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "PHYS",
+      "name": "Physics",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "PHY",
+      "name": "Physiology",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "PST",
+      "name": "Political & Social Thought",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "POLT",
+      "name": "Politics",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "PSYC",
+      "name": "Psychology",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "PHS",
+      "name": "Public Health Sciences",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "PPOL",
+      "name": "Public Policy",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "RELG",
+      "name": "Religious Studies",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "SLLT",
+      "name": "Slavic",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "SOC",
+      "name": "Sociology",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "SPAN",
+      "name": "Spanish, Italian & Portuguese",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "STAT",
+      "name": "Statistics",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "SIE",
+      "name": "Systems and Information Engine",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "PLAN",
+      "name": "Urban & Environmental Planning",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "SWAG",
+      "name": "Women, Gender & Sexuality",
+      "institution": "University of Virginia"
+    }
+  ],
+  "majors": [
+    {
+      "code": "ACCOUN-CRT",
+      "name": "Accounting (Cert)",
+      "displayName": "Accounting (Cert)"
+    },
+    {
+      "code": "ACCT-MS",
+      "name": "Accounting (MS)",
+      "displayName": "Accounting (MS)"
+    },
+    {
+      "code": "ADMIN-EDD",
+      "name": "Administration and Supervision (EDD)",
+      "displayName": "Administration and Supervision (EDD)"
+    },
+    {
+      "code": "ADMIN-MED",
+      "name": "Administration and Supervision (MED)",
+      "displayName": "Administration and Supervision (MED)"
+    },
+    {
+      "code": "ASCCN0-CRT",
+      "name": "Adult-Gerontology Acute Care Clinical Nurse Specialist (PMCert)",
+      "displayName": "Adult-Gerontology Acute Care Clinical Nurse Specialist (PMCert)"
+    },
+    {
+      "code": "ACNP1-CRT",
+      "name": "Adult-Gerontology Acute Care Nurse Practitioner (MSCert)",
+      "displayName": "Adult-Gerontology Acute Care Nurse Practitioner (MSCert)"
+    },
+    {
+      "code": "ACNP0-CRT",
+      "name": "Adult-Gerontology Acute Care Nurse Practitioner (PMCert)",
+      "displayName": "Adult-Gerontology Acute Care Nurse Practitioner (PMCert)"
+    },
+    {
+      "code": "AERO-BS",
+      "name": "Aerospace Engineering (BS)",
+      "displayName": "Aerospace Engineering (BS)"
+    },
+    {
+      "code": "AFRAM-BA",
+      "name": "African-American and African Studies (BA)",
+      "displayName": "African-American and African Studies (BA)"
+    },
+    {
+      "code": "AFRAM-MIN",
+      "name": "African-American and African Studies (Min)",
+      "displayName": "African-American and African Studies (Min)"
+    },
+    {
+      "code": "AFRICA-CRT",
+      "name": "Africana Studies (Cert)",
+      "displayName": "Africana Studies (Cert)"
+    },
+    {
+      "code": "ASL-MIN",
+      "name": "American Sign Language (Min)",
+      "displayName": "American Sign Language (Min)"
+    },
+    {
+      "code": "INAMST-BA",
+      "name": "Interdisciplinary - American Studies (BA)",
+      "displayName": "American Studies (BA)"
+    },
+    {
+      "code": "AMST-CRT",
+      "name": "American Studies (Cert)",
+      "displayName": "American Studies (Cert)"
+    },
+    {
+      "code": "ANTHRO-BA",
+      "name": "Anthropology (BA)",
+      "displayName": "Anthropology (BA)"
+    },
+    {
+      "code": "ANTHRO-MA",
+      "name": "Anthropology (MA)",
+      "displayName": "Anthropology (MA)"
+    },
+    {
+      "code": "ANTHRO-PHD",
+      "name": "Anthropology (PhD)",
+      "displayName": "Anthropology (PhD)"
+    },
+    {
+      "code": "ABA-CRT",
+      "name": "Applied Behavioral Analysis",
+      "displayName": "Applied Behavioral Analysis"
+    },
+    {
+      "code": "STAT-BA",
+      "name": "Applied Statistics (BA)",
+      "displayName": "Applied Statistics (BA)"
+    },
+    {
+      "code": "INARCY-BA",
+      "name": "Interdisciplinary - Archaeology (BA)",
+      "displayName": "Archaeology (BA)"
+    },
+    {
+      "code": "ARH-BARH",
+      "name": "Architectural History (BARH)",
+      "displayName": "Architectural History (BARH)"
+    },
+    {
+      "code": "ARH-MARH",
+      "name": "Architectural History (MARH)",
+      "displayName": "Architectural History (MARH)"
+    },
+    {
+      "code": "ARCH-BS",
+      "name": "Architecture (BS)",
+      "displayName": "Architecture (BS)"
+    },
+    {
+      "code": "ARCH-MAR",
+      "name": "Architecture (MArch)",
+      "displayName": "Architecture (MArch)"
+    },
+    {
+      "code": "UNDAR-ARU",
+      "name": "Architecture Undeclared",
+      "displayName": "Architecture Undeclared"
+    },
+    {
+      "code": "ARLAMR-BA",
+      "name": "Area Studies - Latin American Studies (BA)",
+      "displayName": "Area Studies - Latin American Studies (BA)"
+    },
+    {
+      "code": "ARTH-BA",
+      "name": "Art - Art History (BA)",
+      "displayName": "Art - Art History (BA)"
+    },
+    {
+      "code": "ARTS-BA",
+      "name": "Art - Studio Art (BA)",
+      "displayName": "Art - Studio Art (BA)"
+    },
+    {
+      "code": "UNDBA-ASU",
+      "name": "Arts & Sciences Undeclared",
+      "displayName": "Arts & Sciences Undeclared"
+    },
+    {
+      "code": "ASTRON-BA",
+      "name": "Astronomy (BA)",
+      "displayName": "Astronomy (BA)"
+    },
+    {
+      "code": "ASTRON-MS",
+      "name": "Astronomy (MS)",
+      "displayName": "Astronomy (MS)"
+    },
+    {
+      "code": "ASTRON-PHD",
+      "name": "Astronomy (PhD)",
+      "displayName": "Astronomy (PhD)"
+    },
+    {
+      "code": "ASTPHY-BA",
+      "name": "Astronomy-Physics (BA)",
+      "displayName": "Astronomy-Physics (BA)"
+    },
+    {
+      "code": "ASTPHY-BS",
+      "name": "Astronomy-Physics (BS)",
+      "displayName": "Astronomy-Physics (BS)"
+    },
+    {
+      "code": "ATHTRN-MS",
+      "name": "Athletic Training (MS)",
+      "displayName": "Athletic Training (MS)"
+    },
+    {
+      "code": "BEHNES-BS",
+      "name": "Behavioral Neuroscience (BS)",
+      "displayName": "Behavioral Neuroscience (BS)"
+    },
+    {
+      "code": "BIOMOL-PHD",
+      "name": "Biochemistry and Molecular Genetics (PhD)",
+      "displayName": "Biochemistry and Molecular Genetics (PhD)"
+    },
+    {
+      "code": "BIOLPS-MS",
+      "name": "Biological and Physical Sciences (MS)",
+      "displayName": "Biological and Physical Sciences (MS)"
+    },
+    {
+      "code": "BIOL-BA",
+      "name": "Biology (BA)",
+      "displayName": "Biology (BA)"
+    },
+    {
+      "code": "BIOL-BS",
+      "name": "Biology (BS)",
+      "displayName": "Biology (BS)"
+    },
+    {
+      "code": "BIOL-MA",
+      "name": "Biology (MA)",
+      "displayName": "Biology (MA)"
+    },
+    {
+      "code": "BIOL-MS",
+      "name": "Biology (MS)",
+      "displayName": "Biology (MS)"
+    },
+    {
+      "code": "BIOL-PHD",
+      "name": "Biology (PhD)",
+      "displayName": "Biology (PhD)"
+    },
+    {
+      "code": "BIOMEN-BS",
+      "name": "Biomedical Engineering (BS)",
+      "displayName": "Biomedical Engineering (BS)"
+    },
+    {
+      "code": "BIOMEN-ME",
+      "name": "Biomedical Engineering (ME)",
+      "displayName": "Biomedical Engineering (ME)"
+    },
+    {
+      "code": "BIOMEN-MS",
+      "name": "Biomedical Engineering (MS)",
+      "displayName": "Biomedical Engineering (MS)"
+    },
+    {
+      "code": "BIOMEN-PHD",
+      "name": "Biomedical Engineering (PhD)",
+      "displayName": "Biomedical Engineering (PhD)"
+    },
+    {
+      "code": "UNDE-BIMS",
+      "name": "Biomedical Sciences Undeclared",
+      "displayName": "Biomedical Sciences Undeclared"
+    },
+    {
+      "code": "BIOP-PHD",
+      "name": "Biophysics (PhD)",
+      "displayName": "Biophysics (PhD)"
+    },
+    {
+      "code": "BUSADM-MBA",
+      "name": "Business Administration (FMBA)",
+      "displayName": "Business Administration (FMBA)"
+    },
+    {
+      "code": "BUSADM-PHD",
+      "name": "Business Administration (PhD)",
+      "displayName": "Business Administration (PhD)"
+    },
+    {
+      "code": "BSADPT-MBA",
+      "name": "Business Administration (PMBA)",
+      "displayName": "Business Administration (PMBA)"
+    },
+    {
+      "code": "BUSADMNV-E",
+      "name": "Business Administration for Executives (EMBA)",
+      "displayName": "Business Administration for Executives (EMBA)"
+    },
+    {
+      "code": "BUSADMNV-G",
+      "name": "Business Administration for Executives Global (GEMBA)",
+      "displayName": "Business Administration for Executives Global (GEMBA)"
+    },
+    {
+      "code": "BUSANA-MS",
+      "name": "Business Analytics (MS)",
+      "displayName": "Business Analytics (MS)"
+    },
+    {
+      "code": "BUSNANA-MS",
+      "name": "Business Analytics (MS)",
+      "displayName": "Business Analytics (MS)"
+    },
+    {
+      "code": "CELL-PHD",
+      "name": "Cell Biology (PhD)",
+      "displayName": "Cell Biology (PhD)"
+    },
+    {
+      "code": "CHEMEN-BS",
+      "name": "Chemical Engineering (BS)",
+      "displayName": "Chemical Engineering (BS)"
+    },
+    {
+      "code": "CHEMEN-ME",
+      "name": "Chemical Engineering (ME)",
+      "displayName": "Chemical Engineering (ME)"
+    },
+    {
+      "code": "CHEMEN-CGE",
+      "name": "Chemical Engineering (ME-VEO)",
+      "displayName": "Chemical Engineering (ME-VEO)"
+    },
+    {
+      "code": "CHEMEN-MS",
+      "name": "Chemical Engineering (MS)",
+      "displayName": "Chemical Engineering (MS)"
+    },
+    {
+      "code": "CHEMEN-PHD",
+      "name": "Chemical Engineering (PhD)",
+      "displayName": "Chemical Engineering (PhD)"
+    },
+    {
+      "code": "CHEM-BA",
+      "name": "Chemistry (BA)",
+      "displayName": "Chemistry (BA)"
+    },
+    {
+      "code": "CHEM-BS",
+      "name": "Chemistry (BS)",
+      "displayName": "Chemistry (BS)"
+    },
+    {
+      "code": "CHEM-MA",
+      "name": "Chemistry (MA)",
+      "displayName": "Chemistry (MA)"
+    },
+    {
+      "code": "CHEM-MS",
+      "name": "Chemistry (MS)",
+      "displayName": "Chemistry (MS)"
+    },
+    {
+      "code": "CHEM-PHD",
+      "name": "Chemistry (PhD)",
+      "displayName": "Chemistry (PhD)"
+    },
+    {
+      "code": "CHEMBI-BS",
+      "name": "Chemistry - Biochemistry (BS)",
+      "displayName": "Chemistry - Biochemistry (BS)"
+    },
+    {
+      "code": "CHEMED-BS",
+      "name": "Chemistry - Chemical Education (BS)",
+      "displayName": "Chemistry - Chemical Education (BS)"
+    },
+    {
+      "code": "CHEMPH-BS",
+      "name": "Chemistry - Chemical Physics (BS)",
+      "displayName": "Chemistry - Chemical Physics (BS)"
+    },
+    {
+      "code": "CHEMEV-BS",
+      "name": "Chemistry - Environmental Chemistry (BS)",
+      "displayName": "Chemistry - Environmental Chemistry (BS)"
+    },
+    {
+      "code": "CHEMMA-BS",
+      "name": "Chemistry - Materials (BS)",
+      "displayName": "Chemistry - Materials (BS)"
+    },
+    {
+      "code": "INCHIN-BA",
+      "name": "Interdisciplinary - Chinese Language and Literature (BA)",
+      "displayName": "Chinese Language and Literature (BA)"
+    },
+    {
+      "code": "CHIN-MIN",
+      "name": "Chinese Language and Literature (Min)",
+      "displayName": "Chinese Language and Literature (Min)"
+    },
+    {
+      "code": "CIVIL-BS",
+      "name": "Civil Engineering (BS)",
+      "displayName": "Civil Engineering (BS)"
+    },
+    {
+      "code": "CIVIL-ME",
+      "name": "Civil Engineering (ME)",
+      "displayName": "Civil Engineering (ME)"
+    },
+    {
+      "code": "CIVIL-CGE",
+      "name": "Civil Engineering (ME-VEO)",
+      "displayName": "Civil Engineering (ME-VEO)"
+    },
+    {
+      "code": "CIVIL-MS",
+      "name": "Civil Engineering (MS)",
+      "displayName": "Civil Engineering (MS)"
+    },
+    {
+      "code": "CIVIL-PHD",
+      "name": "Civil Engineering (PhD)",
+      "displayName": "Civil Engineering (PhD)"
+    },
+    {
+      "code": "CLAS-BA",
+      "name": "Classics (BA)",
+      "displayName": "Classics (BA)"
+    },
+    {
+      "code": "CLAS-MA",
+      "name": "Classics (MA)",
+      "displayName": "Classics (MA)"
+    },
+    {
+      "code": "CLAS-PHD",
+      "name": "Classics (PhD)",
+      "displayName": "Classics (PhD)"
+    },
+    {
+      "code": "CLNPSY-PHD",
+      "name": "Clinical Psychology (PhD)",
+      "displayName": "Clinical Psychology (PhD)"
+    },
+    {
+      "code": "CLNRES-MS",
+      "name": "Clinical Research (MS)",
+      "displayName": "Clinical Research (MS)"
+    },
+    {
+      "code": "CLOUD-CRT",
+      "name": "Cloud Computing (Cert)",
+      "displayName": "Cloud Computing (Cert)"
+    },
+    {
+      "code": "INCOGS-BA",
+      "name": "Interdisciplinary - Cognitive Science (BA)",
+      "displayName": "Cognitive Science (BA)"
+    },
+    {
+      "code": "COMM-BSC",
+      "name": "Commerce (BSC)",
+      "displayName": "Commerce (BSC)"
+    },
+    {
+      "code": "COMM-MS",
+      "name": "Commerce (MS)",
+      "displayName": "Commerce (MS)"
+    },
+    {
+      "code": "SPATH-MED",
+      "name": "Communication Sciences and Disorders (MED)",
+      "displayName": "Communication Sciences and Disorders (MED)"
+    },
+    {
+      "code": "CPGNP1-CRT",
+      "name": "Community and Public Health - Geriatric Nurse Practitioner (MSCert)",
+      "displayName": "Community and Public Health - Geriatric Nurse Practitioner (MSCert)"
+    },
+    {
+      "code": "COMPLT-CRT",
+      "name": "Comparative Literature (Cert)",
+      "displayName": "Comparative Literature (Cert)"
+    },
+    {
+      "code": "COMBIO-PHD",
+      "name": "Computational Biology (PHD)",
+      "displayName": "Computational Biology (PHD)"
+    },
+    {
+      "code": "COMPEN-BS",
+      "name": "Computer Engineering (BS)",
+      "displayName": "Computer Engineering (BS)"
+    },
+    {
+      "code": "COMPEN-ME",
+      "name": "Computer Engineering (ME)",
+      "displayName": "Computer Engineering (ME)"
+    },
+    {
+      "code": "COMPEN-MS",
+      "name": "Computer Engineering (MS)",
+      "displayName": "Computer Engineering (MS)"
+    },
+    {
+      "code": "COMPEN-PHD",
+      "name": "Computer Engineering (PhD)",
+      "displayName": "Computer Engineering (PhD)"
+    },
+    {
+      "code": "CS-BA",
+      "name": "Computer Science (BA)",
+      "displayName": "Computer Science (BA)"
+    },
+    {
+      "code": "COMPSC-BS",
+      "name": "Computer Science (BS)",
+      "displayName": "Computer Science (BS)"
+    },
+    {
+      "code": "COMPSC-MCS",
+      "name": "Computer Science (MCS)",
+      "displayName": "Computer Science (MCS)"
+    },
+    {
+      "code": "COMPSC-MS",
+      "name": "Computer Science (MS)",
+      "displayName": "Computer Science (MS)"
+    },
+    {
+      "code": "COMPSC-PHD",
+      "name": "Computer Science (PhD)",
+      "displayName": "Computer Science (PhD)"
+    },
+    {
+      "code": "CONSTR-PHD",
+      "name": "Constructed Environment (PhD)",
+      "displayName": "Constructed Environment (PhD)"
+    },
+    {
+      "code": "COUNS-MED",
+      "name": "Counselor Education (MED)",
+      "displayName": "Counselor Education (MED)"
+    },
+    {
+      "code": "WRITE-MFA",
+      "name": "Creative Writing (MFA)",
+      "displayName": "Creative Writing (MFA)"
+    },
+    {
+      "code": "CREWRI-MIN",
+      "name": "Creative Writing (Min)",
+      "displayName": "Creative Writing (Min)"
+    },
+    {
+      "code": "CRMJUG-CRT",
+      "name": "Criminal Justice Education",
+      "displayName": "Criminal Justice Education"
+    },
+    {
+      "code": "CURRIN-EDD",
+      "name": "Curriculum and Instruction (EDD)",
+      "displayName": "Curriculum and Instruction (EDD)"
+    },
+    {
+      "code": "CURRIN-EDS",
+      "name": "Curriculum and Instruction (EDS)",
+      "displayName": "Curriculum and Instruction (EDS)"
+    },
+    {
+      "code": "CURRIN-MED",
+      "name": "Curriculum and Instruction (MED)",
+      "displayName": "Curriculum and Instruction (MED)"
+    },
+    {
+      "code": "CPS-CRT",
+      "name": "Cyber-Physical Systems (Cert)",
+      "displayName": "Cyber-Physical Systems (Cert)"
+    },
+    {
+      "code": "CYBERS-CRT",
+      "name": "Cybersecurity Analysis (Cert)",
+      "displayName": "Cybersecurity Analysis (Cert)"
+    },
+    {
+      "code": "INFOSM-CRT",
+      "name": "Cybersecurity Management (Cert)",
+      "displayName": "Cybersecurity Management (Cert)"
+    },
+    {
+      "code": "DATANA-MIN",
+      "name": "Data Analytics (Min)",
+      "displayName": "Data Analytics (Min)"
+    },
+    {
+      "code": "DATASCI-BS",
+      "name": "Data Science (BS)",
+      "displayName": "Data Science (BS)"
+    },
+    {
+      "code": "DATASCI-MS",
+      "name": "Data Science (MS)",
+      "displayName": "Data Science (MS)"
+    },
+    {
+      "code": "DS-PHD",
+      "name": "Data Science (PHD)",
+      "displayName": "Data Science (PHD)"
+    },
+    {
+      "code": "DH-CRT",
+      "name": "Digital Humanities (Cert)",
+      "displayName": "Digital Humanities (Cert)"
+    },
+    {
+      "code": "DRAMA-BA",
+      "name": "Drama (BA)",
+      "displayName": "Drama (BA)"
+    },
+    {
+      "code": "DRAMA-MFA",
+      "name": "Drama (MFA)",
+      "displayName": "Drama (MFA)"
+    },
+    {
+      "code": "ERCH-BSED",
+      "name": "Early Childhood Education (BSED)",
+      "displayName": "Early Childhood Education (BSED)"
+    },
+    {
+      "code": "INEAST-BA",
+      "name": "Interdisciplinary - East Asian Studies (BA)",
+      "displayName": "East Asian Studies (BA)"
+    },
+    {
+      "code": "EASIAN-MA",
+      "name": "East Asian Studies (MA)",
+      "displayName": "East Asian Studies (MA)"
+    },
+    {
+      "code": "INECHL-BA",
+      "name": "Interdisciplinary - Echols Scholar (BA)",
+      "displayName": "Echols Scholar (BA)"
+    },
+    {
+      "code": "ECON-BA",
+      "name": "Economics (BA)",
+      "displayName": "Economics (BA)"
+    },
+    {
+      "code": "ECON-MA",
+      "name": "Economics (MA)",
+      "displayName": "Economics (MA)"
+    },
+    {
+      "code": "ECON-PHD",
+      "name": "Economics (PhD)",
+      "displayName": "Economics (PhD)"
+    },
+    {
+      "code": "EDUC-PHD",
+      "name": "Education (PhD)",
+      "displayName": "Education (PhD)"
+    },
+    {
+      "code": "ELEM-PGM",
+      "name": "Education - Elementary Education (PGMT",
+      "displayName": "Education - Elementary Education (PGMT"
+    },
+    {
+      "code": "ESLED-PGM",
+      "name": "Education - English as a Second Language (PGMT",
+      "displayName": "Education - English as a Second Language (PGMT"
+    },
+    {
+      "code": "ENGLED-PGM",
+      "name": "Education - English Education (PGMT)",
+      "displayName": "Education - English Education (PGMT)"
+    },
+    {
+      "code": "KINES-MT",
+      "name": "Education - Kinesiology (MT)",
+      "displayName": "Education - Kinesiology (MT)"
+    },
+    {
+      "code": "MATHED-PGM",
+      "name": "Education - Mathematics Education (PGMT)",
+      "displayName": "Education - Mathematics Education (PGMT)"
+    },
+    {
+      "code": "SCIED-PGM",
+      "name": "Education - Science Education (PGMT)",
+      "displayName": "Education - Science Education (PGMT)"
+    },
+    {
+      "code": "SOCED-PGM",
+      "name": "Education - Social Studies Education (PGMT)",
+      "displayName": "Education - Social Studies Education (PGMT)"
+    },
+    {
+      "code": "SPCED-PGM",
+      "name": "Education - Special Education (PGMT)",
+      "displayName": "Education - Special Education (PGMT)"
+    },
+    {
+      "code": "EDPSYC-MED",
+      "name": "Educational Psychology (MED)",
+      "displayName": "Educational Psychology (MED)"
+    },
+    {
+      "code": "ELECT-BS",
+      "name": "Electrical Engineering (BS)",
+      "displayName": "Electrical Engineering (BS)"
+    },
+    {
+      "code": "ELECT-ME",
+      "name": "Electrical Engineering (ME)",
+      "displayName": "Electrical Engineering (ME)"
+    },
+    {
+      "code": "ELECT-CGE",
+      "name": "Electrical Engineering (ME-VEO)",
+      "displayName": "Electrical Engineering (ME-VEO)"
+    },
+    {
+      "code": "ELECT-MS",
+      "name": "Electrical Engineering (MS)",
+      "displayName": "Electrical Engineering (MS)"
+    },
+    {
+      "code": "ELECT-PHD",
+      "name": "Electrical Engineering (PhD)",
+      "displayName": "Electrical Engineering (PhD)"
+    },
+    {
+      "code": "ELEM-BSED",
+      "name": "Elementary Education (BSED)",
+      "displayName": "Elementary Education (BSED)"
+    },
+    {
+      "code": "ENGSCI-BS",
+      "name": "Engineering Science (BS)",
+      "displayName": "Engineering Science (BS)"
+    },
+    {
+      "code": "UNDBS-ENU",
+      "name": "Engineering Undeclared",
+      "displayName": "Engineering Undeclared"
+    },
+    {
+      "code": "ENGL-BA",
+      "name": "English (BA)",
+      "displayName": "English (BA)"
+    },
+    {
+      "code": "ENGL-MA",
+      "name": "English (MA)",
+      "displayName": "English (MA)"
+    },
+    {
+      "code": "ENGL-PHD",
+      "name": "English (PhD)",
+      "displayName": "English (PhD)"
+    },
+    {
+      "code": "ENGLMR-BA",
+      "name": "English - Medieval and Renaissance Studies (BA)",
+      "displayName": "English - Medieval and Renaissance Studies (BA)"
+    },
+    {
+      "code": "ENGLMO-BA",
+      "name": "English - Modern Literature and Culture (BA)",
+      "displayName": "English - Modern Literature and Culture (BA)"
+    },
+    {
+      "code": "ENGLPW-BA",
+      "name": "English - Poetry Writing (BA)",
+      "displayName": "English - Poetry Writing (BA)"
+    },
+    {
+      "code": "EH-CRT",
+      "name": "Environmental Humanities (Cert)",
+      "displayName": "Environmental Humanities (Cert)"
+    },
+    {
+      "code": "EVSC-BA",
+      "name": "Environmental Sciences (BA)",
+      "displayName": "Environmental Sciences (BA)"
+    },
+    {
+      "code": "EVSC-BS",
+      "name": "Environmental Sciences (BS)",
+      "displayName": "Environmental Sciences (BS)"
+    },
+    {
+      "code": "EVSC-MA",
+      "name": "Environmental Sciences (MA)",
+      "displayName": "Environmental Sciences (MA)"
+    },
+    {
+      "code": "EVSC-MS",
+      "name": "Environmental Sciences (MS)",
+      "displayName": "Environmental Sciences (MS)"
+    },
+    {
+      "code": "EVSC-PHD",
+      "name": "Environmental Sciences (PhD)",
+      "displayName": "Environmental Sciences (PhD)"
+    },
+    {
+      "code": "INETP-BA",
+      "name": "Interdisciplinary - Environmental Thought and Practice (BA)",
+      "displayName": "Environmental Thought and Practice (BA)"
+    },
+    {
+      "code": "EUROPE-MA",
+      "name": "European Studies (MA)",
+      "displayName": "European Studies (MA)"
+    },
+    {
+      "code": "EXPATH-PHD",
+      "name": "Experimental Pathology (PhD)",
+      "displayName": "Experimental Pathology (PhD)"
+    },
+    {
+      "code": "FNP0-CRT",
+      "name": "Family Nurse Practitioner (PMCert)",
+      "displayName": "Family Nurse Practitioner (PMCert)"
+    },
+    {
+      "code": "FORAFF-BA",
+      "name": "Foreign Affairs (BA)",
+      "displayName": "Foreign Affairs (BA)"
+    },
+    {
+      "code": "FORAFF-MA",
+      "name": "Foreign Affairs (MA)",
+      "displayName": "Foreign Affairs (MA)"
+    },
+    {
+      "code": "FORAFF-PHD",
+      "name": "Foreign Affairs (PhD)",
+      "displayName": "Foreign Affairs (PhD)"
+    },
+    {
+      "code": "FRENCH-BA",
+      "name": "French (BA)",
+      "displayName": "French (BA)"
+    },
+    {
+      "code": "FRENCH-MA",
+      "name": "French (MA)",
+      "displayName": "French (MA)"
+    },
+    {
+      "code": "FRENCH-PHD",
+      "name": "French (PhD)",
+      "displayName": "French (PhD)"
+    },
+    {
+      "code": "GSS-CRT",
+      "name": "Gender and Sexuality Studies",
+      "displayName": "Gender and Sexuality Studies"
+    },
+    {
+      "code": "GERMAN-BA",
+      "name": "German (BA)",
+      "displayName": "German (BA)"
+    },
+    {
+      "code": "INGERM-BA",
+      "name": "Interdisciplinary - German Studies (BA)",
+      "displayName": "German Studies (BA)"
+    },
+    {
+      "code": "GFTLRN-CRT",
+      "name": "Gifted Learners in Pre-K - 12 Education",
+      "displayName": "Gifted Learners in Pre-K - 12 Education"
+    },
+    {
+      "code": "GLBCOM-MS",
+      "name": "Global Commerce (MS)",
+      "displayName": "Global Commerce (MS)"
+    },
+    {
+      "code": "GLOBAL-MIN",
+      "name": "Global Culture and Commerce (Min)",
+      "displayName": "Global Culture and Commerce (Min)"
+    },
+    {
+      "code": "INGLBL-BA",
+      "name": "Interdisciplinary - Global Development Studies (BA)",
+      "displayName": "Global Development Studies (BA)"
+    },
+    {
+      "code": "INGLST-BA",
+      "name": "Interdisciplinary - Global Studies (BA)",
+      "displayName": "Global Studies (BA)"
+    },
+    {
+      "code": "GOVT-BA",
+      "name": "Government (BA)",
+      "displayName": "Government (BA)"
+    },
+    {
+      "code": "GOVT-MA",
+      "name": "Government (MA)",
+      "displayName": "Government (MA)"
+    },
+    {
+      "code": "GOVT-PHD",
+      "name": "Government (PhD)",
+      "displayName": "Government (PhD)"
+    },
+    {
+      "code": "GOVFOR-BA",
+      "name": "Government - Foreign Affairs (BA)",
+      "displayName": "Government - Foreign Affairs (BA)"
+    },
+    {
+      "code": "CRMJGR-CRT",
+      "name": "Graduate Criminal Justice Education",
+      "displayName": "Graduate Criminal Justice Education"
+    },
+    {
+      "code": "HSMGT-BPS",
+      "name": "Health Sciences Management (BPS)",
+      "displayName": "Health Sciences Management (BPS)"
+    },
+    {
+      "code": "HSMGT-CRT",
+      "name": "Health Sciences Management (Cert)",
+      "displayName": "Health Sciences Management (Cert)"
+    },
+    {
+      "code": "BIOETH-MIN",
+      "name": "Health, Ethics, & Society (mn)",
+      "displayName": "Health, Ethics, & Society (mn)"
+    },
+    {
+      "code": "HIGHED-EDD",
+      "name": "Higher Education (EDD)",
+      "displayName": "Higher Education (EDD)"
+    },
+    {
+      "code": "HIGHED-MED",
+      "name": "Higher Education (MED)",
+      "displayName": "Higher Education (MED)"
+    },
+    {
+      "code": "PRES-CRT",
+      "name": "Historic Preservation (Cert)",
+      "displayName": "Historic Preservation (Cert)"
+    },
+    {
+      "code": "HIST-BA",
+      "name": "History (BA)",
+      "displayName": "History (BA)"
+    },
+    {
+      "code": "HIST-MA",
+      "name": "History (MA)",
+      "displayName": "History (MA)"
+    },
+    {
+      "code": "HIST-PHD",
+      "name": "History (PhD)",
+      "displayName": "History (PhD)"
+    },
+    {
+      "code": "ARTH-MA",
+      "name": "History of Art (MA)",
+      "displayName": "History of Art (MA)"
+    },
+    {
+      "code": "ARTH-PHD",
+      "name": "History of Art (PhD)",
+      "displayName": "History of Art (PhD)"
+    },
+    {
+      "code": "ARTARC-MA",
+      "name": "History of Art and Architecture (MA)",
+      "displayName": "History of Art and Architecture (MA)"
+    },
+    {
+      "code": "ARTARC-PHD",
+      "name": "History of Art and Architecture (PhD)",
+      "displayName": "History of Art and Architecture (PhD)"
+    },
+    {
+      "code": "HSCITC-MIN",
+      "name": "History of Science and Technology (Min)",
+      "displayName": "History of Science and Technology (Min)"
+    },
+    {
+      "code": "INHBIO-BA",
+      "name": "Interdisciplinary - Human Biology (BA)",
+      "displayName": "Human Biology (BA)"
+    },
+    {
+      "code": "INFOTE-CRT",
+      "name": "Information Technology (Cert)",
+      "displayName": "Information Technology (Cert)"
+    },
+    {
+      "code": "INDES-CRT",
+      "name": "Instructional Design and Technology (Cert)",
+      "displayName": "Instructional Design and Technology (Cert)"
+    },
+    {
+      "code": "ATHADM-CRT",
+      "name": "Intercollegiate Athletics Administration (CERT)",
+      "displayName": "Intercollegiate Athletics Administration (CERT)"
+    },
+    {
+      "code": "INIMP-BA",
+      "name": "Interdisciplinary (BA)",
+      "displayName": "Interdisciplinary (BA)"
+    },
+    {
+      "code": "IDST-BIS",
+      "name": "Interdisciplinary Studies (BIS)",
+      "displayName": "Interdisciplinary Studies (BIS)"
+    },
+    {
+      "code": "ITAL-BA",
+      "name": "Italian (BA)",
+      "displayName": "Italian (BA)"
+    },
+    {
+      "code": "INJAPN-BA",
+      "name": "Interdisciplinary - Japanese Language and Literature (BA)",
+      "displayName": "Japanese Language and Literature (BA)"
+    },
+    {
+      "code": "JAPN-MIN",
+      "name": "Japanese Language and Literature (Min)",
+      "displayName": "Japanese Language and Literature (Min)"
+    },
+    {
+      "code": "INJWST-BA",
+      "name": "Interdisciplinary - Jewish Studies (BA)",
+      "displayName": "Jewish Studies (BA)"
+    },
+    {
+      "code": "KINES-BSED",
+      "name": "Kinesiology (BSED)",
+      "displayName": "Kinesiology (BSED)"
+    },
+    {
+      "code": "KINES-MED",
+      "name": "Kinesiology (MED)",
+      "displayName": "Kinesiology (MED)"
+    },
+    {
+      "code": "KOREAN-MIN",
+      "name": "Korean Language and Literature (Min)",
+      "displayName": "Korean Language and Literature (Min)"
+    },
+    {
+      "code": "LAND-MLAR",
+      "name": "Landscape Architecture (MLAR)",
+      "displayName": "Landscape Architecture (MLAR)"
+    },
+    {
+      "code": "SPAN-MIN",
+      "name": "Languages, Literatures and Cultures of the Spanish-Speaking World (mn)",
+      "displayName": "Languages, Literatures and Cultures of the Spanish-Speaking World (mn)"
+    },
+    {
+      "code": "LAW-JD",
+      "name": "Law (JD)",
+      "displayName": "Law (JD)"
+    },
+    {
+      "code": "LAW-LLM",
+      "name": "Law (LLM)",
+      "displayName": "Law (LLM)"
+    },
+    {
+      "code": "LAW-SJD",
+      "name": "Law (SJD)",
+      "displayName": "Law (SJD)"
+    },
+    {
+      "code": "LEADER-CRT",
+      "name": "Leadership (Cert)",
+      "displayName": "Leadership (Cert)"
+    },
+    {
+      "code": "HRESGR-CRT",
+      "name": "Leadership in Human Resources Management (Cert)",
+      "displayName": "Leadership in Human Resources Management (Cert)"
+    },
+    {
+      "code": "INLING-BA",
+      "name": "Interdisciplinary - Linguistics (BA)",
+      "displayName": "Linguistics (BA)"
+    },
+    {
+      "code": "LING-MA",
+      "name": "Linguistics (MA)",
+      "displayName": "Linguistics (MA)"
+    },
+    {
+      "code": "MIT16-MS",
+      "name": "Management of Information Technology",
+      "displayName": "Management of Information Technology"
+    },
+    {
+      "code": "PUBSAF-MPS",
+      "name": "Master of Public Safety",
+      "displayName": "Master of Public Safety"
+    },
+    {
+      "code": "MSE-BS",
+      "name": "Materials Science and Engineering (BS)",
+      "displayName": "Materials Science and Engineering (BS)"
+    },
+    {
+      "code": "MATSC-MMSE",
+      "name": "Materials Science and Engineering (MMSE)",
+      "displayName": "Materials Science and Engineering (MMSE)"
+    },
+    {
+      "code": "MATSC-CGE",
+      "name": "Materials Science and Engineering (MMSE-VEO)",
+      "displayName": "Materials Science and Engineering (MMSE-VEO)"
+    },
+    {
+      "code": "MATSCI-MS",
+      "name": "Materials Science and Engineering (MS)",
+      "displayName": "Materials Science and Engineering (MS)"
+    },
+    {
+      "code": "MATSCI-PHD",
+      "name": "Materials Science and Engineering (PhD)",
+      "displayName": "Materials Science and Engineering (PhD)"
+    },
+    {
+      "code": "MATH-BA",
+      "name": "Mathematics (BA)",
+      "displayName": "Mathematics (BA)"
+    },
+    {
+      "code": "MATH-MA",
+      "name": "Mathematics (MA)",
+      "displayName": "Mathematics (MA)"
+    },
+    {
+      "code": "MATH-MS",
+      "name": "Mathematics (MS)",
+      "displayName": "Mathematics (MS)"
+    },
+    {
+      "code": "MATH-PHD",
+      "name": "Mathematics (PhD)",
+      "displayName": "Mathematics (PhD)"
+    },
+    {
+      "code": "MATHFN-BA",
+      "name": "Mathematics - Financial Mathematics (BA)",
+      "displayName": "Mathematics - Financial Mathematics (BA)"
+    },
+    {
+      "code": "MATHGP-BA",
+      "name": "Mathematics - Graduate Preparatory (BA)",
+      "displayName": "Mathematics - Graduate Preparatory (BA)"
+    },
+    {
+      "code": "MATHPS-BA",
+      "name": "Mathematics - Probability and Statistics (BA)",
+      "displayName": "Mathematics - Probability and Statistics (BA)"
+    },
+    {
+      "code": "MATHTE-BA",
+      "name": "Mathematics - Teacher Education (BA)",
+      "displayName": "Mathematics - Teacher Education (BA)"
+    },
+    {
+      "code": "MAE-ME",
+      "name": "Mechanical and Aerospace Engineering (ME)",
+      "displayName": "Mechanical and Aerospace Engineering (ME)"
+    },
+    {
+      "code": "MAE-CGE",
+      "name": "Mechanical and Aerospace Engineering (ME-VEO)",
+      "displayName": "Mechanical and Aerospace Engineering (ME-VEO)"
+    },
+    {
+      "code": "MAE-MS",
+      "name": "Mechanical and Aerospace Engineering (MS)",
+      "displayName": "Mechanical and Aerospace Engineering (MS)"
+    },
+    {
+      "code": "MAE-PHD",
+      "name": "Mechanical and Aerospace Engineering (PhD)",
+      "displayName": "Mechanical and Aerospace Engineering (PhD)"
+    },
+    {
+      "code": "MECH-BS",
+      "name": "Mechanical Engineering (BS)",
+      "displayName": "Mechanical Engineering (BS)"
+    },
+    {
+      "code": "MDST-BA",
+      "name": "Media Studies (BA)",
+      "displayName": "Media Studies (BA)"
+    },
+    {
+      "code": "MDST-PHD",
+      "name": "Media Studies (PhD)",
+      "displayName": "Media Studies (PhD)"
+    },
+    {
+      "code": "MECULTE-MA",
+      "name": "Media, Culture and Technology (MA)",
+      "displayName": "Media, Culture and Technology (MA)"
+    },
+    {
+      "code": "MEDIC-MD",
+      "name": "Medicine (MD)",
+      "displayName": "Medicine (MD)"
+    },
+    {
+      "code": "INMSP-BA",
+      "name": "Interdisciplinary - Medieval Studies (BA)",
+      "displayName": "Medieval Studies (BA)"
+    },
+    {
+      "code": "MICRO-PHD",
+      "name": "Microbiology (PhD)",
+      "displayName": "Microbiology (PhD)"
+    },
+    {
+      "code": "MESA-MA",
+      "name": "Middle Eastern and South Asian Studies (MA)",
+      "displayName": "Middle Eastern and South Asian Studies (MA)"
+    },
+    {
+      "code": "INMESL-BA",
+      "name": "Interdisciplinary - Middle Eastern Languages and Literatures (BA)",
+      "displayName": "Middle Eastern Languages and Literatures (BA)"
+    },
+    {
+      "code": "INMEST-BA",
+      "name": "Interdisciplinary - Middle Eastern Studies (BA)",
+      "displayName": "Middle Eastern Studies (BA)"
+    },
+    {
+      "code": "MCDB-SP",
+      "name": "Molecular, Cell, and Developmental Biology (SP)",
+      "displayName": "Molecular, Cell, and Developmental Biology (SP)"
+    },
+    {
+      "code": "MUSIC-BA",
+      "name": "Music (BA)",
+      "displayName": "Music (BA)"
+    },
+    {
+      "code": "MUSIC-MA",
+      "name": "Music (MA)",
+      "displayName": "Music (MA)"
+    },
+    {
+      "code": "MUSIC-PHD",
+      "name": "Music (PhD)",
+      "displayName": "Music (PhD)"
+    },
+    {
+      "code": "NANOT-CRT",
+      "name": "Nanotechnology (Cert)",
+      "displayName": "Nanotechnology (Cert)"
+    },
+    {
+      "code": "PCCGR-CRT",
+      "name": "National Criminal Justice Command College (Cert)",
+      "displayName": "National Criminal Justice Command College (Cert)"
+    },
+    {
+      "code": "PCCUG-CRT",
+      "name": "National Criminal Justice Command College (Cert)",
+      "displayName": "National Criminal Justice Command College (Cert)"
+    },
+    {
+      "code": "NAIS-MIN",
+      "name": "Native American Indigenous Studies (Min)",
+      "displayName": "Native American Indigenous Studies (Min)"
+    },
+    {
+      "code": "NNP0-CRT",
+      "name": "Neonatal Nurse Practitioner (PMCert)",
+      "displayName": "Neonatal Nurse Practitioner (PMCert)"
+    },
+    {
+      "code": "INNESC-BA",
+      "name": "Interdisciplinary - Neuroscience (BA)",
+      "displayName": "Neuroscience (BA)"
+    },
+    {
+      "code": "NEURO-PHD",
+      "name": "Neuroscience (PhD)",
+      "displayName": "Neuroscience (PhD)"
+    },
+    {
+      "code": "NURS-BSN",
+      "name": "Nursing (BSN)",
+      "displayName": "Nursing (BSN)"
+    },
+    {
+      "code": "NURS-MSN",
+      "name": "Nursing (MSN)",
+      "displayName": "Nursing (MSN)"
+    },
+    {
+      "code": "NURS-PHD",
+      "name": "Nursing (PhD)",
+      "displayName": "Nursing (PhD)"
+    },
+    {
+      "code": "NURS-RNBSN",
+      "name": "Nursing (RN to BSN)",
+      "displayName": "Nursing (RN to BSN)"
+    },
+    {
+      "code": "NURS-DNP",
+      "name": "Nursing Practice (DNP)",
+      "displayName": "Nursing Practice (DNP)"
+    },
+    {
+      "code": "PNP0-CRT",
+      "name": "Pediatric Nurse Practitioner (PMCert)",
+      "displayName": "Pediatric Nurse Practitioner (PMCert)"
+    },
+    {
+      "code": "ACPNP0-CRT",
+      "name": "Pediatric Nurse Practitioner-Acute Care",
+      "displayName": "Pediatric Nurse Practitioner-Acute Care"
+    },
+    {
+      "code": "PHARM-PHD",
+      "name": "Pharmacology (PhD)",
+      "displayName": "Pharmacology (PhD)"
+    },
+    {
+      "code": "PHIL-BA",
+      "name": "Philosophy (BA)",
+      "displayName": "Philosophy (BA)"
+    },
+    {
+      "code": "PHIL-MA",
+      "name": "Philosophy (MA)",
+      "displayName": "Philosophy (MA)"
+    },
+    {
+      "code": "PHIL-PHD",
+      "name": "Philosophy (PhD)",
+      "displayName": "Philosophy (PhD)"
+    },
+    {
+      "code": "PHYS-BA",
+      "name": "Physics (BA)",
+      "displayName": "Physics (BA)"
+    },
+    {
+      "code": "PHYS-BS",
+      "name": "Physics (BS)",
+      "displayName": "Physics (BS)"
+    },
+    {
+      "code": "PHYS-MA",
+      "name": "Physics (MA)",
+      "displayName": "Physics (MA)"
+    },
+    {
+      "code": "PHYS-MS",
+      "name": "Physics (MS)",
+      "displayName": "Physics (MS)"
+    },
+    {
+      "code": "PHYS-PHD",
+      "name": "Physics (PhD)",
+      "displayName": "Physics (PhD)"
+    },
+    {
+      "code": "PHY-PHD",
+      "name": "Physiology (PhD)",
+      "displayName": "Physiology (PhD)"
+    },
+    {
+      "code": "INPST-BA",
+      "name": "Interdisciplinary - Political and Social Thought (BA)",
+      "displayName": "Political and Social Thought (BA)"
+    },
+    {
+      "code": "INPPL-BA",
+      "name": "Interdisciplinary - Political Philosophy, Policy, and Law (BA)",
+      "displayName": "Political Philosophy, Policy, and Law (BA)"
+    },
+    {
+      "code": "PREMOD-CRT",
+      "name": "Premodern Cultures and Communities (Cert)",
+      "displayName": "Premodern Cultures and Communities (Cert)"
+    },
+    {
+      "code": "PROCGR-CRT",
+      "name": "Procurement and Contracts Management (Cert)",
+      "displayName": "Procurement and Contracts Management (Cert)"
+    },
+    {
+      "code": "PROJMG-CRT",
+      "name": "Project Management (Cert)",
+      "displayName": "Project Management (Cert)"
+    },
+    {
+      "code": "PMHNP0-CRT",
+      "name": "Psychiatric-Mental Health Nurse Practitioner (PMCert)",
+      "displayName": "Psychiatric-Mental Health Nurse Practitioner (PMCert)"
+    },
+    {
+      "code": "PSYCH-BA",
+      "name": "Psychology (BA)",
+      "displayName": "Psychology (BA)"
+    },
+    {
+      "code": "PSYCH-MA",
+      "name": "Psychology (MA)",
+      "displayName": "Psychology (MA)"
+    },
+    {
+      "code": "PSYCH-PHD",
+      "name": "Psychology (PhD)",
+      "displayName": "Psychology (PhD)"
+    },
+    {
+      "code": "PUBAD-CRT",
+      "name": "Public Administration (Cert)",
+      "displayName": "Public Administration (Cert)"
+    },
+    {
+      "code": "PBLHLT-CRT",
+      "name": "Public Health (Cert)",
+      "displayName": "Public Health (Cert)"
+    },
+    {
+      "code": "PUBHLT-MPH",
+      "name": "Public Health (MPH)",
+      "displayName": "Public Health (MPH)"
+    },
+    {
+      "code": "PUBHUM-MIN",
+      "name": "Public Humanities in Place",
+      "displayName": "Public Humanities in Place"
+    },
+    {
+      "code": "PBLEAD-CRT",
+      "name": "Public Leadership (Cert)",
+      "displayName": "Public Leadership (Cert)"
+    },
+    {
+      "code": "PUBPOL-CRT",
+      "name": "Public Policy (Cert)",
+      "displayName": "Public Policy (Cert)"
+    },
+    {
+      "code": "PUBPOL-MPP",
+      "name": "Public Policy (MPP)",
+      "displayName": "Public Policy (MPP)"
+    },
+    {
+      "code": "PUBPL2-MPP",
+      "name": "Public Policy (MPP-2yr)",
+      "displayName": "Public Policy (MPP-2yr)"
+    },
+    {
+      "code": "PUBPOL-BA",
+      "name": "Public Policy and Leadership (BA)",
+      "displayName": "Public Policy and Leadership (BA)"
+    },
+    {
+      "code": "PBWTRH-MIN",
+      "name": "Public Writing and Rhetoric (Mn)",
+      "displayName": "Public Writing and Rhetoric (Mn)"
+    },
+    {
+      "code": "QNTANA-MED",
+      "name": "Quantitative Analytics in Education and the Social Sciences (MED)",
+      "displayName": "Quantitative Analytics in Education and the Social Sciences (MED)"
+    },
+    {
+      "code": "READED-CRT",
+      "name": "Reading Education (Cert)",
+      "displayName": "Reading Education (Cert)"
+    },
+    {
+      "code": "READED-MED",
+      "name": "Reading Education (MED)",
+      "displayName": "Reading Education (MED)"
+    },
+    {
+      "code": "REALES-CRT",
+      "name": "Real Estate Design and Development (Cert)",
+      "displayName": "Real Estate Design and Development (Cert)"
+    },
+    {
+      "code": "RELIG-BA",
+      "name": "Religious Studies (BA)",
+      "displayName": "Religious Studies (BA)"
+    },
+    {
+      "code": "RELIG-MA",
+      "name": "Religious Studies (MA)",
+      "displayName": "Religious Studies (MA)"
+    },
+    {
+      "code": "RELIG-PHD",
+      "name": "Religious Studies (PhD)",
+      "displayName": "Religious Studies (PhD)"
+    },
+    {
+      "code": "RUEAST-MIN",
+      "name": "Russian and East European Studies (Min)",
+      "displayName": "Russian and East European Studies (Min)"
+    },
+    {
+      "code": "SHPSYC-EDS",
+      "name": "School Psychology (EDS)",
+      "displayName": "School Psychology (EDS)"
+    },
+    {
+      "code": "SHPSYC-MED",
+      "name": "School Psychology (MED)",
+      "displayName": "School Psychology (MED)"
+    },
+    {
+      "code": "SCITEC-MIN",
+      "name": "Science and Technology Policy (Min)",
+      "displayName": "Science and Technology Policy (Min)"
+    },
+    {
+      "code": "STS-MIN",
+      "name": "Science, Technology, and Society",
+      "displayName": "Science, Technology, and Society"
+    },
+    {
+      "code": "SLAVIC-BA",
+      "name": "Slavic Languages and Literatures (BA)",
+      "displayName": "Slavic Languages and Literatures (BA)"
+    },
+    {
+      "code": "SLAVRE-BA",
+      "name": "Slavic Languages and Literatures - Russian and East European Studies (BA)",
+      "displayName": "Slavic Languages and Literatures - Russian and East European Studies (BA)"
+    },
+    {
+      "code": "SOCIOL-BA",
+      "name": "Sociology (BA)",
+      "displayName": "Sociology (BA)"
+    },
+    {
+      "code": "SOCIOL-MA",
+      "name": "Sociology (MA)",
+      "displayName": "Sociology (MA)"
+    },
+    {
+      "code": "SOCIOL-PHD",
+      "name": "Sociology (PhD)",
+      "displayName": "Sociology (PhD)"
+    },
+    {
+      "code": "INSASL-BA",
+      "name": "Interdisciplinary - South Asian Languages and Literatures (BA)",
+      "displayName": "South Asian Languages and Literatures (BA)"
+    },
+    {
+      "code": "INSAST-BA",
+      "name": "Interdisciplinary - South Asian Studies (BA)",
+      "displayName": "South Asian Studies (BA)"
+    },
+    {
+      "code": "SPAN-BA",
+      "name": "Spanish (BA)",
+      "displayName": "Spanish (BA)"
+    },
+    {
+      "code": "SPAN-MA",
+      "name": "Spanish (MA)",
+      "displayName": "Spanish (MA)"
+    },
+    {
+      "code": "SPAN-PHD",
+      "name": "Spanish (PhD)",
+      "displayName": "Spanish (PhD)"
+    },
+    {
+      "code": "SPCED-BSED",
+      "name": "Special Education (BSED)",
+      "displayName": "Special Education (BSED)"
+    },
+    {
+      "code": "SPCED-MED",
+      "name": "Special Education (MED)",
+      "displayName": "Special Education (MED)"
+    },
+    {
+      "code": "SPEDGC-CRT",
+      "name": "Special Education - General Curriculum (Cert)",
+      "displayName": "Special Education - General Curriculum (Cert)"
+    },
+    {
+      "code": "SPATH-BSED",
+      "name": "Speech Communication Disorders (BSED)",
+      "displayName": "Speech Communication Disorders (BSED)"
+    },
+    {
+      "code": "STATS-MIN",
+      "name": "Statistical Analysis of Social Behavior (Min)",
+      "displayName": "Statistical Analysis of Social Behavior (Min)"
+    },
+    {
+      "code": "INSTAT-BA",
+      "name": "Interdisciplinary - Statistics (BA)",
+      "displayName": "Statistics (BA)"
+    },
+    {
+      "code": "STATS-BS",
+      "name": "Statistics (BS)",
+      "displayName": "Statistics (BS)"
+    },
+    {
+      "code": "STAT-MIN",
+      "name": "Statistics (Min)",
+      "displayName": "Statistics (Min)"
+    },
+    {
+      "code": "STATS-MS",
+      "name": "Statistics (MS)",
+      "displayName": "Statistics (MS)"
+    },
+    {
+      "code": "STATS-PHD",
+      "name": "Statistics (PhD)",
+      "displayName": "Statistics (PhD)"
+    },
+    {
+      "code": "SYSTEM-BS",
+      "name": "Systems Engineering (BS)",
+      "displayName": "Systems Engineering (BS)"
+    },
+    {
+      "code": "SYSTEM-ME",
+      "name": "Systems Engineering (ME)",
+      "displayName": "Systems Engineering (ME)"
+    },
+    {
+      "code": "SYSTEM-AM",
+      "name": "Systems Engineering (ME-Accel)",
+      "displayName": "Systems Engineering (ME-Accel)"
+    },
+    {
+      "code": "SYSTEM-CGE",
+      "name": "Systems Engineering (ME-VEO)",
+      "displayName": "Systems Engineering (ME-VEO)"
+    },
+    {
+      "code": "SYSTEM-MS",
+      "name": "Systems Engineering (MS)",
+      "displayName": "Systems Engineering (MS)"
+    },
+    {
+      "code": "SYSTEM-PHD",
+      "name": "Systems Engineering (PhD)",
+      "displayName": "Systems Engineering (PhD)"
+    },
+    {
+      "code": "ENGLRN-CRT",
+      "name": "Teaching English Learners in Pre-K-12",
+      "displayName": "Teaching English Learners in Pre-K-12"
+    },
+    {
+      "code": "TESLGR-CRT",
+      "name": "Teaching English to Speakers of Other Languages (Cert)",
+      "displayName": "Teaching English to Speakers of Other Languages (Cert)"
+    },
+    {
+      "code": "TECHEN-MIN",
+      "name": "Technology and Environment (Min)",
+      "displayName": "Technology and Environment (Min)"
+    },
+    {
+      "code": "TCHETH-MIN",
+      "name": "Technology Ethics",
+      "displayName": "Technology Ethics"
+    },
+    {
+      "code": "PLAN-BUEP",
+      "name": "Urban and Environmental Planning (BUEP)",
+      "displayName": "Urban and Environmental Planning (BUEP)"
+    },
+    {
+      "code": "URBAN-MIN",
+      "name": "Urban and Environmental Planning (Min)",
+      "displayName": "Urban and Environmental Planning (Min)"
+    },
+    {
+      "code": "PLAN-MUEP",
+      "name": "Urban and Environmental Planning (MUEP)",
+      "displayName": "Urban and Environmental Planning (MUEP)"
+    },
+    {
+      "code": "URBAN-CRT",
+      "name": "Urban Design (Cert)",
+      "displayName": "Urban Design (Cert)"
+    },
+    {
+      "code": "URBAN-MUD",
+      "name": "Urban Design (MUD)",
+      "displayName": "Urban Design (MUD)"
+    },
+    {
+      "code": "INSWAG-BA",
+      "name": "Interdisciplinary - Women, Gender and Sexuality (BA)",
+      "displayName": "Women, Gender and Sexuality (BA)"
+    },
+    {
+      "code": "SWAG-MIN",
+      "name": "Women, Gender and Sexuality (Min)",
+      "displayName": "Women, Gender and Sexuality (Min)"
+    },
+    {
+      "code": "YOUTH-BSED",
+      "name": "Youth and Social Innovation (BSED)",
+      "displayName": "Youth and Social Innovation (BSED)"
+    }
+  ],
+  "careers": [
+    {
+      "code": "GRAD",
+      "name": "Graduate",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "BUSN",
+      "name": "Graduate Business",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "LAW",
+      "name": "Law",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "MEDS",
+      "name": "Medical School",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "NOCR",
+      "name": "Non-Credit",
+      "institution": "University of Virginia"
+    },
+    {
+      "code": "UGRD",
+      "name": "Undergraduate",
+      "institution": "University of Virginia"
+    }
+  ],
+  "subjects": [
+    {
+      "subject": "AAS",
+      "label": "AAS - African-American & African",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "AAS"
+      ],
+      "majorNames": [
+        "African-American & African Std"
+      ]
+    },
+    {
+      "subject": "ACCT",
+      "label": "ACCT - Accounting",
+      "schoolCodes": [
+        "SCPS"
+      ],
+      "schoolNames": [
+        "Continuing & Prof Studies"
+      ],
+      "majorCodes": [
+        "SCPSD"
+      ],
+      "majorNames": [
+        "Dean of Continuing & Prof Stds"
+      ]
+    },
+    {
+      "subject": "AIRS",
+      "label": "AIRS - Air Science",
+      "schoolCodes": [
+        "PROV"
+      ],
+      "schoolNames": [
+        "Executive VP & Provost"
+      ],
+      "majorCodes": [
+        "AIRS"
+      ],
+      "majorNames": [
+        "Air Science"
+      ]
+    },
+    {
+      "subject": "ALAR",
+      "label": "ALAR - Arch & Landscape Arch",
+      "schoolCodes": [
+        "ARCH"
+      ],
+      "schoolNames": [
+        "School of Architecture"
+      ],
+      "majorCodes": [
+        "ALAR"
+      ],
+      "majorNames": [
+        "Arch & Landscape Arch"
+      ]
+    },
+    {
+      "subject": "AMST",
+      "label": "AMST - American Studies",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "AMST"
+      ],
+      "majorNames": [
+        "American Studies"
+      ]
+    },
+    {
+      "subject": "ANTH",
+      "label": "ANTH - Anthropology",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "ANTH"
+      ],
+      "majorNames": [
+        "Anthropology"
+      ]
+    },
+    {
+      "subject": "APMA",
+      "label": "APMA - Applied Mathematics",
+      "schoolCodes": [
+        "ENGR"
+      ],
+      "schoolNames": [
+        "Engineering & Applied Science"
+      ],
+      "majorCodes": [
+        "APMA"
+      ],
+      "majorNames": [
+        "Applied Mathematics"
+      ]
+    },
+    {
+      "subject": "ARAB",
+      "label": "ARAB - Arabic",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "MESA"
+      ],
+      "majorNames": [
+        "Middle Eastern & South Asian"
+      ]
+    },
+    {
+      "subject": "ARAD",
+      "label": "ARAD - Arts Administration",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "ART"
+      ],
+      "majorNames": [
+        "Art"
+      ]
+    },
+    {
+      "subject": "ARAH",
+      "label": "ARAH - History of Art & Architecture",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "ART"
+      ],
+      "majorNames": [
+        "Art"
+      ]
+    },
+    {
+      "subject": "ARCH",
+      "label": "ARCH - Architecture",
+      "schoolCodes": [
+        "ARCH"
+      ],
+      "schoolNames": [
+        "School of Architecture"
+      ],
+      "majorCodes": [
+        "ARCHDP"
+      ],
+      "majorNames": [
+        "Architecture Department"
+      ]
+    },
+    {
+      "subject": "ARCY",
+      "label": "ARCY - Archaeology",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "ANTH"
+      ],
+      "majorNames": [
+        "Anthropology"
+      ]
+    },
+    {
+      "subject": "ARH",
+      "label": "ARH - Architectural History",
+      "schoolCodes": [
+        "ARCH"
+      ],
+      "schoolNames": [
+        "School of Architecture"
+      ],
+      "majorCodes": [
+        "ARH"
+      ],
+      "majorNames": [
+        "Architectural History"
+      ]
+    },
+    {
+      "subject": "ARTH",
+      "label": "ARTH - History of Art",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "ART"
+      ],
+      "majorNames": [
+        "Art"
+      ]
+    },
+    {
+      "subject": "ARTS",
+      "label": "ARTS - Studio Art",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "ART"
+      ],
+      "majorNames": [
+        "Art"
+      ]
+    },
+    {
+      "subject": "ASL",
+      "label": "ASL - American Sign Language",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "ASL"
+      ],
+      "majorNames": [
+        "American Sign Language"
+      ]
+    },
+    {
+      "subject": "ASTR",
+      "label": "ASTR - Astronomy",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "ASTR"
+      ],
+      "majorNames": [
+        "Astronomy"
+      ]
+    },
+    {
+      "subject": "BIMS",
+      "label": "BIMS - Biomedical Sciences",
+      "schoolCodes": [
+        "MDS"
+      ],
+      "schoolNames": [
+        "Medical School - BIMS/PHS"
+      ],
+      "majorCodes": [
+        "BIMS"
+      ],
+      "majorNames": [
+        "Biomedical Sciences"
+      ]
+    },
+    {
+      "subject": "BIOC",
+      "label": "BIOC - Biochemistry",
+      "schoolCodes": [
+        "MDS"
+      ],
+      "schoolNames": [
+        "Medical School - BIMS/PHS"
+      ],
+      "majorCodes": [
+        "BIOC"
+      ],
+      "majorNames": [
+        "Biochem & Molecular Genetics"
+      ]
+    },
+    {
+      "subject": "BIOL",
+      "label": "BIOL - Biology",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "BIOL"
+      ],
+      "majorNames": [
+        "Biology"
+      ]
+    },
+    {
+      "subject": "BIOP",
+      "label": "BIOP - Biophysics",
+      "schoolCodes": [
+        "MDS"
+      ],
+      "schoolNames": [
+        "Medical School - BIMS/PHS"
+      ],
+      "majorCodes": [
+        "BIOP"
+      ],
+      "majorNames": [
+        "Biophysics"
+      ]
+    },
+    {
+      "subject": "BME",
+      "label": "BME - Biomedical Engineering",
+      "schoolCodes": [
+        "ENGR"
+      ],
+      "schoolNames": [
+        "Engineering & Applied Science"
+      ],
+      "majorCodes": [
+        "BIOM"
+      ],
+      "majorNames": [
+        "Biomedical Engineering"
+      ]
+    },
+    {
+      "subject": "BUS",
+      "label": "BUS - Business",
+      "schoolCodes": [
+        "SCPS"
+      ],
+      "schoolNames": [
+        "Continuing & Prof Studies"
+      ],
+      "majorCodes": [
+        "SCPSD"
+      ],
+      "majorNames": [
+        "Dean of Continuing & Prof Stds"
+      ]
+    },
+    {
+      "subject": "CASS",
+      "label": "CASS - College Art Scholars Seminar",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "CGASD"
+      ],
+      "majorNames": [
+        "Dean of Arts & Sciences"
+      ]
+    },
+    {
+      "subject": "CE",
+      "label": "CE - Civil Engineering",
+      "schoolCodes": [
+        "ENGR"
+      ],
+      "schoolNames": [
+        "Engineering & Applied Science"
+      ],
+      "majorCodes": [
+        "CEE"
+      ],
+      "majorNames": [
+        "Civil & Environmental Engr"
+      ]
+    },
+    {
+      "subject": "CELL",
+      "label": "CELL - Cell Biology",
+      "schoolCodes": [
+        "MDS"
+      ],
+      "schoolNames": [
+        "Medical School - BIMS/PHS"
+      ],
+      "majorCodes": [
+        "CELL"
+      ],
+      "majorNames": [
+        "Cell Biology"
+      ]
+    },
+    {
+      "subject": "CGBM",
+      "label": "CGBM - Commerce General Business",
+      "schoolCodes": [
+        "COMM"
+      ],
+      "schoolNames": [
+        "McIntire School of Commerce"
+      ],
+      "majorCodes": [
+        "COMMD"
+      ],
+      "majorNames": [
+        "Dean of Commerce"
+      ]
+    },
+    {
+      "subject": "CHE",
+      "label": "CHE - Chemical Engineering",
+      "schoolCodes": [
+        "ENGR"
+      ],
+      "schoolNames": [
+        "Engineering & Applied Science"
+      ],
+      "majorCodes": [
+        "CHE"
+      ],
+      "majorNames": [
+        "Chemical Engineering"
+      ]
+    },
+    {
+      "subject": "CHEM",
+      "label": "CHEM - Chemistry",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "CHEM"
+      ],
+      "majorNames": [
+        "Chemistry"
+      ]
+    },
+    {
+      "subject": "CHIN",
+      "label": "CHIN - Chinese",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "EALC"
+      ],
+      "majorNames": [
+        "East Asian Lang, Lit & Culture"
+      ]
+    },
+    {
+      "subject": "CHRK",
+      "label": "CHRK - Cherokee Language and Culture",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "ANTH"
+      ],
+      "majorNames": [
+        "Anthropology"
+      ]
+    },
+    {
+      "subject": "CHTR",
+      "label": "CHTR - Chinese in Translation",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "EALC"
+      ],
+      "majorNames": [
+        "East Asian Lang, Lit & Culture"
+      ]
+    },
+    {
+      "subject": "CJ",
+      "label": "CJ - Criminal Justice",
+      "schoolCodes": [
+        "SCPS"
+      ],
+      "schoolNames": [
+        "Continuing & Prof Studies"
+      ],
+      "majorCodes": [
+        "SCPSD"
+      ],
+      "majorNames": [
+        "Dean of Continuing & Prof Stds"
+      ]
+    },
+    {
+      "subject": "CLAS",
+      "label": "CLAS - Classics",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "CLAS"
+      ],
+      "majorNames": [
+        "Classics"
+      ]
+    },
+    {
+      "subject": "COBI",
+      "label": "COBI - Computational Biology",
+      "schoolCodes": [
+        "MDS"
+      ],
+      "schoolNames": [
+        "Medical School - BIMS/PHS"
+      ],
+      "majorCodes": [
+        "MEDD"
+      ],
+      "majorNames": [
+        "Dean of Medicine"
+      ]
+    },
+    {
+      "subject": "COGS",
+      "label": "COGS - Cognitive Science",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "COGS"
+      ],
+      "majorNames": [
+        "Cognitive Science"
+      ]
+    },
+    {
+      "subject": "COMM",
+      "label": "COMM - Commerce",
+      "schoolCodes": [
+        "COMM"
+      ],
+      "schoolNames": [
+        "McIntire School of Commerce"
+      ],
+      "majorCodes": [
+        "COMMD"
+      ],
+      "majorNames": [
+        "Dean of Commerce"
+      ]
+    },
+    {
+      "subject": "CPE",
+      "label": "CPE - Computer Engineering",
+      "schoolCodes": [
+        "ENGR"
+      ],
+      "schoolNames": [
+        "Engineering & Applied Science"
+      ],
+      "majorCodes": [
+        "ECE"
+      ],
+      "majorNames": [
+        "Electrical & Computer Engr"
+      ]
+    },
+    {
+      "subject": "CREO",
+      "label": "CREO - Creole",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "FREN"
+      ],
+      "majorNames": [
+        "French"
+      ]
+    },
+    {
+      "subject": "CS",
+      "label": "CS - Computer Science",
+      "schoolCodes": [
+        "ENGR"
+      ],
+      "schoolNames": [
+        "Engineering & Applied Science"
+      ],
+      "majorCodes": [
+        "CS"
+      ],
+      "majorNames": [
+        "Computer Science"
+      ]
+    },
+    {
+      "subject": "DANC",
+      "label": "DANC - Dance",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "DRAM"
+      ],
+      "majorNames": [
+        "Drama"
+      ]
+    },
+    {
+      "subject": "DEM",
+      "label": "DEM - Democracy Initiative",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "CGASD"
+      ],
+      "majorNames": [
+        "Dean of Arts & Sciences"
+      ]
+    },
+    {
+      "subject": "DH",
+      "label": "DH - Digital Humanities",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "CGASD"
+      ],
+      "majorNames": [
+        "Dean of Arts & Sciences"
+      ]
+    },
+    {
+      "subject": "DRAM",
+      "label": "DRAM - Drama",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "DRAM"
+      ],
+      "majorNames": [
+        "Drama"
+      ]
+    },
+    {
+      "subject": "DS",
+      "label": "DS - Data Science",
+      "schoolCodes": [
+        "DSCI"
+      ],
+      "schoolNames": [
+        "School of Data Science"
+      ],
+      "majorCodes": [
+        "DATAD"
+      ],
+      "majorNames": [
+        "Dean of Data Science"
+      ]
+    },
+    {
+      "subject": "EALC",
+      "label": "EALC - East Asian Lang, Lit & Cult",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "EALC"
+      ],
+      "majorNames": [
+        "East Asian Lang, Lit & Culture"
+      ]
+    },
+    {
+      "subject": "EAST",
+      "label": "EAST - East Asian Studies",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "EALC"
+      ],
+      "majorNames": [
+        "East Asian Lang, Lit & Culture"
+      ]
+    },
+    {
+      "subject": "EBUS",
+      "label": "EBUS - Engineering Business",
+      "schoolCodes": [
+        "ENGR"
+      ],
+      "schoolNames": [
+        "Engineering & Applied Science"
+      ],
+      "majorCodes": [
+        "SIE"
+      ],
+      "majorNames": [
+        "Systems and Information Engine"
+      ]
+    },
+    {
+      "subject": "ECE",
+      "label": "ECE - Electrical & Computer Engr",
+      "schoolCodes": [
+        "ENGR"
+      ],
+      "schoolNames": [
+        "Engineering & Applied Science"
+      ],
+      "majorCodes": [
+        "ECE"
+      ],
+      "majorNames": [
+        "Electrical & Computer Engr"
+      ]
+    },
+    {
+      "subject": "ECON",
+      "label": "ECON - Economics",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "ECON"
+      ],
+      "majorNames": [
+        "Economics"
+      ]
+    },
+    {
+      "subject": "EDHS",
+      "label": "EDHS - Human Services",
+      "schoolCodes": [
+        "EDUC"
+      ],
+      "schoolNames": [
+        "School of Education & HumanDev"
+      ],
+      "majorCodes": [
+        "EDHS"
+      ],
+      "majorNames": [
+        "Human Services"
+      ]
+    },
+    {
+      "subject": "EDIS",
+      "label": "EDIS - Curriculum, Inst & Spec Ed",
+      "schoolCodes": [
+        "EDUC"
+      ],
+      "schoolNames": [
+        "School of Education & HumanDev"
+      ],
+      "majorCodes": [
+        "EDIS"
+      ],
+      "majorNames": [
+        "Curriculum Inst & Special Ed"
+      ]
+    },
+    {
+      "subject": "EDLF",
+      "label": "EDLF - Leadership, Foundations Policy",
+      "schoolCodes": [
+        "EDUC"
+      ],
+      "schoolNames": [
+        "School of Education & HumanDev"
+      ],
+      "majorCodes": [
+        "EDLF"
+      ],
+      "majorNames": [
+        "Leadership, Foundations & Pol"
+      ]
+    },
+    {
+      "subject": "EDNC",
+      "label": "EDNC - Education Non-Credit",
+      "schoolCodes": [
+        "EDUC"
+      ],
+      "schoolNames": [
+        "School of Education & HumanDev"
+      ],
+      "majorCodes": [
+        "EDUCD"
+      ],
+      "majorNames": [
+        "Dean of Education"
+      ]
+    },
+    {
+      "subject": "EGMT",
+      "label": "EGMT - Engagement",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "CGASD"
+      ],
+      "majorNames": [
+        "Dean of Arts & Sciences"
+      ]
+    },
+    {
+      "subject": "ENCW",
+      "label": "ENCW - Creative Writing",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "ENGL"
+      ],
+      "majorNames": [
+        "English"
+      ]
+    },
+    {
+      "subject": "ENGL",
+      "label": "ENGL - English Literature",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "ENGL"
+      ],
+      "majorNames": [
+        "English"
+      ]
+    },
+    {
+      "subject": "ENGR",
+      "label": "ENGR - Engineering",
+      "schoolCodes": [
+        "ENGR"
+      ],
+      "schoolNames": [
+        "Engineering & Applied Science"
+      ],
+      "majorCodes": [
+        "ENGRD"
+      ],
+      "majorNames": [
+        "Dean Engineering & Applied Sci"
+      ]
+    },
+    {
+      "subject": "ENTP",
+      "label": "ENTP - Entrepreneurship",
+      "schoolCodes": [
+        "COMM"
+      ],
+      "schoolNames": [
+        "McIntire School of Commerce"
+      ],
+      "majorCodes": [
+        "COMMD"
+      ],
+      "majorNames": [
+        "Dean of Commerce"
+      ]
+    },
+    {
+      "subject": "ENVH",
+      "label": "ENVH - Environmental Humanities",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "CGASD"
+      ],
+      "majorNames": [
+        "Dean of Arts & Sciences"
+      ]
+    },
+    {
+      "subject": "ENWR",
+      "label": "ENWR - English Writing",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "ENGL"
+      ],
+      "majorNames": [
+        "English"
+      ]
+    },
+    {
+      "subject": "ESL",
+      "label": "ESL - English as a Second Language",
+      "schoolCodes": [
+        "PROV"
+      ],
+      "schoolNames": [
+        "Executive VP & Provost"
+      ],
+      "majorCodes": [
+        "ESL"
+      ],
+      "majorNames": [
+        "English as a Second Language"
+      ]
+    },
+    {
+      "subject": "ETP",
+      "label": "ETP - Enviro Thought & Practice",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "ETP"
+      ],
+      "majorNames": [
+        "Environmental Thought & Pract"
+      ]
+    },
+    {
+      "subject": "EURS",
+      "label": "EURS - European Studies",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "CGAS"
+      ],
+      "majorNames": [
+        "College & Graduate Arts & Sci"
+      ]
+    },
+    {
+      "subject": "EVAT",
+      "label": "EVAT - Atmospheric Sciences",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "EVSC"
+      ],
+      "majorNames": [
+        "Environmental Sciences"
+      ]
+    },
+    {
+      "subject": "EVEC",
+      "label": "EVEC - Ecology",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "EVSC"
+      ],
+      "majorNames": [
+        "Environmental Sciences"
+      ]
+    },
+    {
+      "subject": "EVGE",
+      "label": "EVGE - Geosciences",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "EVSC"
+      ],
+      "majorNames": [
+        "Environmental Sciences"
+      ]
+    },
+    {
+      "subject": "EVHY",
+      "label": "EVHY - Hydrology",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "EVSC"
+      ],
+      "majorNames": [
+        "Environmental Sciences"
+      ]
+    },
+    {
+      "subject": "EVSC",
+      "label": "EVSC - Environmental Sciences",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "EVSC"
+      ],
+      "majorNames": [
+        "Environmental Sciences"
+      ]
+    },
+    {
+      "subject": "FREN",
+      "label": "FREN - French",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "FREN"
+      ],
+      "majorNames": [
+        "French"
+      ]
+    },
+    {
+      "subject": "GBAC",
+      "label": "GBAC - Grad Business Analytics Comm.",
+      "schoolCodes": [
+        "MCDG"
+      ],
+      "schoolNames": [
+        "McIntire Darden Grad Business"
+      ],
+      "majorCodes": [
+        "COMMD",
+        "MCDG"
+      ],
+      "majorNames": [
+        "Dean of Commerce",
+        "McIntire Darden Grad Business"
+      ]
+    },
+    {
+      "subject": "GBUS",
+      "label": "GBUS - Graduate Business",
+      "schoolCodes": [
+        "GBUS"
+      ],
+      "schoolNames": [
+        "Darden Grad School of Business"
+      ],
+      "majorCodes": [
+        "GBUSD"
+      ],
+      "majorNames": [
+        "Dean of Graduate Business"
+      ]
+    },
+    {
+      "subject": "GCCS",
+      "label": "GCCS - Global Commerce in Culture/Soc",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "CGASD"
+      ],
+      "majorNames": [
+        "Dean of Arts & Sciences"
+      ]
+    },
+    {
+      "subject": "GCNL",
+      "label": "GCNL - Clinical Nurse Leader",
+      "schoolCodes": [
+        "NURS"
+      ],
+      "schoolNames": [
+        "School of Nursing"
+      ],
+      "majorCodes": [
+        "NURSD"
+      ],
+      "majorNames": [
+        "Dean of Nursing"
+      ]
+    },
+    {
+      "subject": "GCOM",
+      "label": "GCOM - Graduate Commerce",
+      "schoolCodes": [
+        "COMM"
+      ],
+      "schoolNames": [
+        "McIntire School of Commerce"
+      ],
+      "majorCodes": [
+        "COMMD"
+      ],
+      "majorNames": [
+        "Dean of Commerce"
+      ]
+    },
+    {
+      "subject": "GDS",
+      "label": "GDS - Global Development Studies",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "CGASD"
+      ],
+      "majorNames": [
+        "Dean of Arts & Sciences"
+      ]
+    },
+    {
+      "subject": "GERM",
+      "label": "GERM - German",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "GERM"
+      ],
+      "majorNames": [
+        "German"
+      ]
+    },
+    {
+      "subject": "GETR",
+      "label": "GETR - German in Translation",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "GERM"
+      ],
+      "majorNames": [
+        "German"
+      ]
+    },
+    {
+      "subject": "GNUR",
+      "label": "GNUR - Graduate Nursing",
+      "schoolCodes": [
+        "NURS"
+      ],
+      "schoolNames": [
+        "School of Nursing"
+      ],
+      "majorCodes": [
+        "NURSD"
+      ],
+      "majorNames": [
+        "Dean of Nursing"
+      ]
+    },
+    {
+      "subject": "GREE",
+      "label": "GREE - Greek",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "CLAS"
+      ],
+      "majorNames": [
+        "Classics"
+      ]
+    },
+    {
+      "subject": "GSGS",
+      "label": "GSGS - GS-Global Studies",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "CGASD"
+      ],
+      "majorNames": [
+        "Dean of Arts & Sciences"
+      ]
+    },
+    {
+      "subject": "GSSJ",
+      "label": "GSSJ - GS-Security and Justice",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "CGASD"
+      ],
+      "majorNames": [
+        "Dean of Arts & Sciences"
+      ]
+    },
+    {
+      "subject": "GSVS",
+      "label": "GSVS - GS-Environments & Sustainabil",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "CGASD"
+      ],
+      "majorNames": [
+        "Dean of Arts & Sciences"
+      ]
+    },
+    {
+      "subject": "HBIO",
+      "label": "HBIO - Human Biology",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "BIOL"
+      ],
+      "majorNames": [
+        "Biology"
+      ]
+    },
+    {
+      "subject": "HEBR",
+      "label": "HEBR - Hebrew",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "MESA"
+      ],
+      "majorNames": [
+        "Middle Eastern & South Asian"
+      ]
+    },
+    {
+      "subject": "HHE",
+      "label": "HHE - Health, Humanities & Ethics",
+      "schoolCodes": [
+        "MDS"
+      ],
+      "schoolNames": [
+        "Medical School - BIMS/PHS"
+      ],
+      "majorCodes": [
+        "PHS"
+      ],
+      "majorNames": [
+        "Public Health Sciences"
+      ]
+    },
+    {
+      "subject": "HIAF",
+      "label": "HIAF - African History",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "HIST"
+      ],
+      "majorNames": [
+        "History"
+      ]
+    },
+    {
+      "subject": "HIEA",
+      "label": "HIEA - East Asian History",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "HIST"
+      ],
+      "majorNames": [
+        "History"
+      ]
+    },
+    {
+      "subject": "HIEU",
+      "label": "HIEU - European History",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "HIST"
+      ],
+      "majorNames": [
+        "History"
+      ]
+    },
+    {
+      "subject": "HILA",
+      "label": "HILA - Latin American History",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "HIST"
+      ],
+      "majorNames": [
+        "History"
+      ]
+    },
+    {
+      "subject": "HIME",
+      "label": "HIME - Middle Eastern History",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "HIST"
+      ],
+      "majorNames": [
+        "History"
+      ]
+    },
+    {
+      "subject": "HIND",
+      "label": "HIND - Hindi",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "MESA"
+      ],
+      "majorNames": [
+        "Middle Eastern & South Asian"
+      ]
+    },
+    {
+      "subject": "HISA",
+      "label": "HISA - South Asian History",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "HIST"
+      ],
+      "majorNames": [
+        "History"
+      ]
+    },
+    {
+      "subject": "HIST",
+      "label": "HIST - General History",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "HIST"
+      ],
+      "majorNames": [
+        "History"
+      ]
+    },
+    {
+      "subject": "HIUS",
+      "label": "HIUS - United States History",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "HIST"
+      ],
+      "majorNames": [
+        "History"
+      ]
+    },
+    {
+      "subject": "HR",
+      "label": "HR - Human Resources",
+      "schoolCodes": [
+        "SCPS"
+      ],
+      "schoolNames": [
+        "Continuing & Prof Studies"
+      ],
+      "majorCodes": [
+        "SCPSD"
+      ],
+      "majorNames": [
+        "Dean of Continuing & Prof Stds"
+      ]
+    },
+    {
+      "subject": "HSCI",
+      "label": "HSCI - College Science Seminar",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "CGASD"
+      ],
+      "majorNames": [
+        "Dean of Arts & Sciences"
+      ]
+    },
+    {
+      "subject": "IMP",
+      "label": "IMP - Interdisciplinary Thesis",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "IMP"
+      ],
+      "majorNames": [
+        "Interdisciplinary Major"
+      ]
+    },
+    {
+      "subject": "INST",
+      "label": "INST - Interdisciplinary Studies",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "CGASD"
+      ],
+      "majorNames": [
+        "Dean of Arts & Sciences"
+      ]
+    },
+    {
+      "subject": "ISBU",
+      "label": "ISBU - IS-Business",
+      "schoolCodes": [
+        "SCPS"
+      ],
+      "schoolNames": [
+        "Continuing & Prof Studies"
+      ],
+      "majorCodes": [
+        "IDST"
+      ],
+      "majorNames": [
+        "Interdisciplinary Studies"
+      ]
+    },
+    {
+      "subject": "ISHU",
+      "label": "ISHU - IS-Humanities",
+      "schoolCodes": [
+        "SCPS"
+      ],
+      "schoolNames": [
+        "Continuing & Prof Studies"
+      ],
+      "majorCodes": [
+        "IDST"
+      ],
+      "majorNames": [
+        "Interdisciplinary Studies"
+      ]
+    },
+    {
+      "subject": "ISIN",
+      "label": "ISIN - IS-Code of Inquiry",
+      "schoolCodes": [
+        "SCPS"
+      ],
+      "schoolNames": [
+        "Continuing & Prof Studies"
+      ],
+      "majorCodes": [
+        "IDST"
+      ],
+      "majorNames": [
+        "Interdisciplinary Studies"
+      ]
+    },
+    {
+      "subject": "ISLS",
+      "label": "ISLS - IS-Liberal Studies Seminar",
+      "schoolCodes": [
+        "SCPS"
+      ],
+      "schoolNames": [
+        "Continuing & Prof Studies"
+      ],
+      "majorCodes": [
+        "IDST"
+      ],
+      "majorNames": [
+        "Interdisciplinary Studies"
+      ]
+    },
+    {
+      "subject": "ISSS",
+      "label": "ISSS - IS-Social Sciences",
+      "schoolCodes": [
+        "SCPS"
+      ],
+      "schoolNames": [
+        "Continuing & Prof Studies"
+      ],
+      "majorCodes": [
+        "IDST"
+      ],
+      "majorNames": [
+        "Interdisciplinary Studies"
+      ]
+    },
+    {
+      "subject": "IT",
+      "label": "IT - Informational Technology",
+      "schoolCodes": [
+        "SCPS"
+      ],
+      "schoolNames": [
+        "Continuing & Prof Studies"
+      ],
+      "majorCodes": [
+        "SCPSD"
+      ],
+      "majorNames": [
+        "Dean of Continuing & Prof Stds"
+      ]
+    },
+    {
+      "subject": "ITAL",
+      "label": "ITAL - Italian",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "SPAN"
+      ],
+      "majorNames": [
+        "Spanish, Italian & Portuguese"
+      ]
+    },
+    {
+      "subject": "ITTR",
+      "label": "ITTR - Italian in Translation",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "SPAN"
+      ],
+      "majorNames": [
+        "Spanish, Italian & Portuguese"
+      ]
+    },
+    {
+      "subject": "JAPN",
+      "label": "JAPN - Japanese",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "EALC"
+      ],
+      "majorNames": [
+        "East Asian Lang, Lit & Culture"
+      ]
+    },
+    {
+      "subject": "JPTR",
+      "label": "JPTR - Japanese in Translation",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "EALC"
+      ],
+      "majorNames": [
+        "East Asian Lang, Lit & Culture"
+      ]
+    },
+    {
+      "subject": "JWST",
+      "label": "JWST - Jewish Studies",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "JWST"
+      ],
+      "majorNames": [
+        "Jewish Studies"
+      ]
+    },
+    {
+      "subject": "KICH",
+      "label": "KICH - Maya K'iche'",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "SPAN"
+      ],
+      "majorNames": [
+        "Spanish, Italian & Portuguese"
+      ]
+    },
+    {
+      "subject": "KINE",
+      "label": "KINE - Kinesiology",
+      "schoolCodes": [
+        "EDUC"
+      ],
+      "schoolNames": [
+        "School of Education & HumanDev"
+      ],
+      "majorCodes": [
+        "EDKI"
+      ],
+      "majorNames": [
+        "Kinesiology"
+      ]
+    },
+    {
+      "subject": "KLPA",
+      "label": "KLPA - Lifetime Physical Activity",
+      "schoolCodes": [
+        "EDUC"
+      ],
+      "schoolNames": [
+        "School of Education & HumanDev"
+      ],
+      "majorCodes": [
+        "EDKI"
+      ],
+      "majorNames": [
+        "Kinesiology"
+      ]
+    },
+    {
+      "subject": "KOR",
+      "label": "KOR - Korean",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "EALC"
+      ],
+      "majorNames": [
+        "East Asian Lang, Lit & Culture"
+      ]
+    },
+    {
+      "subject": "LAR",
+      "label": "LAR - Landscape Architecture",
+      "schoolCodes": [
+        "ARCH"
+      ],
+      "schoolNames": [
+        "School of Architecture"
+      ],
+      "majorCodes": [
+        "LAR"
+      ],
+      "majorNames": [
+        "Landscape Architecture"
+      ]
+    },
+    {
+      "subject": "LASE",
+      "label": "LASE - Liberal Arts Seminar",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "CGASD"
+      ],
+      "majorNames": [
+        "Dean of Arts & Sciences"
+      ]
+    },
+    {
+      "subject": "LAST",
+      "label": "LAST - Latin American Studies",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "SPAN"
+      ],
+      "majorNames": [
+        "Spanish, Italian & Portuguese"
+      ]
+    },
+    {
+      "subject": "LATI",
+      "label": "LATI - Latin",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "CLAS"
+      ],
+      "majorNames": [
+        "Classics"
+      ]
+    },
+    {
+      "subject": "LAW",
+      "label": "LAW - Law",
+      "schoolCodes": [
+        "LAW"
+      ],
+      "schoolNames": [
+        "School of Law"
+      ],
+      "majorCodes": [
+        "LAWD"
+      ],
+      "majorNames": [
+        "Dean of Law"
+      ]
+    },
+    {
+      "subject": "LING",
+      "label": "LING - Linguistics",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "ANTH"
+      ],
+      "majorNames": [
+        "Anthropology"
+      ]
+    },
+    {
+      "subject": "LNGS",
+      "label": "LNGS - General Linguistics",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "SLLT"
+      ],
+      "majorNames": [
+        "Slavic"
+      ]
+    },
+    {
+      "subject": "LPPA",
+      "label": "LPPA - Public Policy - Analysis",
+      "schoolCodes": [
+        "LEAD"
+      ],
+      "schoolNames": [
+        "Batten Leadership & Public Pol"
+      ],
+      "majorCodes": [
+        "PPOL"
+      ],
+      "majorNames": [
+        "Public Policy"
+      ]
+    },
+    {
+      "subject": "LPPL",
+      "label": "LPPL - Public Policy - Leadership",
+      "schoolCodes": [
+        "LEAD"
+      ],
+      "schoolNames": [
+        "Batten Leadership & Public Pol"
+      ],
+      "majorCodes": [
+        "PPOL"
+      ],
+      "majorNames": [
+        "Public Policy"
+      ]
+    },
+    {
+      "subject": "LPPP",
+      "label": "LPPP - Public Policy - Policy",
+      "schoolCodes": [
+        "LEAD"
+      ],
+      "schoolNames": [
+        "Batten Leadership & Public Pol"
+      ],
+      "majorCodes": [
+        "PPOL"
+      ],
+      "majorNames": [
+        "Public Policy"
+      ]
+    },
+    {
+      "subject": "LPPS",
+      "label": "LPPS - Public Policy - Substance",
+      "schoolCodes": [
+        "LEAD"
+      ],
+      "schoolNames": [
+        "Batten Leadership & Public Pol"
+      ],
+      "majorCodes": [
+        "PPOL"
+      ],
+      "majorNames": [
+        "Public Policy"
+      ]
+    },
+    {
+      "subject": "MAE",
+      "label": "MAE - Mechanical & Aero Engr",
+      "schoolCodes": [
+        "ENGR"
+      ],
+      "schoolNames": [
+        "Engineering & Applied Science"
+      ],
+      "majorCodes": [
+        "MAE"
+      ],
+      "majorNames": [
+        "Mechanical & Aerospace Engr"
+      ]
+    },
+    {
+      "subject": "MATH",
+      "label": "MATH - Mathematics",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "MATH"
+      ],
+      "majorNames": [
+        "Mathematics"
+      ]
+    },
+    {
+      "subject": "MDST",
+      "label": "MDST - Media Studies",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "MDST"
+      ],
+      "majorNames": [
+        "Media Studies"
+      ]
+    },
+    {
+      "subject": "MED",
+      "label": "MED - Medicine",
+      "schoolCodes": [
+        "MED"
+      ],
+      "schoolNames": [
+        "School of Medicine"
+      ],
+      "majorCodes": [
+        "MEDD"
+      ],
+      "majorNames": [
+        "Dean of Medicine"
+      ]
+    },
+    {
+      "subject": "MESA",
+      "label": "MESA - Middle Eastern & South Asian",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "MESA"
+      ],
+      "majorNames": [
+        "Middle Eastern & South Asian"
+      ]
+    },
+    {
+      "subject": "MEST",
+      "label": "MEST - Middle Eastern Studies",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "MESA"
+      ],
+      "majorNames": [
+        "Middle Eastern & South Asian"
+      ]
+    },
+    {
+      "subject": "MICR",
+      "label": "MICR - Microbiology",
+      "schoolCodes": [
+        "MDS"
+      ],
+      "schoolNames": [
+        "Medical School - BIMS/PHS"
+      ],
+      "majorCodes": [
+        "MICR"
+      ],
+      "majorNames": [
+        "Microbiol, Immun & Cancer Biol"
+      ]
+    },
+    {
+      "subject": "MISC",
+      "label": "MISC - Military Science",
+      "schoolCodes": [
+        "PROV"
+      ],
+      "schoolNames": [
+        "Executive VP & Provost"
+      ],
+      "majorCodes": [
+        "MISC"
+      ],
+      "majorNames": [
+        "Military Science"
+      ]
+    },
+    {
+      "subject": "MSE",
+      "label": "MSE - Materials Science & Engr",
+      "schoolCodes": [
+        "ENGR"
+      ],
+      "schoolNames": [
+        "Engineering & Applied Science"
+      ],
+      "majorCodes": [
+        "MSE"
+      ],
+      "majorNames": [
+        "Materials Science & Engr"
+      ]
+    },
+    {
+      "subject": "MSP",
+      "label": "MSP - Medieval Studies",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "HIST"
+      ],
+      "majorNames": [
+        "History"
+      ]
+    },
+    {
+      "subject": "MUBD",
+      "label": "MUBD - Music-Marching Band",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "MUSI"
+      ],
+      "majorNames": [
+        "Music"
+      ]
+    },
+    {
+      "subject": "MUEN",
+      "label": "MUEN - Music-Ensembles",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "MUSI"
+      ],
+      "majorNames": [
+        "Music"
+      ]
+    },
+    {
+      "subject": "MUPF",
+      "label": "MUPF - Music-Private Instruction",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "MUSI"
+      ],
+      "majorNames": [
+        "Music"
+      ]
+    },
+    {
+      "subject": "MUSI",
+      "label": "MUSI - Music",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "MUSI"
+      ],
+      "majorNames": [
+        "Music"
+      ]
+    },
+    {
+      "subject": "NASC",
+      "label": "NASC - Naval Science",
+      "schoolCodes": [
+        "PROV"
+      ],
+      "schoolNames": [
+        "Executive VP & Provost"
+      ],
+      "majorCodes": [
+        "NASC"
+      ],
+      "majorNames": [
+        "Naval Science"
+      ]
+    },
+    {
+      "subject": "NCBM",
+      "label": "NCBM - NC-Business & Management",
+      "schoolCodes": [
+        "SCPS"
+      ],
+      "schoolNames": [
+        "Continuing & Prof Studies"
+      ],
+      "majorCodes": [
+        "SCPSD"
+      ],
+      "majorNames": [
+        "Dean of Continuing & Prof Stds"
+      ]
+    },
+    {
+      "subject": "NCPR",
+      "label": "NCPR - NC-Professional Review",
+      "schoolCodes": [
+        "SCPS"
+      ],
+      "schoolNames": [
+        "Continuing & Prof Studies"
+      ],
+      "majorCodes": [
+        "SCPSD"
+      ],
+      "majorNames": [
+        "Dean of Continuing & Prof Stds"
+      ]
+    },
+    {
+      "subject": "NESC",
+      "label": "NESC - Neuroscience",
+      "schoolCodes": [
+        "CGAS",
+        "MDS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci",
+        "Medical School - BIMS/PHS"
+      ],
+      "majorCodes": [
+        "NESC"
+      ],
+      "majorNames": [
+        "Neuroscience"
+      ]
+    },
+    {
+      "subject": "NUCO",
+      "label": "NUCO - Nursing Core",
+      "schoolCodes": [
+        "NURS"
+      ],
+      "schoolNames": [
+        "School of Nursing"
+      ],
+      "majorCodes": [
+        "NURSD"
+      ],
+      "majorNames": [
+        "Dean of Nursing"
+      ]
+    },
+    {
+      "subject": "NUIP",
+      "label": "NUIP - Nursing Interprofessional",
+      "schoolCodes": [
+        "NURS"
+      ],
+      "schoolNames": [
+        "School of Nursing"
+      ],
+      "majorCodes": [
+        "NURSD"
+      ],
+      "majorNames": [
+        "Dean of Nursing"
+      ]
+    },
+    {
+      "subject": "NURS",
+      "label": "NURS - Nursing",
+      "schoolCodes": [
+        "NURS"
+      ],
+      "schoolNames": [
+        "School of Nursing"
+      ],
+      "majorCodes": [
+        "NURSD"
+      ],
+      "majorNames": [
+        "Dean of Nursing"
+      ]
+    },
+    {
+      "subject": "PATH",
+      "label": "PATH - Pathology",
+      "schoolCodes": [
+        "MDS"
+      ],
+      "schoolNames": [
+        "Medical School - BIMS/PHS"
+      ],
+      "majorCodes": [
+        "PATH"
+      ],
+      "majorNames": [
+        "Pathology"
+      ]
+    },
+    {
+      "subject": "PC",
+      "label": "PC - Procurement & Contracts Mgmt",
+      "schoolCodes": [
+        "SCPS"
+      ],
+      "schoolNames": [
+        "Continuing & Prof Studies"
+      ],
+      "majorCodes": [
+        "SCPSD"
+      ],
+      "majorNames": [
+        "Dean of Continuing & Prof Stds"
+      ]
+    },
+    {
+      "subject": "PERS",
+      "label": "PERS - Persian",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "MESA"
+      ],
+      "majorNames": [
+        "Middle Eastern & South Asian"
+      ]
+    },
+    {
+      "subject": "PETR",
+      "label": "PETR - Persian in Translation",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "MESA"
+      ],
+      "majorNames": [
+        "Middle Eastern & South Asian"
+      ]
+    },
+    {
+      "subject": "PHAR",
+      "label": "PHAR - Pharmacology",
+      "schoolCodes": [
+        "CGAS",
+        "MDS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci",
+        "Medical School - BIMS/PHS"
+      ],
+      "majorCodes": [
+        "PHAR"
+      ],
+      "majorNames": [
+        "Pharmacology"
+      ]
+    },
+    {
+      "subject": "PHIL",
+      "label": "PHIL - Philosophy",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "PHIL"
+      ],
+      "majorNames": [
+        "Philosophy"
+      ]
+    },
+    {
+      "subject": "PHS",
+      "label": "PHS - Public Health Sciences",
+      "schoolCodes": [
+        "CGAS",
+        "MDS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci",
+        "Medical School - BIMS/PHS"
+      ],
+      "majorCodes": [
+        "PHS"
+      ],
+      "majorNames": [
+        "Public Health Sciences"
+      ]
+    },
+    {
+      "subject": "PHY",
+      "label": "PHY - Physiology",
+      "schoolCodes": [
+        "MDS"
+      ],
+      "schoolNames": [
+        "Medical School - BIMS/PHS"
+      ],
+      "majorCodes": [
+        "PHY"
+      ],
+      "majorNames": [
+        "Physiology"
+      ]
+    },
+    {
+      "subject": "PHYS",
+      "label": "PHYS - Physics",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "PHYS"
+      ],
+      "majorNames": [
+        "Physics"
+      ]
+    },
+    {
+      "subject": "PLAC",
+      "label": "PLAC - Planning Application",
+      "schoolCodes": [
+        "ARCH"
+      ],
+      "schoolNames": [
+        "School of Architecture"
+      ],
+      "majorCodes": [
+        "PLAN"
+      ],
+      "majorNames": [
+        "Urban & Environmental Planning"
+      ]
+    },
+    {
+      "subject": "PLAD",
+      "label": "PLAD - Departmental Seminar",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "POLT"
+      ],
+      "majorNames": [
+        "Politics"
+      ]
+    },
+    {
+      "subject": "PLAN",
+      "label": "PLAN - Urban & Environ Planning",
+      "schoolCodes": [
+        "ARCH"
+      ],
+      "schoolNames": [
+        "School of Architecture"
+      ],
+      "majorCodes": [
+        "PLAN"
+      ],
+      "majorNames": [
+        "Urban & Environmental Planning"
+      ]
+    },
+    {
+      "subject": "PLAP",
+      "label": "PLAP - American Politics",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "POLT"
+      ],
+      "majorNames": [
+        "Politics"
+      ]
+    },
+    {
+      "subject": "PLCP",
+      "label": "PLCP - Comparative Politics",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "POLT"
+      ],
+      "majorNames": [
+        "Politics"
+      ]
+    },
+    {
+      "subject": "PLIR",
+      "label": "PLIR - International Relations",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "POLT"
+      ],
+      "majorNames": [
+        "Politics"
+      ]
+    },
+    {
+      "subject": "PLPT",
+      "label": "PLPT - Political Theory",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "POLT"
+      ],
+      "majorNames": [
+        "Politics"
+      ]
+    },
+    {
+      "subject": "POL",
+      "label": "POL - Polish",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "SLLT"
+      ],
+      "majorNames": [
+        "Slavic"
+      ]
+    },
+    {
+      "subject": "PORT",
+      "label": "PORT - Portuguese",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "SPAN"
+      ],
+      "majorNames": [
+        "Spanish, Italian & Portuguese"
+      ]
+    },
+    {
+      "subject": "POTR",
+      "label": "POTR - Portuguese in Translation",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "SPAN"
+      ],
+      "majorNames": [
+        "Spanish, Italian & Portuguese"
+      ]
+    },
+    {
+      "subject": "PPL",
+      "label": "PPL - Politic Phil, Policy & Law",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "PHIL"
+      ],
+      "majorNames": [
+        "Philosophy"
+      ]
+    },
+    {
+      "subject": "PSHM",
+      "label": "PSHM - PS-Health Sciences Management",
+      "schoolCodes": [
+        "SCPS"
+      ],
+      "schoolNames": [
+        "Continuing & Prof Studies"
+      ],
+      "majorCodes": [
+        "SCPSD"
+      ],
+      "majorNames": [
+        "Dean of Continuing & Prof Stds"
+      ]
+    },
+    {
+      "subject": "PSLP",
+      "label": "PSLP - PS-Leadership Program",
+      "schoolCodes": [
+        "SCPS"
+      ],
+      "schoolNames": [
+        "Continuing & Prof Studies"
+      ],
+      "majorCodes": [
+        "SCPSD"
+      ],
+      "majorNames": [
+        "Dean of Continuing & Prof Stds"
+      ]
+    },
+    {
+      "subject": "PSPA",
+      "label": "PSPA - PS-Public Administration",
+      "schoolCodes": [
+        "SCPS"
+      ],
+      "schoolNames": [
+        "Continuing & Prof Studies"
+      ],
+      "majorCodes": [
+        "SCPSD"
+      ],
+      "majorNames": [
+        "Dean of Continuing & Prof Stds"
+      ]
+    },
+    {
+      "subject": "PSPM",
+      "label": "PSPM - PS-Project Management",
+      "schoolCodes": [
+        "SCPS"
+      ],
+      "schoolNames": [
+        "Continuing & Prof Studies"
+      ],
+      "majorCodes": [
+        "SCPSD"
+      ],
+      "majorNames": [
+        "Dean of Continuing & Prof Stds"
+      ]
+    },
+    {
+      "subject": "PSPS",
+      "label": "PSPS - Prof Studies - Public Safety",
+      "schoolCodes": [
+        "SCPS"
+      ],
+      "schoolNames": [
+        "Continuing & Prof Studies"
+      ],
+      "majorCodes": [
+        "SCPSD"
+      ],
+      "majorNames": [
+        "Dean of Continuing & Prof Stds"
+      ]
+    },
+    {
+      "subject": "PST",
+      "label": "PST - Political & Social Thought",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "PST"
+      ],
+      "majorNames": [
+        "Political & Social Thought"
+      ]
+    },
+    {
+      "subject": "PSYC",
+      "label": "PSYC - Psychology",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "PSYC"
+      ],
+      "majorNames": [
+        "Psychology"
+      ]
+    },
+    {
+      "subject": "RELA",
+      "label": "RELA - African Religions",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "RELG"
+      ],
+      "majorNames": [
+        "Religious Studies"
+      ]
+    },
+    {
+      "subject": "RELB",
+      "label": "RELB - Buddhism",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "RELG"
+      ],
+      "majorNames": [
+        "Religious Studies"
+      ]
+    },
+    {
+      "subject": "RELC",
+      "label": "RELC - Christianity",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "RELG"
+      ],
+      "majorNames": [
+        "Religious Studies"
+      ]
+    },
+    {
+      "subject": "RELG",
+      "label": "RELG - General Religion",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "RELG"
+      ],
+      "majorNames": [
+        "Religious Studies"
+      ]
+    },
+    {
+      "subject": "RELH",
+      "label": "RELH - Hinduism",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "RELG"
+      ],
+      "majorNames": [
+        "Religious Studies"
+      ]
+    },
+    {
+      "subject": "RELI",
+      "label": "RELI - Islam",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "RELG"
+      ],
+      "majorNames": [
+        "Religious Studies"
+      ]
+    },
+    {
+      "subject": "RELJ",
+      "label": "RELJ - Judaism",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "RELG"
+      ],
+      "majorNames": [
+        "Religious Studies"
+      ]
+    },
+    {
+      "subject": "RELS",
+      "label": "RELS - Religion-Special Topic",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "RELG"
+      ],
+      "majorNames": [
+        "Religious Studies"
+      ]
+    },
+    {
+      "subject": "RUSS",
+      "label": "RUSS - Russian",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "SLLT"
+      ],
+      "majorNames": [
+        "Slavic"
+      ]
+    },
+    {
+      "subject": "RUTR",
+      "label": "RUTR - Russian in Translation",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "SLLT"
+      ],
+      "majorNames": [
+        "Slavic"
+      ]
+    },
+    {
+      "subject": "SANS",
+      "label": "SANS - Sanskrit",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "MESA"
+      ],
+      "majorNames": [
+        "Middle Eastern & South Asian"
+      ]
+    },
+    {
+      "subject": "SARC",
+      "label": "SARC - Architecture School",
+      "schoolCodes": [
+        "ARCH"
+      ],
+      "schoolNames": [
+        "School of Architecture"
+      ],
+      "majorCodes": [
+        "ARCHD"
+      ],
+      "majorNames": [
+        "Dean of Architecture"
+      ]
+    },
+    {
+      "subject": "SATR",
+      "label": "SATR - South Asian Lit in Trans",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "MESA"
+      ],
+      "majorNames": [
+        "Middle Eastern & South Asian"
+      ]
+    },
+    {
+      "subject": "SEC",
+      "label": "SEC - Cyber Security Analysis",
+      "schoolCodes": [
+        "SCPS"
+      ],
+      "schoolNames": [
+        "Continuing & Prof Studies"
+      ],
+      "majorCodes": [
+        "SCPSD"
+      ],
+      "majorNames": [
+        "Dean of Continuing & Prof Stds"
+      ]
+    },
+    {
+      "subject": "SLAV",
+      "label": "SLAV - Slavic",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "SLLT"
+      ],
+      "majorNames": [
+        "Slavic"
+      ]
+    },
+    {
+      "subject": "SLFK",
+      "label": "SLFK - Slavic Folklore & Oral Lit",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "SLLT"
+      ],
+      "majorNames": [
+        "Slavic"
+      ]
+    },
+    {
+      "subject": "SLTR",
+      "label": "SLTR - Slavic in Translation",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "SLLT"
+      ],
+      "majorNames": [
+        "Slavic"
+      ]
+    },
+    {
+      "subject": "SOC",
+      "label": "SOC - Sociology",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "SOC"
+      ],
+      "majorNames": [
+        "Sociology"
+      ]
+    },
+    {
+      "subject": "SPAN",
+      "label": "SPAN - Spanish",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "SPAN"
+      ],
+      "majorNames": [
+        "Spanish, Italian & Portuguese"
+      ]
+    },
+    {
+      "subject": "STAT",
+      "label": "STAT - Statistics",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "STAT"
+      ],
+      "majorNames": [
+        "Statistics"
+      ]
+    },
+    {
+      "subject": "STS",
+      "label": "STS - Science, Tech & Society",
+      "schoolCodes": [
+        "ENGR"
+      ],
+      "schoolNames": [
+        "Engineering & Applied Science"
+      ],
+      "majorCodes": [
+        "STS"
+      ],
+      "majorNames": [
+        "Engineering & Society"
+      ]
+    },
+    {
+      "subject": "SWAH",
+      "label": "SWAH - Swahili",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "AAS"
+      ],
+      "majorNames": [
+        "African-American & African Std"
+      ]
+    },
+    {
+      "subject": "SYS",
+      "label": "SYS - Systems & Information Engr",
+      "schoolCodes": [
+        "ENGR"
+      ],
+      "schoolNames": [
+        "Engineering & Applied Science"
+      ],
+      "majorCodes": [
+        "SIE"
+      ],
+      "majorNames": [
+        "Systems and Information Engine"
+      ]
+    },
+    {
+      "subject": "TURK",
+      "label": "TURK - Turkish",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "MESA"
+      ],
+      "majorNames": [
+        "Middle Eastern & South Asian"
+      ]
+    },
+    {
+      "subject": "UD",
+      "label": "UD - UD",
+      "schoolCodes": [
+        "ARCH"
+      ],
+      "schoolNames": [
+        "School of Architecture"
+      ],
+      "majorCodes": [
+        "ARCHDP"
+      ],
+      "majorNames": [
+        "Architecture Department"
+      ]
+    },
+    {
+      "subject": "UNST",
+      "label": "UNST - University Studies",
+      "schoolCodes": [
+        "PROV"
+      ],
+      "schoolNames": [
+        "Executive VP & Provost"
+      ],
+      "majorCodes": [
+        "PROVD"
+      ],
+      "majorNames": [
+        "Executive VP & Provost"
+      ]
+    },
+    {
+      "subject": "URDU",
+      "label": "URDU - Urdu",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "MESA"
+      ],
+      "majorNames": [
+        "Middle Eastern & South Asian"
+      ]
+    },
+    {
+      "subject": "USEM",
+      "label": "USEM - University Seminar",
+      "schoolCodes": [
+        "PROV"
+      ],
+      "schoolNames": [
+        "Executive VP & Provost"
+      ],
+      "majorCodes": [
+        "PROVD"
+      ],
+      "majorNames": [
+        "Executive VP & Provost"
+      ]
+    },
+    {
+      "subject": "WGS",
+      "label": "WGS - Women, Gender & Sexuality",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "SWAG"
+      ],
+      "majorNames": [
+        "Women, Gender & Sexuality"
+      ]
+    }
+  ]
+}
