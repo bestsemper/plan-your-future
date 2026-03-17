@@ -63,7 +63,7 @@ export async function GET(request: Request) {
     const allCourses = getCourses();
 
     if (!query) {
-      return NextResponse.json(allCourses.slice(0, 50));
+      return NextResponse.json(allCourses);
     }
 
     const filteredCourses = allCourses.filter(course =>

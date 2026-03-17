@@ -1786,8 +1786,15 @@ export async function getCourseInfoFromJSON(courseCode: string) {
       structuredOtherRequirements.length > 0;
 
     const filteredFallbackPrerequisites = (details?.prerequisites ?? []).filter(
-      (requirement) => !/\binstructor\s+permission\b/i.test(requirement)
+      (requirement) =>
+        !/\binstructor\s+permission\b/i.test(requirement) &&
+        !/\b(?:students\s+)?(?:may\s+not\s+enroll\s+if|cannot\s+enroll\s+if|can't\s+enroll\s+if|credit\s+not\s+granted\s+for|not\s+open\s+to)\b/i.test(requirement)
     );
+
+    const notRestrictions = extractNotEnrollmentRestrictions([
+      details?.description ?? '',
+      ...(details?.prerequisites ?? []),
+    ]);
 
     return {
       courseCode: normalizedCode,
@@ -1798,12 +1805,14 @@ export async function getCourseInfoFromJSON(courseCode: string) {
         : filteredFallbackPrerequisites,
       corequisites: structuredCorequisites,
       otherRequirements: structuredOtherRequirements,
+      notRestrictions,
+      enrollmentRestrictions: notRestrictions,
       terms: details?.terms ?? [],
     };
 
   } catch (err) {
     console.error('Error reading CSV for course info:', err);
-    return { courseCode, title: null, description: null, prerequisites: [], corequisites: [], otherRequirements: [], terms: [] };
+    return { courseCode, title: null, description: null, prerequisites: [], corequisites: [], otherRequirements: [], notRestrictions: [], enrollmentRestrictions: [], terms: [] };
   }
 }
 
@@ -1852,6 +1861,54 @@ function normalizeCsvText(value: string): string {
     .replace(/&amp;/g, '&')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+function formatNotRestriction(rawRestriction: string): string {
+  const cleaned = rawRestriction.replace(/^students\s+/i, '').trim();
+  const normalizedCourseCodes = Array.from(
+    cleaned.matchAll(/\b([A-Z]{2,6})\s*(\d{4}[A-Z]?)\b/g),
+    (match) => `${match[1]} ${match[2]}`
+  );
+
+  if (normalizedCourseCodes.length > 0) {
+    const restrictionBody = cleaned
+      .replace(/^(?:may\s+not\s+enroll\s+if|cannot\s+enroll\s+if|can't\s+enroll\s+if|credit\s+not\s+granted\s+for|not\s+open\s+to)\s+/i, '')
+      .replace(/^they\s+have\s+/i, '')
+      .replace(/^previously\s+/i, '')
+      .replace(/^completed\s+/i, '')
+      .replace(/^received\s+credit\s+for\s+/i, '')
+      .replace(/\s+(?:has|have)\s+been\s+completed\.?$/i, '')
+      .replace(/\s+with\s+a\s+grade\s+of\s+[^.;]+$/i, '')
+      .trim();
+
+    const hasAnd = /\band\b/i.test(restrictionBody);
+    const hasOr = /\bor\b/i.test(restrictionBody);
+
+    if (!hasAnd || !hasOr) {
+      const joiner = hasAnd ? ' AND ' : ' OR ';
+      return normalizedCourseCodes.join(joiner);
+    }
+  }
+
+  return `${cleaned.charAt(0).toUpperCase()}${cleaned.slice(1)}`;
+}
+
+function extractNotEnrollmentRestrictions(texts: string[]): string[] {
+  const matches = new Set<string>();
+  const restrictionPattern = /(students\s+)?(?:may\s+not\s+enroll\s+if|cannot\s+enroll\s+if|can't\s+enroll\s+if|credit\s+not\s+granted\s+for|not\s+open\s+to)\s+[^.;]+/gi;
+
+  for (const text of texts) {
+    if (!text) continue;
+    const normalized = normalizeCsvText(text);
+    const found = normalized.match(restrictionPattern) ?? [];
+    for (const raw of found) {
+      const formatted = formatNotRestriction(raw);
+      if (!formatted) continue;
+      matches.add(formatted);
+    }
+  }
+
+  return Array.from(matches);
 }
 
 function isPlaceholderCourse(courseCode: string, description: string): boolean {

@@ -35,18 +35,23 @@ type CreditRequirementNode = {
   subject?: string;
 };
 
+type OtherRequirementNode = {
+  type: 'other';
+  requirement: string;
+};
+
 type OperatorNode = {
   type: 'AND' | 'OR';
-  children: (CourseNode | OperatorNode | CountNode | MajorRequirementNode | ProgramRequirementNode | YearRequirementNode | SchoolRequirementNode | CreditRequirementNode)[];
+  children: (CourseNode | OperatorNode | CountNode | MajorRequirementNode | ProgramRequirementNode | YearRequirementNode | SchoolRequirementNode | CreditRequirementNode | OtherRequirementNode)[];
 };
 
 type CountNode = {
   type: 'count';
   count: number;
-  children: (CourseNode | OperatorNode | CountNode | MajorRequirementNode | ProgramRequirementNode | YearRequirementNode | SchoolRequirementNode | CreditRequirementNode)[];
+  children: (CourseNode | OperatorNode | CountNode | MajorRequirementNode | ProgramRequirementNode | YearRequirementNode | SchoolRequirementNode | CreditRequirementNode | OtherRequirementNode)[];
 };
 
-type PrerequisiteTree = CourseNode | OperatorNode | CountNode | MajorRequirementNode | ProgramRequirementNode | YearRequirementNode | SchoolRequirementNode | CreditRequirementNode;
+type PrerequisiteTree = CourseNode | OperatorNode | CountNode | MajorRequirementNode | ProgramRequirementNode | YearRequirementNode | SchoolRequirementNode | CreditRequirementNode | OtherRequirementNode;
 
 export interface Prerequisites {
   prerequisite_trees: Record<string, PrerequisiteTree>;
@@ -71,7 +76,7 @@ type ManualEquivalentGroups = {
 };
 
 export interface RequirementMissing {
-  type: 'course' | 'count' | 'or' | 'and' | 'major' | 'program' | 'year' | 'school' | 'credit';
+  type: 'course' | 'count' | 'or' | 'and' | 'major' | 'program' | 'year' | 'school' | 'credit' | 'other';
   description: string;
   missingCourses: string[];
   requisiteType?: 'prerequisite' | 'corequisite' | 'other';
@@ -316,6 +321,10 @@ function formatInlineRequirement(tree: PrerequisiteTree): string {
     const creditDisplay = formatCreditValue(tree.credits);
     const suffix = tree.subject ? ` of ${tree.subject}` : '';
     return `Credit Requirement: ${creditDisplay} credits${suffix}`;
+  }
+
+  if (tree.type === 'other') {
+    return `Other Requirement: ${formatRequirementText(tree.requirement)}`;
   }
 
   if (tree.type === 'count') {
@@ -609,6 +618,10 @@ export function evaluateTreeRecursive(
     return isCreditRequirementSatisfied(tree, taken, context);
   }
 
+  if (tree.type === 'other') {
+    return false;
+  }
+
   if (tree.type === 'count') {
     // Count how many children are satisfied
     const satisfiedCount = tree.children.filter((child) =>
@@ -646,7 +659,7 @@ export function getMissingCoursesRecursive(
     return [tree.code];
   }
 
-  if (tree.type === 'major' || tree.type === 'program' || tree.type === 'year' || tree.type === 'school') {
+  if (tree.type === 'major' || tree.type === 'program' || tree.type === 'year' || tree.type === 'school' || tree.type === 'other') {
     return [];
   }
 
@@ -716,7 +729,7 @@ function getAllMissingCoursesFlat(
       if (!courseRequirementSatisfied(node.code, taken, context)) {
         missing.add(node.code);
       }
-    } else if (node.type === 'major' || node.type === 'program' || node.type === 'year' || node.type === 'school' || node.type === 'credit') {
+    } else if (node.type === 'major' || node.type === 'program' || node.type === 'year' || node.type === 'school' || node.type === 'credit' || node.type === 'other') {
       return;
     } else if (node.type === 'count') {
       // For COUNT nodes, check if requirement is satisfied
@@ -817,6 +830,10 @@ export function getDetailedMissingRequirements(
       satisfiedCredits,
       requiredCredits: tree.credits,
     }];
+  }
+
+  if (tree.type === 'other') {
+    return [{ type: 'other', description: `Other Requirement: ${formatRequirementText(tree.requirement)}`, missingCourses: [] }];
   }
 
   if (tree.type === 'count') {

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { CustomDropdown, CustomDropdownContent, CustomDropdownItem } from '../components/CustomDropdown';
-import { getCourseInfoFromJSON, getCourseCreditsFromJSON } from '../actions';
+import { getCourseInfoFromJSON } from '../actions';
 
 interface CourseInfo {
   courseCode: string;
@@ -11,6 +11,8 @@ interface CourseInfo {
   prerequisites: string[];
   corequisites: string[];
   otherRequirements: string[];
+  notRestrictions?: string[];
+  enrollmentRestrictions?: string[];
   terms: string[];
 }
 
@@ -81,14 +83,18 @@ export default function CoursesPage() {
     }
   };
 
-  const handleRequirementClick = async (requirement: string) => {
-    const courseCodeMatch = requirement.match(/([A-Z]{2,6}\s\d{4}[A-Z]?)/);
-    if (courseCodeMatch) {
-      const code = courseCodeMatch[1];
-      await handleSelectCourse(code);
-      if (searchInputRef.current) {
-        searchInputRef.current.focus();
-      }
+  const normalizeSearchCode = (value: string) => value.toUpperCase().replace(/\s+/g, ' ').trim();
+
+  const handleSearchSubmit = async () => {
+    const normalizedInput = normalizeSearchCode(courseCode);
+    if (!normalizedInput) return;
+
+    const exactMatch = allCourses.find((course) => normalizeSearchCode(course.code) === normalizedInput);
+    const fallbackMatch = filteredCourses[0];
+    const target = exactMatch?.code ?? fallbackMatch?.code;
+
+    if (target) {
+      await handleSelectCourse(target);
     }
   };
 
@@ -121,6 +127,12 @@ export default function CoursesPage() {
                 placeholder="Enter course code or name..."
                 value={courseCode}
                 onChange={(e) => handleCourseSearchChange(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    void handleSearchSubmit();
+                  }
+                }}
                 onFocus={() => setShowDropdown(true)}
                 onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
                 className="w-full px-3 py-2.5 bg-panel-bg-alt border border-panel-border-strong rounded-lg text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-uva-blue/30"
@@ -152,7 +164,7 @@ export default function CoursesPage() {
         {/* Course Details Panel */}
         <div className="lg:col-span-2">
           {selectedCourseInfo ? (
-            <CourseDescriptionContent courseInfo={selectedCourseInfo} onRequirementClick={handleRequirementClick} />
+            <CourseDescriptionContent courseInfo={selectedCourseInfo} />
           ) : (
             <div className="bg-panel-bg p-6 rounded-xl border border-panel-border text-center py-12">
               <svg
@@ -181,12 +193,10 @@ export default function CoursesPage() {
 
 interface CourseDescriptionProps {
   courseInfo: CourseInfo | null;
-  onRequirementClick?: (requirement: string) => void;
 }
 
 function CourseDescriptionContent({
   courseInfo,
-  onRequirementClick,
 }: CourseDescriptionProps) {
   if (!courseInfo) {
     return (
@@ -211,20 +221,26 @@ function CourseDescriptionContent({
     );
   }
 
-  const handleRequirementClick = (requirement: string) => {
-    if (onRequirementClick) {
-      onRequirementClick(requirement);
-    }
-  };
+  const notRestrictions = courseInfo.notRestrictions ?? courseInfo.enrollmentRestrictions ?? [];
 
-  const RequirementItem = ({ requirement }: { requirement: string }) => (
-    <li
-      className="text-sm text-text-secondary bg-panel-bg-alt px-3 py-2 rounded-lg hover:bg-hover-bg transition-colors cursor-pointer"
-      onClick={() => handleRequirementClick(requirement)}
-    >
-      {requirement}
-    </li>
-  );
+  const RequirementCard = ({ requirement, tone }: { requirement: string; tone: 'blue' | 'orange' | 'slate' }) => {
+    const toneClasses = {
+      blue: 'bg-uva-blue/10 text-uva-blue',
+      orange: 'bg-uva-orange/10 text-uva-orange',
+      slate: 'bg-text-muted/10 text-text-secondary',
+    } as const;
+
+    return (
+      <div className="rounded-xl border border-panel-border bg-hover-bg/40 px-3 py-2">
+        <div className="mb-1 flex items-center gap-2">
+          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${toneClasses[tone]}`}>
+            Requirement
+          </span>
+        </div>
+        <p className="text-sm text-text-secondary leading-6">{requirement}</p>
+      </div>
+    );
+  };
 
   return (
     <div className="bg-panel-bg p-6 rounded-xl border border-panel-border space-y-6">
@@ -246,7 +262,8 @@ function CourseDescriptionContent({
 
       {(courseInfo.prerequisites.length > 0 ||
         courseInfo.corequisites.length > 0 ||
-        courseInfo.otherRequirements.length > 0) && (
+        courseInfo.otherRequirements.length > 0 ||
+        notRestrictions.length > 0) && (
         <div>
           <h3 className="font-semibold text-text-primary mb-3 border-b border-panel-border pb-2">
             Requirements
@@ -254,34 +271,45 @@ function CourseDescriptionContent({
           <div className="space-y-4">
             {courseInfo.prerequisites.length > 0 && (
               <div>
-                <h4 className="text-sm font-medium text-text-primary mb-2">Prerequisites</h4>
-                <ul className="space-y-1">
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">Prerequisites</h4>
+                <div className="space-y-2">
                   {courseInfo.prerequisites.map((requirement, i) => (
-                    <RequirementItem key={`prerequisite-${i}`} requirement={requirement} />
+                    <RequirementCard key={`prerequisite-${i}`} requirement={requirement} tone="blue" />
                   ))}
-                </ul>
+                </div>
               </div>
             )}
 
             {courseInfo.corequisites.length > 0 && (
               <div>
-                <h4 className="text-sm font-medium text-text-primary mb-2">Corequisites</h4>
-                <ul className="space-y-1">
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">Corequisites</h4>
+                <div className="space-y-2">
                   {courseInfo.corequisites.map((requirement, i) => (
-                    <RequirementItem key={`corequisite-${i}`} requirement={requirement} />
+                    <RequirementCard key={`corequisite-${i}`} requirement={requirement} tone="orange" />
                   ))}
-                </ul>
+                </div>
               </div>
             )}
 
             {courseInfo.otherRequirements.length > 0 && (
               <div>
-                <h4 className="text-sm font-medium text-text-primary mb-2">Other Requirements</h4>
-                <ul className="space-y-1">
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">Other Requirements</h4>
+                <div className="space-y-2">
                   {courseInfo.otherRequirements.map((requirement, i) => (
-                    <RequirementItem key={`other-requirement-${i}`} requirement={requirement} />
+                    <RequirementCard key={`other-requirement-${i}`} requirement={requirement} tone="slate" />
                   ))}
-                </ul>
+                </div>
+              </div>
+            )}
+
+            {notRestrictions.length > 0 && (
+              <div>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">NOT</h4>
+                <div className="space-y-2">
+                  {notRestrictions.map((requirement, i) => (
+                    <RequirementCard key={`not-restriction-${i}`} requirement={requirement} tone="slate" />
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -311,6 +339,7 @@ function CourseDescriptionContent({
         courseInfo.prerequisites.length === 0 &&
         courseInfo.corequisites.length === 0 &&
         courseInfo.otherRequirements.length === 0 &&
+        notRestrictions.length === 0 &&
         courseInfo.terms.length === 0 && (
           <p className="text-gray-500 italic text-sm">
             No course details were found for this course in the current catalog data.

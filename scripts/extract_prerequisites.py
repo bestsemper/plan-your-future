@@ -156,6 +156,16 @@ class CreditRequirementNode:
         return asdict(self)
 
 
+@dataclass
+class OtherRequirementNode:
+    """Represents a freeform administrative or curricular requirement."""
+    type: str = "other"
+    requirement: str = ""
+
+    def to_dict(self):
+        return asdict(self)
+
+
 def normalize_requirement_text(text: str) -> str:
     """Normalize whitespace and trailing punctuation for requirement snippets."""
     normalized = re.sub(r'\s+', ' ', text).strip()
@@ -192,6 +202,7 @@ def extract_major_program_requirements(enrollment_requirements: str) -> List[Any
     year_nodes: List[Any] = []
     school_nodes: List[Any] = []
     credit_nodes: List[Any] = []
+    other_nodes: List[Any] = []
     complex_nodes: List[Any] = []
 
     clauses = [
@@ -258,6 +269,26 @@ def extract_major_program_requirements(enrollment_requirements: str) -> List[Any
     )
     grad_standing_pattern = re.compile(r'\b(?:grad(?:uate)?|undergrad(?:uate)?)\s+standing\b', re.IGNORECASE)
     restricted_prefix_pattern = re.compile(r'\brestricted\s+to\s+([^,.;]+)', re.IGNORECASE)
+    permission_requirement_pattern = re.compile(
+        r'\b(?:'
+        r'instructor(?:\'s)?\s+(?:permission|consent)|'
+        r'chair\s+permission|chair\s+approval|'
+        r'permission\s+of\s+(?:the\s+)?(?:instructor|chair|department\s+chair|program\s+director|director|committee)|'
+        r'consent\s+of\s+(?:the\s+)?(?:instructor|chair|department\s+chair|program\s+director|director|committee)|'
+        r'(?:department\s+chair|program\s+director|director|committee)\s+(?:permission|consent|approval)|'
+        r'permission\s+by\s+audition'
+        r')\b(?:\s+required)?',
+        re.IGNORECASE,
+    )
+    general_education_pattern = re.compile(
+        r'\b(?:'
+        r'general\s+education(?:\s+requirement)?(?:\s+in\s+[^,.;]+)?|'
+        r'gen(?:eral)?[-\s]?ed(?:ucation)?(?:\s+requirement)?(?:\s+in\s+[^,.;]+)?|'
+        r'(?:humanities|quantitative\s+skills?|writing|foreign\s+language)\s+requirement|'
+        r'one\s+course\s+in\s+the\s+humanities'
+        r')\b',
+        re.IGNORECASE,
+    )
     credit_requirement_pattern = re.compile(
         r'\b(?:(?:at\s+least|minimum\s+of)\s+)?~?\s*(\d+(?:\.\d+)?)\s+credits?\s+of\s+([^.;]+)',
         re.IGNORECASE,
@@ -416,8 +447,6 @@ def extract_major_program_requirements(enrollment_requirements: str) -> List[Any
             complex_nodes.append(graduate_option_node)
             continue
 
-        clause = re.sub(r'\bor\s+permission\s+of\s+instructor\b.*$', '', clause, flags=re.IGNORECASE)
-        clause = re.sub(r'\bor\s+instructor\s+permission\b.*$', '', clause, flags=re.IGNORECASE)
         clause = normalize_requirement_text(clause)
         if not clause:
             continue
@@ -487,6 +516,14 @@ def extract_major_program_requirements(enrollment_requirements: str) -> List[Any
                 restricted_text = normalize_requirement_text(f"Restricted to {restricted_match_original.group(1)}")
                 if restricted_text.lower() != 'restricted to students':
                     program_nodes.append(ProgramRequirementNode(requirement=restricted_text))
+
+            permission_match = permission_requirement_pattern.search(segment)
+            if permission_match:
+                other_nodes.append(OtherRequirementNode(requirement=normalize_requirement_text(permission_match.group(0))))
+
+            general_education_match = general_education_pattern.search(segment)
+            if general_education_match and not segment_has_course_codes:
+                other_nodes.append(OtherRequirementNode(requirement=normalize_requirement_text(general_education_match.group(0))))
 
             # Extract explicit year/standing constraints into dedicated year nodes.
             occupied_year_spans = []
@@ -584,6 +621,8 @@ def extract_major_program_requirements(enrollment_requirements: str) -> List[Any
         node.requirement = normalize_year_requirement(node.requirement)
     for node in credit_nodes:
         node.requirement = normalize_freeform_requirement(node.requirement)
+    for node in other_nodes:
+        node.requirement = normalize_freeform_requirement(node.requirement)
 
     def normalize_requirement_nodes_recursive(node: Any) -> Any:
         if isinstance(node, ProgramRequirementNode):
@@ -596,6 +635,9 @@ def extract_major_program_requirements(enrollment_requirements: str) -> List[Any
             node.requirement = normalize_year_requirement(node.requirement)
             return node
         if isinstance(node, CreditRequirementNode):
+            node.requirement = normalize_freeform_requirement(node.requirement)
+            return node
+        if isinstance(node, OtherRequirementNode):
             node.requirement = normalize_freeform_requirement(node.requirement)
             return node
         if isinstance(node, OperatorNode):
@@ -679,13 +721,15 @@ def extract_major_program_requirements(enrollment_requirements: str) -> List[Any
 
     deduped: List[Any] = []
     seen = set()
-    for node in major_nodes + program_nodes + year_nodes + school_nodes + credit_nodes:
+    for node in major_nodes + program_nodes + year_nodes + school_nodes + credit_nodes + other_nodes:
         if isinstance(node, CreditRequirementNode):
             key = (
                 node.type,
                 float(node.credits),
                 normalize_requirement_text(node.subject).lower(),
             )
+        elif isinstance(node, OtherRequirementNode):
+            key = (node.type, normalize_requirement_text(node.requirement).lower())
         else:
             key = (node.type, normalize_requirement_text(node.requirement).lower())
         if key in seen:
@@ -740,9 +784,17 @@ def extract_requisite_sentences_from_description(description: str) -> List[str]:
 
 
 def classify_requisite_text(text: str) -> str:
-    """Classify requirement text as prerequisite/corequisite by content cues."""
+    """Classify requirement text as prerequisite/corequisite/other by content cues."""
+    restriction_language = bool(re.search(
+        r'\b(?:may\s+not\s+enroll\s+if|cannot\s+enroll\s+if|can\'t\s+enroll\s+if|credit\s+not\s+granted(?:\s+for)?|not\s+open\s+to|restricted\s+to)\b',
+        text,
+        re.IGNORECASE,
+    ))
+    if restriction_language:
+        return 'other'
+
     concurrent_language = bool(re.search(
-        r'\b(?:coreq|corequisite|co[-\s]?requisite|concurrent(?:ly)?|currently\s+enrolled|must\s+be\s+taken\s+concurrently|or\s+currently\s+enrolled)\b',
+        r'\b(?:coreq(?:s)?|corequisite(?:s)?|co[-\s]?requisite(?:s)?|concurrent(?:ly)?|currently\s+enrolled|must\s+be\s+taken\s+concurrently|or\s+currently\s+enrolled)\b',
         text,
         re.IGNORECASE,
     ))
