@@ -1,12 +1,12 @@
 {
   "metadata": {
     "total_courses": 9436,
-    "courses_with_prerequisites": 1353,
-    "courses_without_prerequisites": 8083,
-    "courses_with_corequisites": 118,
-    "courses_without_corequisites": 9318,
-    "courses_with_other_requirements": 1442,
-    "courses_without_other_requirements": 7994
+    "courses_with_prerequisites": 1377,
+    "courses_without_prerequisites": 8059,
+    "courses_with_corequisites": 122,
+    "courses_without_corequisites": 9314,
+    "courses_with_other_requirements": 1603,
+    "courses_without_other_requirements": 7833
   },
   "prerequisite_trees": {
     "ACCT 2020": {
@@ -1425,22 +1425,42 @@
       ]
     },
     "ASTR 5630": {
-      "type": "OR",
+      "type": "AND",
       "children": [
         {
-          "type": "course",
-          "code": "PHYS 2610",
-          "level": false
+          "type": "OR",
+          "children": [
+            {
+              "type": "course",
+              "code": "PHYS 2610",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "MATH 3250",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "APMA 2130",
+              "level": false
+            }
+          ]
         },
         {
-          "type": "course",
-          "code": "MATH 3250",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "APMA 2130",
-          "level": false
+          "type": "OR",
+          "children": [
+            {
+              "type": "course",
+              "code": "ASTR 2110",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "ASTR 2120",
+              "level": false
+            }
+          ]
         }
       ]
     },
@@ -1463,37 +1483,28 @@
       "type": "AND",
       "children": [
         {
-          "type": "OR",
+          "type": "count",
+          "count": 2,
           "children": [
             {
-              "type": "course",
-              "code": "BIOL 2100",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "BME 2104",
-              "level": false
-            }
-          ]
-        },
-        {
-          "type": "OR",
-          "children": [
-            {
-              "type": "course",
-              "code": "CHEM 1410",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "CHEM 1420",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "CHEM 1810",
-              "level": false
+              "type": "OR",
+              "children": [
+                {
+                  "type": "course",
+                  "code": "CHEM 1410",
+                  "level": false
+                },
+                {
+                  "type": "course",
+                  "code": "CHEM 1420",
+                  "level": false
+                },
+                {
+                  "type": "course",
+                  "code": "CHEM 1810",
+                  "level": false
+                }
+              ]
             }
           ]
         },
@@ -1904,6 +1915,31 @@
         }
       ]
     },
+    "BIOL 3420": {
+      "type": "course",
+      "code": "BIOL 3410",
+      "level": false
+    },
+    "BIOL 3430": {
+      "type": "OR",
+      "children": [
+        {
+          "type": "course",
+          "code": "BIOL 3000",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "BIOL 3020",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "BIOL 3010",
+          "level": false
+        }
+      ]
+    },
     "BIOL 3450": {
       "type": "AND",
       "children": [
@@ -1954,6 +1990,36 @@
         }
       ]
     },
+    "BIOL 3559": {
+      "type": "AND",
+      "children": [
+        {
+          "type": "OR",
+          "children": [
+            {
+              "type": "course",
+              "code": "BIOL 2100",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "BIOL 2200",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "CHEM 1410",
+              "level": false
+            }
+          ]
+        },
+        {
+          "type": "course",
+          "code": "CHEM 1420",
+          "level": false
+        }
+      ]
+    },
     "BIOL 4005": {
       "type": "AND",
       "children": [
@@ -1994,6 +2060,27 @@
       "code": "BIOL 3000",
       "level": false
     },
+    "BIOL 4020": {
+      "type": "count",
+      "count": 1,
+      "children": [
+        {
+          "type": "OR",
+          "children": [
+            {
+              "type": "course",
+              "code": "STAT 2020",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "STAT 2120",
+              "level": false
+            }
+          ]
+        }
+      ]
+    },
     "BIOL 4021": {
       "type": "OR",
       "children": [
@@ -2014,6 +2101,11 @@
         }
       ]
     },
+    "BIOL 4030": {
+      "type": "course",
+      "code": "BIOL 3050",
+      "level": false
+    },
     "BIOL 4040": {
       "type": "course",
       "code": "BIOL 3000",
@@ -2031,6 +2123,42 @@
           "type": "course",
           "code": "BIOL 3010",
           "level": false
+        }
+      ]
+    },
+    "BIOL 4080": {
+      "type": "count",
+      "count": 1,
+      "children": [
+        {
+          "type": "OR",
+          "children": [
+            {
+              "type": "course",
+              "code": "BIOL 3000",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "BIOL 3010",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "BIOL 3020",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "BIOL 3040",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "BIOL 3050",
+              "level": false
+            }
+          ]
         }
       ]
     },
@@ -2080,13 +2208,9 @@
       "level": false
     },
     "BIOL 4260": {
-      "type": "AND",
+      "type": "count",
+      "count": 1,
       "children": [
-        {
-          "type": "course",
-          "code": "BIOL 3000",
-          "level": false
-        },
         {
           "type": "OR",
           "children": [
@@ -2155,18 +2279,9 @@
       ]
     },
     "BIOL 4330": {
-      "type": "AND",
+      "type": "count",
+      "count": 1,
       "children": [
-        {
-          "type": "course",
-          "code": "BIOL 3000",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "BIOL 3010",
-          "level": false
-        },
         {
           "type": "OR",
           "children": [
@@ -3094,6 +3209,11 @@
         }
       ]
     },
+    "BME 6060": {
+      "type": "course",
+      "code": "BME 6550",
+      "level": false
+    },
     "BME 6101": {
       "type": "course",
       "code": "BME 2104",
@@ -3260,28 +3380,9 @@
       ]
     },
     "CE 3100": {
-      "type": "AND",
+      "type": "count",
+      "count": 1,
       "children": [
-        {
-          "type": "OR",
-          "children": [
-            {
-              "type": "course",
-              "code": "APMA 2130",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "MATH 3250",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "APMA 2501",
-              "level": false
-            }
-          ]
-        },
         {
           "type": "OR",
           "children": [
@@ -4185,37 +4286,17 @@
       ]
     },
     "CHEM 2321": {
-      "type": "AND",
+      "type": "OR",
       "children": [
         {
-          "type": "OR",
-          "children": [
-            {
-              "type": "course",
-              "code": "CHEM 2311",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "CHEM 2411",
-              "level": false
-            }
-          ]
+          "type": "course",
+          "code": "CHEM 2311",
+          "level": false
         },
         {
-          "type": "OR",
-          "children": [
-            {
-              "type": "course",
-              "code": "CHEM 2420",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "CHEM 2810",
-              "level": false
-            }
-          ]
+          "type": "course",
+          "code": "CHEM 2411",
+          "level": false
         }
       ]
     },
@@ -4445,19 +4526,9 @@
       ]
     },
     "CHEM 3821": {
-      "type": "AND",
-      "children": [
-        {
-          "type": "course",
-          "code": "CHEM 3811",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "CHEM 3420",
-          "level": false
-        }
-      ]
+      "type": "course",
+      "code": "CHEM 3811",
+      "level": false
     },
     "CHEM 3961": {
       "type": "course",
@@ -5265,9 +5336,19 @@
       "level": false
     },
     "CS 3130": {
-      "type": "course",
-      "code": "CS 2100",
-      "level": false
+      "type": "AND",
+      "children": [
+        {
+          "type": "course",
+          "code": "CS 2130",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "CS 2100",
+          "level": false
+        }
+      ]
     },
     "CS 3140": {
       "type": "course",
@@ -5993,9 +6074,15 @@
       "type": "AND",
       "children": [
         {
-          "type": "course",
-          "code": "DS 1002",
-          "level": false
+          "type": "count",
+          "count": 1,
+          "children": [
+            {
+              "type": "course",
+              "code": "DS 1002",
+              "level": false
+            }
+          ]
         },
         {
           "type": "OR",
@@ -6048,9 +6135,15 @@
       "type": "AND",
       "children": [
         {
-          "type": "course",
-          "code": "DS 1002",
-          "level": false
+          "type": "count",
+          "count": 1,
+          "children": [
+            {
+              "type": "course",
+              "code": "DS 1002",
+              "level": false
+            }
+          ]
         },
         {
           "type": "OR",
@@ -7155,13 +7248,9 @@
       ]
     },
     "ECON 3010": {
-      "type": "AND",
+      "type": "count",
+      "count": 1,
       "children": [
-        {
-          "type": "course",
-          "code": "ECON 2010",
-          "level": false
-        },
         {
           "type": "OR",
           "children": [
@@ -7255,13 +7344,9 @@
       "level": false
     },
     "ECON 3110": {
-      "type": "AND",
+      "type": "count",
+      "count": 1,
       "children": [
-        {
-          "type": "course",
-          "code": "ECON 2010",
-          "level": false
-        },
         {
           "type": "OR",
           "children": [
@@ -7893,32 +7978,38 @@
       "type": "AND",
       "children": [
         {
-          "type": "OR",
+          "type": "count",
+          "count": 1,
           "children": [
             {
-              "type": "course",
-              "code": "ECON 3720",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "STAT 3120",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "STAT 3220",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "APMA 3110",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "APMA 3120",
-              "level": false
+              "type": "OR",
+              "children": [
+                {
+                  "type": "course",
+                  "code": "ECON 3720",
+                  "level": false
+                },
+                {
+                  "type": "course",
+                  "code": "STAT 3120",
+                  "level": false
+                },
+                {
+                  "type": "course",
+                  "code": "STAT 3220",
+                  "level": false
+                },
+                {
+                  "type": "course",
+                  "code": "APMA 3110",
+                  "level": false
+                },
+                {
+                  "type": "course",
+                  "code": "APMA 3120",
+                  "level": false
+                }
+              ]
             }
           ]
         },
@@ -8025,13 +8116,9 @@
       ]
     },
     "ECON 5720": {
-      "type": "AND",
+      "type": "count",
+      "count": 1,
       "children": [
-        {
-          "type": "course",
-          "code": "MATH 1220",
-          "level": false
-        },
         {
           "type": "OR",
           "children": [
@@ -8683,6 +8770,46 @@
       "type": "course",
       "code": "EDLF 8382",
       "level": false
+    },
+    "ENCW 3610": {
+      "type": "OR",
+      "children": [
+        {
+          "type": "course",
+          "code": "ENCW 2000",
+          "level": true
+        },
+        {
+          "type": "course",
+          "code": "ENCW 3000",
+          "level": true
+        },
+        {
+          "type": "course",
+          "code": "ENCW 4000",
+          "level": true
+        }
+      ]
+    },
+    "ENCW 4820": {
+      "type": "OR",
+      "children": [
+        {
+          "type": "course",
+          "code": "ENCW 2000",
+          "level": true
+        },
+        {
+          "type": "course",
+          "code": "ENCW 3000",
+          "level": true
+        },
+        {
+          "type": "course",
+          "code": "ENCW 4000",
+          "level": true
+        }
+      ]
     },
     "ENGL 5101": {
       "type": "course",
@@ -9414,6 +9541,21 @@
       "code": "FREN 1016",
       "level": false
     },
+    "FREN 1050": {
+      "type": "OR",
+      "children": [
+        {
+          "type": "course",
+          "code": "BELOW 540",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "BELOW 378",
+          "level": false
+        }
+      ]
+    },
     "FREN 2010": {
       "type": "course",
       "code": "FREN 1020",
@@ -9455,21 +9597,6 @@
         {
           "type": "course",
           "code": "FREN 2016",
-          "level": false
-        }
-      ]
-    },
-    "FREN 2320": {
-      "type": "AND",
-      "children": [
-        {
-          "type": "course",
-          "code": "INTO 2020",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "INTO 2320",
           "level": false
         }
       ]
@@ -9655,14 +9782,54 @@
       "level": false
     },
     "FREN 4064": {
-      "type": "course",
-      "code": "FREN 3000T",
-      "level": false
+      "type": "AND",
+      "children": [
+        {
+          "type": "course",
+          "code": "FREN 3040",
+          "level": false
+        },
+        {
+          "type": "OR",
+          "children": [
+            {
+              "type": "course",
+              "code": "FREN 3999",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "FREN 3000T",
+              "level": false
+            }
+          ]
+        }
+      ]
     },
     "FREN 4123": {
-      "type": "course",
-      "code": "FREN 3000T",
-      "level": false
+      "type": "AND",
+      "children": [
+        {
+          "type": "course",
+          "code": "FREN 3040",
+          "level": false
+        },
+        {
+          "type": "OR",
+          "children": [
+            {
+              "type": "course",
+              "code": "FREN 3999",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "FREN 3000T",
+              "level": false
+            }
+          ]
+        }
+      ]
     },
     "FREN 4410": {
       "type": "course",
@@ -9840,9 +10007,29 @@
       ]
     },
     "FREN 4744": {
-      "type": "course",
-      "code": "FREN 3000T",
-      "level": false
+      "type": "AND",
+      "children": [
+        {
+          "type": "course",
+          "code": "FREN 3040",
+          "level": false
+        },
+        {
+          "type": "OR",
+          "children": [
+            {
+              "type": "course",
+              "code": "FREN 3999",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "FREN 3000T",
+              "level": false
+            }
+          ]
+        }
+      ]
     },
     "FREN 4811": {
       "type": "AND",
@@ -9860,9 +10047,29 @@
       ]
     },
     "FREN 4838": {
-      "type": "course",
-      "code": "FREN 3000T",
-      "level": false
+      "type": "AND",
+      "children": [
+        {
+          "type": "course",
+          "code": "FREN 3040",
+          "level": false
+        },
+        {
+          "type": "OR",
+          "children": [
+            {
+              "type": "course",
+              "code": "FREN 3999",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "FREN 3000T",
+              "level": false
+            }
+          ]
+        }
+      ]
     },
     "FREN 4848": {
       "type": "course",
@@ -10984,6 +11191,66 @@
       "code": "KINE 5430",
       "level": false
     },
+    "KINE 5720": {
+      "type": "AND",
+      "children": [
+        {
+          "type": "course",
+          "code": "KINE 5700",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "KINE 5710",
+          "level": false
+        }
+      ]
+    },
+    "KINE 5725": {
+      "type": "AND",
+      "children": [
+        {
+          "type": "course",
+          "code": "KINE 5700",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "KINE 5710",
+          "level": false
+        }
+      ]
+    },
+    "KINE 5730": {
+      "type": "AND",
+      "children": [
+        {
+          "type": "course",
+          "code": "KINE 5700",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "KINE 5710",
+          "level": false
+        }
+      ]
+    },
+    "KINE 5735": {
+      "type": "AND",
+      "children": [
+        {
+          "type": "course",
+          "code": "KINE 5700",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "KINE 5710",
+          "level": false
+        }
+      ]
+    },
     "KINE 5750": {
       "type": "AND",
       "children": [
@@ -11002,6 +11269,36 @@
     "KINE 6700": {
       "type": "course",
       "code": "KINE 5765",
+      "level": false
+    },
+    "KINE 6710": {
+      "type": "course",
+      "code": "KINE 5775",
+      "level": false
+    },
+    "KINE 6730": {
+      "type": "AND",
+      "children": [
+        {
+          "type": "course",
+          "code": "KINE 5720",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "KINE 5725",
+          "level": false
+        }
+      ]
+    },
+    "KINE 6740": {
+      "type": "course",
+      "code": "KINE 6725",
+      "level": false
+    },
+    "KINE 6755": {
+      "type": "course",
+      "code": "KINE 6725",
       "level": false
     },
     "KOR 1020": {
@@ -11320,22 +11617,28 @@
       "level": false
     },
     "LAW 7044": {
-      "type": "OR",
+      "type": "count",
+      "count": 2,
       "children": [
         {
-          "type": "course",
-          "code": "LAW 8009",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "LAW 8010",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "LAW 7047",
-          "level": false
+          "type": "OR",
+          "children": [
+            {
+              "type": "course",
+              "code": "LAW 8009",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "LAW 8010",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "LAW 7047",
+              "level": false
+            }
+          ]
         }
       ]
     },
@@ -11614,6 +11917,11 @@
         }
       ]
     },
+    "LAW 7829": {
+      "type": "course",
+      "code": "LAW 6006",
+      "level": false
+    },
     "LAW 8000": {
       "type": "course",
       "code": "LAW 6005",
@@ -11665,26 +11973,16 @@
       ]
     },
     "LAW 8013": {
-      "type": "AND",
+      "type": "OR",
       "children": [
         {
-          "type": "OR",
-          "children": [
-            {
-              "type": "course",
-              "code": "LAW 6103",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "LAW 6109",
-              "level": false
-            }
-          ]
+          "type": "course",
+          "code": "LAW 6103",
+          "level": false
         },
         {
           "type": "course",
-          "code": "LAW 8024",
+          "code": "LAW 6109",
           "level": false
         }
       ]
@@ -11849,6 +12147,11 @@
         }
       ]
     },
+    "LAW 8656": {
+      "type": "course",
+      "code": "LAW 6104",
+      "level": false
+    },
     "LAW 8659": {
       "type": "course",
       "code": "LAW 9294",
@@ -11940,42 +12243,48 @@
       ]
     },
     "LAW 9006": {
-      "type": "OR",
+      "type": "count",
+      "count": 1,
       "children": [
         {
-          "type": "course",
-          "code": "LAW 9053",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "LAW 7626",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "LAW 9185",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "LAW 9031",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "LAW 7692",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "LAW 9081",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "LAW 7637",
-          "level": false
+          "type": "OR",
+          "children": [
+            {
+              "type": "course",
+              "code": "LAW 9053",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "LAW 7626",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "LAW 9185",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "LAW 9031",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "LAW 7692",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "LAW 9081",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "LAW 7637",
+              "level": false
+            }
+          ]
         }
       ]
     },
@@ -12088,6 +12397,11 @@
           "level": false
         }
       ]
+    },
+    "LAW 9160": {
+      "type": "course",
+      "code": "LAW 6104",
+      "level": false
     },
     "LAW 9165": {
       "type": "OR",
@@ -13215,27 +13529,33 @@
       "level": false
     },
     "MATH 4330": {
-      "type": "OR",
+      "type": "count",
+      "count": 1,
       "children": [
         {
-          "type": "course",
-          "code": "MATH 4310",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "MATH 4651",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "MATH 4770",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "MATH 3315",
-          "level": false
+          "type": "OR",
+          "children": [
+            {
+              "type": "course",
+              "code": "MATH 4310",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "MATH 4651",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "MATH 4770",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "MATH 3315",
+              "level": false
+            }
+          ]
         }
       ]
     },
@@ -13340,21 +13660,31 @@
       ]
     },
     "MATH 4658": {
-      "type": "OR",
+      "type": "AND",
       "children": [
         {
-          "type": "course",
-          "code": "MATH 3351",
-          "level": false
+          "type": "OR",
+          "children": [
+            {
+              "type": "course",
+              "code": "MATH 3351",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "APMA 3080",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "MATH 3350",
+              "level": false
+            }
+          ]
         },
         {
           "type": "course",
-          "code": "APMA 3080",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "MATH 3350",
+          "code": "MATH 4652",
           "level": false
         }
       ]
@@ -13363,22 +13693,28 @@
       "type": "AND",
       "children": [
         {
-          "type": "OR",
+          "type": "count",
+          "count": 1,
           "children": [
             {
-              "type": "course",
-              "code": "MATH 2310",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "APMA 2120",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "MATH 2315",
-              "level": false
+              "type": "OR",
+              "children": [
+                {
+                  "type": "course",
+                  "code": "MATH 2310",
+                  "level": false
+                },
+                {
+                  "type": "course",
+                  "code": "APMA 2120",
+                  "level": false
+                },
+                {
+                  "type": "course",
+                  "code": "MATH 2315",
+                  "level": false
+                }
+              ]
             }
           ]
         },
@@ -13443,22 +13779,28 @@
       "type": "AND",
       "children": [
         {
-          "type": "OR",
+          "type": "count",
+          "count": 1,
           "children": [
             {
-              "type": "course",
-              "code": "MATH 2310",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "APMA 2120",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "MATH 2315",
-              "level": false
+              "type": "OR",
+              "children": [
+                {
+                  "type": "course",
+                  "code": "MATH 2310",
+                  "level": false
+                },
+                {
+                  "type": "course",
+                  "code": "APMA 2120",
+                  "level": false
+                },
+                {
+                  "type": "course",
+                  "code": "MATH 2315",
+                  "level": false
+                }
+              ]
             }
           ]
         },
@@ -13545,57 +13887,32 @@
       ]
     },
     "MATH 5080": {
-      "type": "AND",
+      "type": "OR",
       "children": [
         {
-          "type": "OR",
-          "children": [
-            {
-              "type": "course",
-              "code": "MATH 1320",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "APMA 1110",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "MATH 3351",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "APMA 3080",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "MATH 3350",
-              "level": false
-            }
-          ]
+          "type": "course",
+          "code": "MATH 1320",
+          "level": false
         },
         {
-          "type": "OR",
-          "children": [
-            {
-              "type": "course",
-              "code": "MATH 3000",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "MATH 3310",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "MATH 3354",
-              "level": false
-            }
-          ]
+          "type": "course",
+          "code": "APMA 1110",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "MATH 3351",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "APMA 3080",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "MATH 3350",
+          "level": false
         }
       ]
     },
@@ -14719,6 +15036,21 @@
         }
       ]
     },
+    "NESC 4030": {
+      "type": "OR",
+      "children": [
+        {
+          "type": "course",
+          "code": "BIOL 3050",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "PSYC 3200",
+          "level": false
+        }
+      ]
+    },
     "NESC 4046": {
       "type": "OR",
       "children": [
@@ -15199,11 +15531,6 @@
         },
         {
           "type": "course",
-          "code": "PHYS 2010",
-          "level": false
-        },
-        {
-          "type": "course",
           "code": "FOR 2020",
           "level": false
         }
@@ -15470,9 +15797,34 @@
       "level": false
     },
     "PHYS 3310": {
-      "type": "course",
-      "code": "MATH 3255",
-      "level": false
+      "type": "AND",
+      "children": [
+        {
+          "type": "OR",
+          "children": [
+            {
+              "type": "course",
+              "code": "MATH 3255",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "MATH 3250",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "APMA 2130",
+              "level": false
+            }
+          ]
+        },
+        {
+          "type": "course",
+          "code": "PHYS 2620",
+          "level": false
+        }
+      ]
     },
     "PHYS 3340": {
       "type": "AND",
@@ -16055,13 +16407,9 @@
       "level": false
     },
     "PSYC 3006": {
-      "type": "AND",
+      "type": "count",
+      "count": 1,
       "children": [
-        {
-          "type": "course",
-          "code": "PSYC 2005",
-          "level": false
-        },
         {
           "type": "OR",
           "children": [
@@ -16096,6 +16444,21 @@
               "level": false
             }
           ]
+        }
+      ]
+    },
+    "PSYC 3200": {
+      "type": "OR",
+      "children": [
+        {
+          "type": "course",
+          "code": "PSYC 2200",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "BIOL 2100",
+          "level": false
         }
       ]
     },
@@ -16198,6 +16561,11 @@
           "level": false
         }
       ]
+    },
+    "PSYC 4660": {
+      "type": "course",
+      "code": "PSYC 2150",
+      "level": false
     },
     "PSYC 5720": {
       "type": "AND",
@@ -16740,19 +17108,9 @@
       ]
     },
     "SPAN 2020": {
-      "type": "AND",
-      "children": [
-        {
-          "type": "course",
-          "code": "SPAN 2010",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "MAY 2022",
-          "level": false
-        }
-      ]
+      "type": "course",
+      "code": "SPAN 2010",
+      "level": false
     },
     "SPAN 2026": {
       "type": "AND",
@@ -17125,24 +17483,128 @@
       ]
     },
     "SPAN 4402": {
-      "type": "course",
-      "code": "SPAN 3010",
-      "level": false
+      "type": "count",
+      "count": 1,
+      "children": [
+        {
+          "type": "OR",
+          "children": [
+            {
+              "type": "course",
+              "code": "SPAN 3400",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "SPAN 3410",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "SPAN 3420",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "SPAN 3430",
+              "level": false
+            }
+          ]
+        }
+      ]
     },
     "SPAN 4500": {
-      "type": "course",
-      "code": "SPAN 3010",
-      "level": false
+      "type": "count",
+      "count": 1,
+      "children": [
+        {
+          "type": "OR",
+          "children": [
+            {
+              "type": "course",
+              "code": "SPAN 3400",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "SPAN 3410",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "SPAN 3420",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "SPAN 3430",
+              "level": false
+            }
+          ]
+        }
+      ]
     },
     "SPAN 4510": {
-      "type": "course",
-      "code": "SPAN 3010",
-      "level": false
+      "type": "count",
+      "count": 1,
+      "children": [
+        {
+          "type": "OR",
+          "children": [
+            {
+              "type": "course",
+              "code": "SPAN 3400",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "SPAN 3410",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "SPAN 3420",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "SPAN 3430",
+              "level": false
+            }
+          ]
+        }
+      ]
     },
     "SPAN 4520": {
-      "type": "course",
-      "code": "SPAN 3010",
-      "level": false
+      "type": "count",
+      "count": 1,
+      "children": [
+        {
+          "type": "OR",
+          "children": [
+            {
+              "type": "course",
+              "code": "SPAN 3400",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "SPAN 3410",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "SPAN 3420",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "SPAN 3430",
+              "level": false
+            }
+          ]
+        }
+      ]
     },
     "SPAN 4530": {
       "type": "AND",
@@ -17310,9 +17772,35 @@
       ]
     },
     "SPAN 4700": {
-      "type": "course",
-      "code": "SPAN 3010",
-      "level": false
+      "type": "count",
+      "count": 1,
+      "children": [
+        {
+          "type": "OR",
+          "children": [
+            {
+              "type": "course",
+              "code": "SPAN 3400",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "SPAN 3410",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "SPAN 3420",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "SPAN 3430",
+              "level": false
+            }
+          ]
+        }
+      ]
     },
     "SPAN 4704": {
       "type": "AND",
@@ -17340,19 +17828,79 @@
       ]
     },
     "SPAN 4710": {
-      "type": "course",
-      "code": "SPAN 3010",
-      "level": false
+      "type": "AND",
+      "children": [
+        {
+          "type": "course",
+          "code": "SPAN 3010",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "SPAN 3300",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "SPAN 3400",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "SPAN 3430",
+          "level": false
+        }
+      ]
     },
     "SPAN 4711": {
-      "type": "course",
-      "code": "SPAN 3010",
-      "level": false
+      "type": "AND",
+      "children": [
+        {
+          "type": "course",
+          "code": "SPAN 3010",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "SPAN 3300",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "SPAN 3400",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "SPAN 3430",
+          "level": false
+        }
+      ]
     },
     "SPAN 4712": {
-      "type": "course",
-      "code": "SPAN 3010",
-      "level": false
+      "type": "AND",
+      "children": [
+        {
+          "type": "course",
+          "code": "SPAN 3010",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "SPAN 3300",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "SPAN 3400",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "SPAN 3430",
+          "level": false
+        }
+      ]
     },
     "SPAN 4715": {
       "type": "AND",
@@ -17525,122 +18073,140 @@
       ]
     },
     "STAT 3130": {
-      "type": "OR",
+      "type": "count",
+      "count": 1,
       "children": [
         {
-          "type": "course",
-          "code": "STAT 1100",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "STAT 1120",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "STAT 2020",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "STAT 2120",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "STAT 3120",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "APMA 3110",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "APMA 3120",
-          "level": false
+          "type": "OR",
+          "children": [
+            {
+              "type": "course",
+              "code": "STAT 1100",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "STAT 1120",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "STAT 2020",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "STAT 2120",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "STAT 3120",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "APMA 3110",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "APMA 3120",
+              "level": false
+            }
+          ]
         }
       ]
     },
     "STAT 3220": {
-      "type": "OR",
+      "type": "count",
+      "count": 1,
       "children": [
         {
-          "type": "course",
-          "code": "STAT 1100",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "STAT 1120",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "STAT 2020",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "STAT 2120",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "STAT 3120",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "APMA 3110",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "APMA 3120",
-          "level": false
+          "type": "OR",
+          "children": [
+            {
+              "type": "course",
+              "code": "STAT 1100",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "STAT 1120",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "STAT 2020",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "STAT 2120",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "STAT 3120",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "APMA 3110",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "APMA 3120",
+              "level": false
+            }
+          ]
         }
       ]
     },
     "STAT 3250": {
-      "type": "OR",
+      "type": "count",
+      "count": 1,
       "children": [
         {
-          "type": "course",
-          "code": "STAT 1100",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "STAT 1120",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "STAT 2020",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "STAT 2120",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "STAT 3120",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "APMA 3110",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "APMA 3120",
-          "level": false
+          "type": "OR",
+          "children": [
+            {
+              "type": "course",
+              "code": "STAT 1100",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "STAT 1120",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "STAT 2020",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "STAT 2120",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "STAT 3120",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "APMA 3110",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "APMA 3120",
+              "level": false
+            }
+          ]
         }
       ]
     },
@@ -17705,87 +18271,8 @@
       ]
     },
     "STAT 3480": {
-      "type": "OR",
-      "children": [
-        {
-          "type": "course",
-          "code": "STAT 1100",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "STAT 1120",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "STAT 2020",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "STAT 2120",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "STAT 3120",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "APMA 3110",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "APMA 3120",
-          "level": false
-        }
-      ]
-    },
-    "STAT 3559": {
-      "type": "OR",
-      "children": [
-        {
-          "type": "course",
-          "code": "STAT 1100",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "STAT 1120",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "STAT 2020",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "STAT 2120",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "STAT 3120",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "APMA 3110",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "APMA 3120",
-          "level": false
-        }
-      ]
-    },
-    "STAT 4120": {
-      "type": "AND",
+      "type": "count",
+      "count": 1,
       "children": [
         {
           "type": "OR",
@@ -17824,6 +18311,103 @@
               "type": "course",
               "code": "APMA 3120",
               "level": false
+            }
+          ]
+        }
+      ]
+    },
+    "STAT 3559": {
+      "type": "count",
+      "count": 1,
+      "children": [
+        {
+          "type": "OR",
+          "children": [
+            {
+              "type": "course",
+              "code": "STAT 1100",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "STAT 1120",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "STAT 2020",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "STAT 2120",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "STAT 3120",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "APMA 3110",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "APMA 3120",
+              "level": false
+            }
+          ]
+        }
+      ]
+    },
+    "STAT 4120": {
+      "type": "AND",
+      "children": [
+        {
+          "type": "count",
+          "count": 1,
+          "children": [
+            {
+              "type": "OR",
+              "children": [
+                {
+                  "type": "course",
+                  "code": "STAT 1100",
+                  "level": false
+                },
+                {
+                  "type": "course",
+                  "code": "STAT 1120",
+                  "level": false
+                },
+                {
+                  "type": "course",
+                  "code": "STAT 2020",
+                  "level": false
+                },
+                {
+                  "type": "course",
+                  "code": "STAT 2120",
+                  "level": false
+                },
+                {
+                  "type": "course",
+                  "code": "STAT 3120",
+                  "level": false
+                },
+                {
+                  "type": "course",
+                  "code": "APMA 3110",
+                  "level": false
+                },
+                {
+                  "type": "course",
+                  "code": "APMA 3120",
+                  "level": false
+                }
+              ]
             }
           ]
         },
@@ -18304,6 +18888,96 @@
         }
       ]
     },
+    "STAT 4800": {
+      "type": "AND",
+      "children": [
+        {
+          "type": "course",
+          "code": "STAT 3120",
+          "level": false
+        },
+        {
+          "type": "OR",
+          "children": [
+            {
+              "type": "course",
+              "code": "STAT 3220",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "STAT 4120",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "STAT 5120",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "ECON 3720",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "ECON 4720",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "SYS 4021",
+              "level": false
+            }
+          ]
+        },
+        {
+          "type": "OR",
+          "children": [
+            {
+              "type": "course",
+              "code": "STAT 1601",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "STAT 1602",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "STAT 3080",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "STAT 3250",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "CS 1110",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "CS 1111",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "CS 1112",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "CS 1113",
+              "level": false
+            }
+          ]
+        }
+      ]
+    },
     "STAT 4996": {
       "type": "AND",
       "children": [
@@ -18665,18 +19339,9 @@
       ]
     },
     "SYS 3034": {
-      "type": "AND",
+      "type": "count",
+      "count": 1,
       "children": [
-        {
-          "type": "course",
-          "code": "SYS 2001",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "SYS 3021",
-          "level": false
-        },
         {
           "type": "OR",
           "children": [
@@ -18855,13 +19520,9 @@
       ]
     },
     "SYS 4044": {
-      "type": "AND",
+      "type": "count",
+      "count": 1,
       "children": [
-        {
-          "type": "course",
-          "code": "ECON 2010",
-          "level": false
-        },
         {
           "type": "OR",
           "children": [
@@ -18885,18 +19546,9 @@
       ]
     },
     "SYS 4053": {
-      "type": "AND",
+      "type": "count",
+      "count": 4,
       "children": [
-        {
-          "type": "course",
-          "code": "SYS 2001",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "SYS 2202",
-          "level": false
-        },
         {
           "type": "OR",
           "children": [
@@ -18935,18 +19587,9 @@
       "level": false
     },
     "SYS 4055": {
-      "type": "AND",
+      "type": "count",
+      "count": 4,
       "children": [
-        {
-          "type": "course",
-          "code": "SYS 2001",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "SYS 2202",
-          "level": false
-        },
         {
           "type": "OR",
           "children": [
@@ -19516,6 +20159,21 @@
               "type": "course",
               "code": "PHYS 3310",
               "level": false
+            },
+            {
+              "type": "course",
+              "code": "PHYS 3340",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "PHYS 3430",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "PHYS 3650",
+              "level": false
             }
           ]
         }
@@ -19526,53 +20184,28 @@
       "code": "BIMS 8380",
       "level": false
     },
+    "BIOL 3430": {
+      "type": "course",
+      "code": "BIOL 3420",
+      "level": false
+    },
     "BIOL 3559": {
-      "type": "AND",
+      "type": "OR",
       "children": [
         {
-          "type": "OR",
-          "children": [
-            {
-              "type": "course",
-              "code": "BIOL 2100",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "BIOL 2200",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "CHEM 1410",
-              "level": false
-            }
-          ]
+          "type": "course",
+          "code": "BIOL 3000",
+          "level": false
         },
         {
-          "type": "OR",
-          "children": [
-            {
-              "type": "course",
-              "code": "CHEM 1420",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "BIOL 3000",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "BIOL 3010",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "BIOL 3020",
-              "level": false
-            }
-          ]
+          "type": "course",
+          "code": "BIOL 3010",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "BIOL 3020",
+          "level": false
         }
       ]
     },
@@ -19911,6 +20544,26 @@
         }
       ]
     },
+    "CHEM 1411": {
+      "type": "OR",
+      "children": [
+        {
+          "type": "course",
+          "code": "CHEM 1410",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "CHEM 1610",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "CHEM 1810",
+          "level": false
+        }
+      ]
+    },
     "CHEM 1421": {
       "type": "AND",
       "children": [
@@ -19939,6 +20592,26 @@
     "CHEM 1811": {
       "type": "course",
       "code": "CHEM 1810",
+      "level": false
+    },
+    "CHEM 2321": {
+      "type": "OR",
+      "children": [
+        {
+          "type": "course",
+          "code": "CHEM 2420",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "CHEM 2810",
+          "level": false
+        }
+      ]
+    },
+    "CHEM 3821": {
+      "type": "course",
+      "code": "CHEM 3420",
       "level": false
     },
     "COMM 4780": {
@@ -19972,52 +20645,58 @@
       "level": false
     },
     "DS 4002": {
-      "type": "OR",
+      "type": "count",
+      "count": 1,
       "children": [
         {
-          "type": "course",
-          "code": "DS 3001",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "APMA 3150",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "STAT 3080",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "CS 4774",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "STAT 5630",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "PSYC 5710",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "DS 2006",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "DS 3005",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "DS 3006",
-          "level": false
+          "type": "OR",
+          "children": [
+            {
+              "type": "course",
+              "code": "DS 3001",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "APMA 3150",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "STAT 3080",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "CS 4774",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "STAT 5630",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "PSYC 5710",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "DS 2006",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "DS 3005",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "DS 3006",
+              "level": false
+            }
+          ]
         }
       ]
     },
@@ -20327,47 +21006,53 @@
       "level": false
     },
     "GNUR 6031": {
-      "type": "OR",
+      "type": "count",
+      "count": 1,
       "children": [
         {
-          "type": "course",
-          "code": "GNUR 6624",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "GNUR 6634",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "GNUR 6643",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "GNUR 6653",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "GNUR 7251",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "GNUR 7311",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "GNUR 7312",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "GNUR 7481",
-          "level": false
+          "type": "OR",
+          "children": [
+            {
+              "type": "course",
+              "code": "GNUR 6624",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "GNUR 6634",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "GNUR 6643",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "GNUR 6653",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "GNUR 7251",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "GNUR 7311",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "GNUR 7312",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "GNUR 7481",
+              "level": false
+            }
+          ]
         }
       ]
     },
@@ -20927,24 +21612,9 @@
       "level": false
     },
     "PSYC 3200": {
-      "type": "OR",
-      "children": [
-        {
-          "type": "course",
-          "code": "PSYC 2200",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "BIOL 2100",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "BIOL 3050",
-          "level": false
-        }
-      ]
+      "type": "course",
+      "code": "BIOL 3050",
+      "level": false
     },
     "SPAN 1020": {
       "type": "course",
@@ -21058,6 +21728,14 @@
     }
   },
   "other_requirement_trees": {
+    "AAS 2760": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken aas 2559 #25 women leaders in africa"
+    },
+    "AAS 3760": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken aas 3559 #29 reading black digital culture"
+    },
     "ACCT 4450": {
       "type": "other",
       "requirement": "instructor permission"
@@ -21094,6 +21772,30 @@
       "type": "other",
       "requirement": "instructor permission"
     },
+    "AMST 2130": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken amst 2559 topic #30 narratives of girlhood"
+    },
+    "AMST 3250": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken amst 3559 topic #33 black protest narrative or engl 3572 topic #4 black protest narrative"
+    },
+    "AMST 3280": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken amst 2559 topic 12: intro native american studies"
+    },
+    "AMST 3610": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken amst 3559 topic #43 asian americans & pop culture"
+    },
+    "AMST 3750": {
+      "type": "other",
+      "requirement": "students may not enroll if they have completed amst engl 3559 placed and displaced in america"
+    },
+    "AMST 3790": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken amst 3559 topic 41 moving on: migration in to us"
+    },
     "AMST 4993": {
       "type": "other",
       "requirement": "instructor consent"
@@ -21115,6 +21817,14 @@
         }
       ]
     },
+    "ANTH 3275": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken anth 2590 topic #19 anthropology of corporation"
+    },
+    "ANTH 3280": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken anth 2559 topic 37: intro native american studies"
+    },
     "ANTH 3300": {
       "type": "other",
       "requirement": "instructor permission"
@@ -21127,9 +21837,17 @@
       "type": "other",
       "requirement": "permission of instructor"
     },
+    "ANTH 3679": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken anth 3559 topic #41 curating culture: collection preservation display"
+    },
     "ANTH 3680": {
       "type": "other",
       "requirement": "instructor permission"
+    },
+    "ANTH 3875": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken anth 3589 pre columbian south america"
     },
     "ANTH 4998": {
       "type": "major",
@@ -21551,9 +22269,21 @@
         }
       ]
     },
+    "ARTH 1153": {
+      "type": "other",
+      "requirement": "students may not enroll if they have previously completed arth 1503 topic #1 art and astronomy"
+    },
     "ARTH 1500": {
       "type": "year",
       "requirement": "2nd year"
+    },
+    "ARTH 1861": {
+      "type": "other",
+      "requirement": "students may not enroll if they have previously completed arth 1507 topic #2 art and the silk road"
+    },
+    "ARTH 2769": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken arth 2559 topic #42 queer histories of american art, 1950s to 1990s"
     },
     "ARTH 3254": {
       "type": "other",
@@ -21652,6 +22382,55 @@
       "type": "other",
       "requirement": "instructor consent"
     },
+    "BIOL 3260": {
+      "type": "other",
+      "requirement": "students must have completed biol 2100 and must currently be enrolled in or previously taken biol 3010 and can't enroll if previously taken biol 3559 topic #18 editing genes and genomes"
+    },
+    "BIOL 3420": {
+      "type": "other",
+      "requirement": "students may not enroll if they have previously completed or are currently enrolled in biol 3430"
+    },
+    "BIOL 3430": {
+      "type": "other",
+      "requirement": "students cannot enroll if already taken biol 3559 topic #20 or biol 4559 topic #39"
+    },
+    "BIOL 4012": {
+      "type": "other",
+      "requirement": "students must have taken biol 3020 and can't enroll if previously taken biol 4559 topic #23 disease ecology and evolution"
+    },
+    "BIOL 4017": {
+      "type": "AND",
+      "children": [
+        {
+          "type": "other",
+          "requirement": "and may not enroll if completed biol 4559 topic 37: the immortal germ line"
+        },
+        {
+          "type": "other",
+          "requirement": "must have completed biol 3000 or biol 3010 or biol 3020 and may not enroll if completed biol 4559 topic 37: the immortal germ line"
+        }
+      ]
+    },
+    "BIOL 4018": {
+      "type": "other",
+      "requirement": "students must have completed biol 3010 and can't enroll if previously taken biol 4559 topic #28 nextgen sequencing"
+    },
+    "BIOL 4020": {
+      "type": "other",
+      "requirement": "student cannot enroll if previously taken biol 4559 topic #34 computational evolutionary bio"
+    },
+    "BIOL 4030": {
+      "type": "other",
+      "requirement": "may not enroll if completed nesc 4030, nesc 3450, or nesc 3559 topic 2 neuro lab"
+    },
+    "BIOL 4045": {
+      "type": "other",
+      "requirement": "students must have completed biol 3000 & (biol 3050 or psyc 2200) and can't enroll if previously taken biol 4559 topic #29 neurodegenerative diseases"
+    },
+    "BIOL 4080": {
+      "type": "other",
+      "requirement": "student cannot enroll if previously taken biol 4559 topic #35 hormones and behavior"
+    },
     "BIOL 4810": {
       "type": "year",
       "requirement": "4th year"
@@ -21660,9 +22439,17 @@
       "type": "year",
       "requirement": "4th year"
     },
+    "BIOL 8011": {
+      "type": "other",
+      "requirement": "students may not enroll if they have completed biol 8559 topic #5 integrated biology i with a grade of d or better"
+    },
     "BIOL 8070": {
       "type": "other",
       "requirement": "instructor permission"
+    },
+    "BIOL 8410": {
+      "type": "other",
+      "requirement": "students cannot enroll if they have previously completed biol 8559: single cell analysis"
     },
     "BME 2000": {
       "type": "AND",
@@ -22071,6 +22858,10 @@
       "children": [
         {
           "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
           "requirement": "graduate student in biomedical engr"
         },
         {
@@ -22080,16 +22871,38 @@
       ]
     },
     "BME 6005": {
-      "type": "program",
-      "requirement": "graduate student in biomedical engr"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student in biomedical engr"
+        }
+      ]
     },
     "BME 6006": {
-      "type": "program",
-      "requirement": "graduate student in biomedical engr"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student in biomedical engr"
+        }
+      ]
     },
     "BME 6060": {
       "type": "school",
       "requirement": "School of Engineering and Applied Science"
+    },
+    "BME 6315": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken bme 8315"
     },
     "BME 6550": {
       "type": "OR",
@@ -22147,6 +22960,10 @@
               "requirement": "School of Data Science"
             }
           ]
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student"
         },
         {
           "type": "school",
@@ -22378,6 +23195,10 @@
           "requirement": "graduate standing"
         }
       ]
+    },
+    "CE 6215": {
+      "type": "program",
+      "requirement": "graduate student"
     },
     "CE 6230": {
       "type": "other",
@@ -22835,6 +23656,14 @@
       "type": "other",
       "requirement": "instructor permission"
     },
+    "CLAS 2300": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken clas 3559 topic #20 ancient rome at the movies"
+    },
+    "CLAS 3260": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken clas 3559 topic #18 rituals in ancient greece"
+    },
     "COGS 4970": {
       "type": "major",
       "requirement": "cognitive science distinguished major"
@@ -22864,6 +23693,10 @@
           "requirement": "restricted to mcintire school of commerce undergraduate students in their second year"
         },
         {
+          "type": "program",
+          "requirement": "undergraduate student"
+        },
+        {
           "type": "year",
           "requirement": "2nd year"
         },
@@ -22879,6 +23712,10 @@
         {
           "type": "program",
           "requirement": "restricted to mcintire school of commerce undergraduate students in their second year"
+        },
+        {
+          "type": "program",
+          "requirement": "undergraduate student"
         },
         {
           "type": "year",
@@ -22902,6 +23739,10 @@
           "requirement": "restricted to mcintire school of commerce undergraduate students in their second year"
         },
         {
+          "type": "program",
+          "requirement": "undergraduate student"
+        },
+        {
           "type": "year",
           "requirement": "2nd year"
         },
@@ -22921,6 +23762,10 @@
         {
           "type": "program",
           "requirement": "restricted to mcintire school of commerce undergraduate students in their second year"
+        },
+        {
+          "type": "program",
+          "requirement": "undergraduate student"
         },
         {
           "type": "year",
@@ -22944,6 +23789,10 @@
           "requirement": "restricted to mcintire school of commerce undergraduate students in their second year"
         },
         {
+          "type": "program",
+          "requirement": "undergraduate student"
+        },
+        {
           "type": "year",
           "requirement": "2nd year"
         },
@@ -22963,6 +23812,10 @@
         {
           "type": "program",
           "requirement": "restricted to mcintire school of commerce undergraduate students in their second year"
+        },
+        {
+          "type": "program",
+          "requirement": "undergraduate student"
         },
         {
           "type": "year",
@@ -23603,6 +24456,22 @@
       "type": "school",
       "requirement": "School of Engineering and Applied Science"
     },
+    "CS 1110": {
+      "type": "other",
+      "requirement": "students may not enroll if cs 2100 or cs 3140 has been completed"
+    },
+    "CS 1111": {
+      "type": "other",
+      "requirement": "students may not enroll if cs 2100 or cs 3140 has been completed"
+    },
+    "CS 1112": {
+      "type": "other",
+      "requirement": "students may not enroll if cs 2100 or cs 3140 has been completed"
+    },
+    "CS 1113": {
+      "type": "other",
+      "requirement": "students may not enroll if cs 2100 or cs 3140 has been completed"
+    },
     "CS 1511": {
       "type": "other",
       "requirement": "instructor permission"
@@ -23675,6 +24544,10 @@
       "children": [
         {
           "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
           "requirement": "cs graduate student or instructor permission"
         },
         {
@@ -23696,8 +24569,17 @@
       "requirement": "instructor permission"
     },
     "CS 6762": {
-      "type": "program",
-      "requirement": "graduate student only"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student only"
+        }
+      ]
     },
     "CS 7457": {
       "type": "other",
@@ -23718,6 +24600,14 @@
     "CS 8561": {
       "type": "other",
       "requirement": "instructor permission"
+    },
+    "DANC 1200": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken danc 1559 topic #1 dance fundamentals"
+    },
+    "DANC 3460": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken danc 3559 topic #3 movement & environment(s)"
     },
     "DRAM 2630": {
       "type": "other",
@@ -23742,6 +24632,14 @@
     "DRAM 3710": {
       "type": "other",
       "requirement": "instructor permission"
+    },
+    "DRAM 4020": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken dram 4592 topic #6 comedy as protest"
+    },
+    "DRAM 4070": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken dram 4592 topic #4 hip hop theatre or dram 4559 topic #3 hip hop theatre"
     },
     "DRAM 4310": {
       "type": "other",
@@ -23915,6 +24813,10 @@
           "requirement": "graduate standing m.f.a"
         }
       ]
+    },
+    "DS 1002": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken any of the following courses: cs 1110, cs 1111, cs 1112, cs1113, cs 1120, phys 1655"
     },
     "DS 2022": {
       "type": "major",
@@ -24191,6 +25093,10 @@
       "type": "major",
       "requirement": "student must be enrolled in the distinguished majors program in east asian languages"
     },
+    "EAST 1200": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken east 2559 topic #1 chinese calligraphy"
+    },
     "EAST 4998": {
       "type": "major",
       "requirement": "student must be enrolled in the distinguished majors program in east asian studies"
@@ -24198,6 +25104,45 @@
     "EAST 4999": {
       "type": "major",
       "requirement": "student must be enrolled in the distinguished majors program in east asian studies"
+    },
+    "EAST 5162": {
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate students only"
+        }
+      ]
+    },
+    "EAST 5321": {
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate students only"
+        }
+      ]
+    },
+    "EAST 5323": {
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate students only"
+        }
+      ]
     },
     "EBUS 2850": {
       "type": "school",
@@ -24339,6 +25284,23 @@
       "type": "other",
       "requirement": "consent of instructor"
     },
+    "ECE 6750": {
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate students"
+        }
+      ]
+    },
+    "ECE 6850": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken ece 6502 topic 12 intro to control systems"
+    },
     "ECE 6851": {
       "type": "other",
       "requirement": "instructor permission"
@@ -24438,6 +25400,10 @@
         }
       ]
     },
+    "ECON 2070": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken econ 2559 #4 economics of gender at work"
+    },
     "ECON 3020": {
       "type": "other",
       "requirement": "instructor permission"
@@ -24446,13 +25412,29 @@
       "type": "other",
       "requirement": "instructor permission"
     },
+    "ECON 3600": {
+      "type": "other",
+      "requirement": "must have completed econ 2010 and 2020 and students can't enroll if previously taken econ 3559 topic #9 economics of the art market"
+    },
+    "ECON 3650": {
+      "type": "other",
+      "requirement": "must have completed econ 2010 and 2020 and students can't enroll if previously taken econ 3559 topic #8 economics of india"
+    },
     "ECON 4080": {
       "type": "other",
       "requirement": "instructor permission"
     },
+    "ECON 4110": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken econ 4559 topic #18 competitive strategy and students must have completed econ 3010 or econ 3110"
+    },
     "ECON 4150": {
       "type": "other",
       "requirement": "instructor permission"
+    },
+    "ECON 4240": {
+      "type": "other",
+      "requirement": "must have completed econ 3010 and econ 3720 and can't enroll if previously taken econ 4559 topic 24 economics of immigration"
     },
     "ECON 4360": {
       "type": "major",
@@ -24465,6 +25447,10 @@
     "ECON 4590": {
       "type": "other",
       "requirement": "instructor permission"
+    },
+    "ECON 4740": {
+      "type": "other",
+      "requirement": "must have completed (econ 3010 or 3110) and (econ 3720 or 4720) and students can't enroll if previously taken econ 4559 topic #28 algorithmic economics"
     },
     "ECON 4820": {
       "type": "other",
@@ -25654,6 +26640,22 @@
       "type": "year",
       "requirement": "3rd year"
     },
+    "ENGL 3025": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken enls 3559 topic 1 african american english"
+    },
+    "ENGL 3750": {
+      "type": "other",
+      "requirement": "students may not enroll if they have completed amst engl 3559 placed and displaced in america"
+    },
+    "ENGL 3790": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken engl 3559 topic #15 moving on: migration in to us"
+    },
+    "ENGL 3791": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken engl 3559 topic #9 american film"
+    },
     "ENGL 4561": {
       "type": "other",
       "requirement": "instructor permission"
@@ -25701,6 +26703,14 @@
           ]
         }
       ]
+    },
+    "ENGL 4901": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken engl 4559 topic #6 the bible: part 1"
+    },
+    "ENGL 4902": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken engl 4559 topic #7 the bible part 2"
     },
     "ENGL 4993": {
       "type": "AND",
@@ -25778,6 +26788,19 @@
         }
       ]
     },
+    "ENTP 3501": {
+      "type": "AND",
+      "children": [
+        {
+          "type": "other",
+          "requirement": "may not enroll if completed any of the following courses"
+        },
+        {
+          "type": "other",
+          "requirement": "may not enroll if completed any of the following courses: entp 1501 business essentials: accounting, entp 1501 business essentials strategy, entp 1501 business essentials finance, entp 1501 business essentials marketing"
+        }
+      ]
+    },
     "ENWR 1505": {
       "type": "AND",
       "children": [
@@ -25850,9 +26873,17 @@
       "type": "other",
       "requirement": "writing requirement"
     },
+    "ENWR 3740": {
+      "type": "other",
+      "requirement": "students must have completed the first writing requirement and can't enroll if previously taken enwr 3500 topic #4 black women's writing & rhetoric"
+    },
     "ENWR 3750": {
       "type": "other",
       "requirement": "writing requirement"
+    },
+    "ENWR 3760": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken enwr 3500 topic #12 studies in cultural rhetorics"
     },
     "ENWR 3900": {
       "type": "other",
@@ -25932,6 +26963,10 @@
       "type": "other",
       "requirement": "instructor permission"
     },
+    "EVGE 5880": {
+      "type": "program",
+      "requirement": "graduate student"
+    },
     "EVHY 5700": {
       "type": "other",
       "requirement": "instructor permission"
@@ -25939,6 +26974,10 @@
     "EVHY 8560": {
       "type": "other",
       "requirement": "instructor permission"
+    },
+    "EVSC 2850": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken evsc 2559 topic #16 polar environments"
     },
     "EVSC 3020": {
       "type": "year",
@@ -25971,6 +27010,14 @@
     "EVSC 4370": {
       "type": "other",
       "requirement": "instructor permission"
+    },
+    "EVSC 4390": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken evsc 4559 topic #101 climate modeling and analysis"
+    },
+    "EVSC 4460": {
+      "type": "other",
+      "requirement": "students need to have completed evsc 3300 and can't enroll if previously taken evsc 4559 topic #96 synoptic meteorology"
     },
     "EVSC 4993": {
       "type": "other",
@@ -26358,12 +27405,30 @@
       "requirement": "restricted to graduate commerce students"
     },
     "GCOM 7290": {
-      "type": "program",
-      "requirement": "must be a ms in commerce or bme graduate student"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "must be a ms in commerce or bme graduate student"
+        }
+      ]
     },
     "GCOM 7291": {
-      "type": "program",
-      "requirement": "must be a ms in commerce or bme graduate student"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "must be a ms in commerce or bme graduate student"
+        }
+      ]
     },
     "GCOM 7292": {
       "type": "program",
@@ -26473,6 +27538,10 @@
       "type": "other",
       "requirement": "instructor permission"
     },
+    "GERM 3620": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken germ 3559 #9 new voices in german"
+    },
     "GERM 4998": {
       "type": "program",
       "requirement": "admission to the dmp, permission of undergraduate advisor"
@@ -26480,6 +27549,10 @@
     "GERM 4999": {
       "type": "program",
       "requirement": "admission to the dmp, permission of undergraduate advisor"
+    },
+    "GETR 3464": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken getr 3590 topic #57 stories of love and adventure"
     },
     "GNUR 5500": {
       "type": "other",
@@ -26600,8 +27673,17 @@
       "requirement": "instructor permission"
     },
     "GNUR 8007": {
-      "type": "program",
-      "requirement": "(nursing graduate non degree students or nursing graduate student)"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "(nursing graduate non degree students or nursing graduate student)"
+        }
+      ]
     },
     "GNUR 8110": {
       "type": "other",
@@ -26655,6 +27737,54 @@
     "GNUR 9110": {
       "type": "other",
       "requirement": "permission of instructor"
+    },
+    "GSGS 2000": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken gsgs 2559 topic #13 introduction to global studies"
+    },
+    "GSGS 2400": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken gsgs 2559 topic #14 mass migration & global development"
+    },
+    "GSGS 3100": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken gsgs 2559 #8 conceptions of the global"
+    },
+    "GSGS 3117": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken gsgs 3559 topic #45 dynamics of great powers: view from the south"
+    },
+    "GSGS 3118": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken gsgs 3559 topic #44 space, place and global development"
+    },
+    "GSGS 3330": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken gsgs 3559 topic #42 ecological economics"
+    },
+    "GSGS 3350": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken gsgs 3559 topic #43 dot org"
+    },
+    "GSGS 4200": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken gsgs 4559 #14 appl rsrch in global studies"
+    },
+    "GSSJ 3420": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken gssj 3559 topic #6 migration and social movements in the americas"
+    },
+    "GSVS 3310": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken gsvs 3559 topic #13 natural resource policy"
+    },
+    "GSVS 4020": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken gsvs 4559 topic #7 ecosystem services"
+    },
+    "GSVS 4100": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken anti requisite gsvs 4559 topic #6 sustainability practicum"
     },
     "HBIO 4810": {
       "type": "year",
@@ -26745,6 +27875,10 @@
         }
       ]
     },
+    "HIEA 3351": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken hiea 3559 topic #18 borders, maps, conflict e asia"
+    },
     "HIEU 1501": {
       "type": "AND",
       "children": [
@@ -26793,9 +27927,29 @@
         }
       ]
     },
+    "HILA 3261": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken hila 3559 topic #3 the great encounter"
+    },
+    "HIME 2010": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken hime 2559 #4 modern hist palestine israel"
+    },
+    "HIND 1310": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken hind 1559 #1 hindi heritage script and grammar review"
+    },
     "HIND 3010": {
       "type": "other",
       "requirement": "instructor permission"
+    },
+    "HIND 3011": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken hind 3559 topic #1 hindi in contemporary media"
+    },
+    "HIND 3012": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken hind 3559 topic #2 hindi via bollywood"
     },
     "HIND 3020": {
       "type": "other",
@@ -26845,6 +27999,14 @@
         }
       ]
     },
+    "HIST 2013": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken hist 2559 topic #20 genocide and its perpetrators"
+    },
+    "HIST 3861": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken hist 3559 topic #51 soccer politics"
+    },
     "HIST 4890": {
       "type": "major",
       "requirement": "open only to students admitted to the distinguished majors program"
@@ -26886,6 +28048,10 @@
     "HIST 5501": {
       "type": "AND",
       "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
         {
           "type": "program",
           "requirement": "graduate student or college 3rd or"
@@ -26930,6 +28096,18 @@
           ]
         }
       ]
+    },
+    "HIUS 2201": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken hius 2559 topic #10 us immigration history"
+    },
+    "HIUS 3620": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken hius 3559 topic #23 26 all politics is local"
+    },
+    "HIUS 5000": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken hius 5559 topic 5 african american history to 1877"
     },
     "HSCI 1010": {
       "type": "program",
@@ -26986,6 +28164,14 @@
         }
       ]
     },
+    "JAPN 2100": {
+      "type": "other",
+      "requirement": "students must have taken japn 1020 and can't enroll if previously taken japn 2559 topic #1 cultural conversation in japanese"
+    },
+    "JAPN 2601": {
+      "type": "other",
+      "requirement": "students must have taken japn 1020 and can't enroll if previously taken japn 2559 topic #2 finding joy in reading in japanese"
+    },
     "JAPN 3015": {
       "type": "other",
       "requirement": "instructor permission"
@@ -26994,9 +28180,25 @@
       "type": "other",
       "requirement": "instructor permission"
     },
+    "JAPN 3050": {
+      "type": "other",
+      "requirement": "students must have taken japn 2020 and can't enroll if previously taken japn 3559 topic #1 fundamentals of comprehending advanced japanese"
+    },
+    "JAPN 3300": {
+      "type": "other",
+      "requirement": "students must have taken japn 3010 and can't enroll if previously taken japn 3559 topic #2 japanese food for thought"
+    },
     "JAPN 4800": {
       "type": "other",
       "requirement": "instructor's permission"
+    },
+    "JPTR 3391": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken jptr 3559 topic #11 women mod japanese lit"
+    },
+    "JPTR 3601": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken jptr 3559 topic #13 experiences and expressions beyond japan"
     },
     "KINE 2410": {
       "type": "major",
@@ -27064,24 +28266,64 @@
       "requirement": "permission of instructor"
     },
     "LAR 6010": {
-      "type": "program",
-      "requirement": "graduate student in landscape architecture"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student in landscape architecture"
+        }
+      ]
     },
     "LAR 6020": {
-      "type": "program",
-      "requirement": "graduate student in landscape architecture"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student in landscape architecture"
+        }
+      ]
     },
     "LAR 6110": {
-      "type": "program",
-      "requirement": "graduate student in landscape architecture"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student in landscape architecture"
+        }
+      ]
     },
     "LAR 6120": {
-      "type": "program",
-      "requirement": "graduate student in landscape architecture"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student in landscape architecture"
+        }
+      ]
     },
     "LAR 6210": {
       "type": "AND",
       "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
         {
           "type": "program",
           "requirement": "graduate student in landscape architecture"
@@ -27093,32 +28335,90 @@
       ]
     },
     "LAR 6220": {
-      "type": "program",
-      "requirement": "graduate student in landscape architecture"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student in landscape architecture"
+        }
+      ]
     },
     "LAR 6710": {
-      "type": "program",
-      "requirement": "graduate student in landscape architecture"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student in landscape architecture"
+        }
+      ]
     },
     "LAR 6720": {
-      "type": "program",
-      "requirement": "graduate student in landscape architecture"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student in landscape architecture"
+        }
+      ]
     },
     "LAR 7020": {
-      "type": "program",
-      "requirement": "graduate student in landscape architecture"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student in landscape architecture"
+        }
+      ]
     },
     "LAR 7110": {
-      "type": "program",
-      "requirement": "graduate student in landscape architecture"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student in landscape architecture"
+        }
+      ]
     },
     "LAR 7120": {
-      "type": "program",
-      "requirement": "graduate student in landscape architecture"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student in landscape architecture"
+        }
+      ]
     },
     "LAR 7210": {
       "type": "AND",
       "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
         {
           "type": "program",
           "requirement": "graduate student in landscape architecture"
@@ -27134,6 +28434,10 @@
       "children": [
         {
           "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
           "requirement": "graduate student in landscape architecture"
         },
         {
@@ -27143,32 +28447,93 @@
       ]
     },
     "LAR 7500": {
-      "type": "program",
-      "requirement": "graduate student in landscape architecture"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student in landscape architecture"
+        }
+      ]
     },
     "LAR 8111": {
-      "type": "program",
-      "requirement": "graduate student in landscape architecture"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student in landscape architecture"
+        }
+      ]
     },
     "LAR 8210": {
-      "type": "program",
-      "requirement": "graduate student in landscape architecture"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student in landscape architecture"
+        }
+      ]
     },
     "LAR 8320": {
-      "type": "program",
-      "requirement": "graduate student in landscape architecture"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student in landscape architecture"
+        }
+      ]
     },
     "LAR 8500": {
       "type": "other",
       "requirement": "permission of instructor"
     },
     "LAR 8710": {
-      "type": "program",
-      "requirement": "graduate student in landscape architecture"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student in landscape architecture"
+        }
+      ]
+    },
+    "LASE 3600": {
+      "type": "other",
+      "requirement": "restricted to catalyst students and students can't enroll if previously taken lase 3510 topic #1 leadershipcollabcommunication"
+    },
+    "LASE 3601": {
+      "type": "other",
+      "requirement": "students cannot enroll if previously taken lase 3510 topic #2 from theory to practice"
+    },
+    "LASE 3602": {
+      "type": "other",
+      "requirement": "restricted to catalyst students and students can't enroll if previously taken lase 3510 topic #3 catalyst capstone"
     },
     "LATI 1030": {
       "type": "other",
       "requirement": "permission of the director"
+    },
+    "LAW 6114": {
+      "type": "other",
+      "requirement": "student may not enroll if they completed law 9129"
     },
     "LAW 7047": {
       "type": "program",
@@ -27190,6 +28555,14 @@
     "LAW 7108": {
       "type": "program",
       "requirement": "law jd student"
+    },
+    "LAW 7126": {
+      "type": "other",
+      "requirement": "students may not enroll if they have completed law 9160"
+    },
+    "LAW 7135": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken law 7075"
     },
     "LAW 7200": {
       "type": "program",
@@ -27233,9 +28606,22 @@
         }
       ]
     },
+    "LAW 7823": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken law 9066"
+    },
     "LAW 7829": {
-      "type": "program",
-      "requirement": "students must be enrolled in the jd program"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "students must be enrolled in the jd program"
+        },
+        {
+          "type": "other",
+          "requirement": "students may not enroll if they have completed law 7108 with a grade of d or better"
+        }
+      ]
     },
     "LAW 8000": {
       "type": "program",
@@ -27501,8 +28887,17 @@
       ]
     },
     "LAW 8656": {
-      "type": "program",
-      "requirement": "students must be in the jd program"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "students must be in the jd program"
+        },
+        {
+          "type": "other",
+          "requirement": "students may not enroll if they have completed law 9081 with a grade of d or better"
+        }
+      ]
     },
     "LAW 8667": {
       "type": "OR",
@@ -27559,6 +28954,10 @@
       "type": "program",
       "requirement": "must be a jd student"
     },
+    "LAW 9160": {
+      "type": "other",
+      "requirement": "students may not enroll if they have completed law 7126"
+    },
     "LAW 9229": {
       "type": "OR",
       "children": [
@@ -27588,6 +28987,10 @@
     "LING 2430": {
       "type": "other",
       "requirement": "permission of instructor"
+    },
+    "LING 4650": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken ling 4559 topic #1 linguistic typology"
     },
     "LING 4998": {
       "type": "major",
@@ -27632,12 +29035,30 @@
       ]
     },
     "LPPA 6100": {
-      "type": "program",
-      "requirement": "graduate student in leadership & public policy"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student in leadership & public policy"
+        }
+      ]
     },
     "LPPA 6150": {
-      "type": "program",
-      "requirement": "graduate student in leadership & public policy"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student in leadership & public policy"
+        }
+      ]
     },
     "LPPA 7110": {
       "type": "program",
@@ -27759,6 +29180,10 @@
     "LPPP 7750": {
       "type": "program",
       "requirement": "students pursuing the master's in public policy or a graduate certificate in public policy or public leadership"
+    },
+    "LPPS 3380": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken lppp 3559 topic 9 child poverty in schools"
     },
     "LPPS 4735": {
       "type": "major",
@@ -28394,6 +29819,22 @@
         }
       ]
     },
+    "MDST 3108": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken mdst 3559 topic #118 media law"
+    },
+    "MDST 3111": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken mdst 3559 topic #125 food, media, & popular culture"
+    },
+    "MDST 3281": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken mdst 3559 topic #139 reimagining the news"
+    },
+    "MDST 3388": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken mdst 3559 topic #136 friday night lights"
+    },
     "MDST 3402": {
       "type": "other",
       "requirement": "instructor permission"
@@ -28418,9 +29859,25 @@
       "type": "other",
       "requirement": "instructor permission"
     },
+    "MDST 3662": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken mdst 3505 topic 5: disability & media"
+    },
+    "MDST 3712": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken mdst 3559 topic #99 interactive storytelling"
+    },
+    "MDST 3742": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken mdst 3559 topic #123 athletes, activism and media"
+    },
     "MDST 3840": {
       "type": "other",
       "requirement": "instructor permission"
+    },
+    "MDST 3912": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken mdst 3559 topic #138 adapting media"
     },
     "MDST 4000": {
       "type": "major",
@@ -28456,25 +29913,78 @@
         }
       ]
     },
+    "MDST 7704": {
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate students in media studies (ma or phd)"
+        }
+      ]
+    },
     "MDST 8001": {
-      "type": "program",
-      "requirement": "graduate student in media, culture"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student in media, culture"
+        }
+      ]
     },
     "MDST 8003": {
-      "type": "program",
-      "requirement": "must be a graduate student in media studies"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "must be a graduate student in media studies"
+        }
+      ]
     },
     "MDST 8004": {
-      "type": "program",
-      "requirement": "graduate student in media, culture"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student in media, culture"
+        }
+      ]
     },
     "MDST 9000": {
-      "type": "program",
-      "requirement": "must be a graduate student in media studies"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "must be a graduate student in media studies"
+        }
+      ]
     },
     "MED 8642": {
       "type": "school",
       "requirement": "School of Medicine"
+    },
+    "MESA 3380": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken mesa 3559 topic 5 a thousand and one nights"
     },
     "MESA 4993": {
       "type": "other",
@@ -28506,9 +30016,17 @@
         }
       ]
     },
+    "MEST 3240": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken hime 3501 #3 israel palestine through literature and film"
+    },
     "MEST 3470": {
       "type": "other",
       "requirement": "permission of the instructor"
+    },
+    "MEST 3490": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken mest 3559 topic #11 migration and refugee crisis"
     },
     "MICR 8204": {
       "type": "other",
@@ -28709,6 +30227,10 @@
               "requirement": "School of Data Science"
             }
           ]
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student"
         },
         {
           "type": "other",
@@ -28924,6 +30446,10 @@
       "children": [
         {
           "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
           "requirement": "graduate student with permission of instructor"
         },
         {
@@ -28932,6 +30458,10 @@
         }
       ]
     },
+    "MUSI 2021": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken musi 2559 topic #28 creative discovery"
+    },
     "MUSI 2302": {
       "type": "other",
       "requirement": "instructor permission"
@@ -28939,6 +30469,14 @@
     "MUSI 2304": {
       "type": "other",
       "requirement": "instructor permission"
+    },
+    "MUSI 2309": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken musi 2559 #27 pop music voice class"
+    },
+    "MUSI 2311": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken mdst 3559 topic #136 friday night lights"
     },
     "MUSI 2993": {
       "type": "other",
@@ -28955,6 +30493,10 @@
     "MUSI 3050": {
       "type": "other",
       "requirement": "instructor permission"
+    },
+    "MUSI 3060": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken musi 2559 topic #31 motown vs"
     },
     "MUSI 3120": {
       "type": "other",
@@ -29216,6 +30758,10 @@
       "type": "major",
       "requirement": "neuroscience badistinguished major program"
     },
+    "NESC 4030": {
+      "type": "other",
+      "requirement": "may not enroll if completed biol 4030, nesc 3450, or nesc 3559 topic 2 neuro lab"
+    },
     "NESC 4960": {
       "type": "AND",
       "children": [
@@ -29274,6 +30820,14 @@
           "requirement": "in bsn program"
         },
         {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate students"
+        },
+        {
           "type": "year",
           "requirement": "4th year"
         },
@@ -29322,6 +30876,18 @@
     "PHAR 9001": {
       "type": "other",
       "requirement": "instructor permission"
+    },
+    "PHIL 2350": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken phil 2500 topic #8 minds, machines, and persons"
+    },
+    "PHIL 3640": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken phil 3500 #13 political philosophy"
+    },
+    "PHIL 3830": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken phil 3500 topic #19 philosophy of mental health"
     },
     "PHIL 7500": {
       "type": "school",
@@ -29431,16 +30997,55 @@
       "requirement": "instructor permission"
     },
     "PHYS 1420": {
+      "type": "AND",
+      "children": [
+        {
+          "type": "other",
+          "requirement": "students can't enroll if previously taken phys 1425 or phys 1710"
+        },
+        {
+          "type": "other",
+          "requirement": "instructor permission"
+        }
+      ]
+    },
+    "PHYS 1425": {
       "type": "other",
-      "requirement": "instructor permission"
+      "requirement": "students can't enroll if previously taken phys 1420 or phys 1710"
     },
     "PHYS 1655": {
+      "type": "AND",
+      "children": [
+        {
+          "type": "other",
+          "requirement": "students can't enroll if previously taken phys 1559 #4 python for scientists and eng"
+        },
+        {
+          "type": "other",
+          "requirement": "instructor permission"
+        }
+      ]
+    },
+    "PHYS 1930": {
       "type": "other",
-      "requirement": "instructor permission"
+      "requirement": "students can't enroll if previously taken phys 1910"
+    },
+    "PHYS 2410": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken phys 2415 or phys 1720"
     },
     "PHYS 2415": {
-      "type": "other",
-      "requirement": "instructor permission"
+      "type": "AND",
+      "children": [
+        {
+          "type": "other",
+          "requirement": "students can't enroll if previously taken phys 2410 or phys 1720"
+        },
+        {
+          "type": "other",
+          "requirement": "instructor permission"
+        }
+      ]
     },
     "PHYS 2620": {
       "type": "other",
@@ -29483,8 +31088,17 @@
       "requirement": "instructor permission"
     },
     "PHYS 5000": {
-      "type": "program",
-      "requirement": "graduate student only"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student only"
+        }
+      ]
     },
     "PHYS 5110": {
       "type": "other",
@@ -29550,9 +31164,26 @@
       "type": "other",
       "requirement": "instructor permission"
     },
+    "PHYS 9010": {
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate students in physics"
+        }
+      ]
+    },
     "PLAC 4010": {
       "type": "AND",
       "children": [
+        {
+          "type": "program",
+          "requirement": "undergraduate student"
+        },
         {
           "type": "program",
           "requirement": "undergraduate student in urban"
@@ -29564,8 +31195,17 @@
       ]
     },
     "PLAC 6090": {
-      "type": "program",
-      "requirement": "graduate student in urban"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student in urban"
+        }
+      ]
     },
     "PLAD 1500": {
       "type": "year",
@@ -29600,6 +31240,10 @@
       "children": [
         {
           "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
           "requirement": "graduate student in urban"
         },
         {
@@ -29609,28 +31253,82 @@
       ]
     },
     "PLAN 6015": {
-      "type": "program",
-      "requirement": "graduate student in urban"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student in urban"
+        }
+      ]
     },
     "PLAN 6020": {
-      "type": "program",
-      "requirement": "graduate student in urban"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student in urban"
+        }
+      ]
     },
     "PLAN 6040": {
-      "type": "program",
-      "requirement": "graduate student in urban"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student in urban"
+        }
+      ]
     },
     "PLAN 6050": {
-      "type": "program",
-      "requirement": "graduate student in urban"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student in urban"
+        }
+      ]
     },
     "PLAN 6070": {
-      "type": "program",
-      "requirement": "graduate student in urban"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student in urban"
+        }
+      ]
     },
     "PLAN 6120": {
-      "type": "program",
-      "requirement": "graduate student in urban"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student in urban"
+        }
+      ]
     },
     "PLAP 3190": {
       "type": "other",
@@ -29697,8 +31395,17 @@
       "requirement": "instructor permission"
     },
     "PLCP 1010": {
-      "type": "school",
-      "requirement": "College of Arts & Sciences"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "asun undergraduate students only"
+        },
+        {
+          "type": "school",
+          "requirement": "College of Arts & Sciences"
+        }
+      ]
     },
     "PLCP 3130": {
       "type": "other",
@@ -29841,10 +31548,6 @@
       "type": "program",
       "requirement": "admission to bphm or bis program"
     },
-    "PSHM 4052": {
-      "type": "program",
-      "requirement": "admission to bphm or bis program"
-    },
     "PSHM 4200": {
       "type": "program",
       "requirement": "admission to bphm or bis program"
@@ -29852,10 +31555,6 @@
     "PSHM 4300": {
       "type": "program",
       "requirement": "admission to bphm or bis program"
-    },
-    "PSHM 4750": {
-      "type": "program",
-      "requirement": "admission to bphm program"
     },
     "PSHM 4800": {
       "type": "program",
@@ -29923,6 +31622,14 @@
       "type": "major",
       "requirement": "pst major"
     },
+    "PSYC 3415": {
+      "type": "other",
+      "requirement": "must have taken psyc 2005, psyc 2700, and psyc 3006, and can't enroll if previously taken psyc 3500 topic #12"
+    },
+    "PSYC 3439": {
+      "type": "other",
+      "requirement": "students must have taken psyc 2005 and psyc 2600 and can't enroll if previously taken psyc 3500 topic #9 rm: social psychology"
+    },
     "PSYC 3590": {
       "type": "AND",
       "children": [
@@ -29937,6 +31644,10 @@
           "requirement": "instructor permission"
         }
       ]
+    },
+    "PSYC 3910": {
+      "type": "other",
+      "requirement": "students may not enroll if they have completed unst 3910 or unst 3920 with a grade of d or better"
     },
     "PSYC 4100": {
       "type": "AND",
@@ -30054,6 +31765,10 @@
           "requirement": "restricted to 3rd or psyc majors or cog sci majors or neurosci majors"
         },
         {
+          "type": "other",
+          "requirement": "students can't enroll if previously taken psyc 4500 topic #50 rm: brain mapping with mri"
+        },
+        {
           "type": "OR",
           "children": [
             {
@@ -30150,6 +31865,14 @@
         }
       ]
     },
+    "PSYC 4640": {
+      "type": "other",
+      "requirement": "students need to be a 3rd or 4th year psyc, cog sci or nesc major and can't enroll if previously taken psyc 4500 topic #47 psychology of emotion"
+    },
+    "PSYC 4645": {
+      "type": "other",
+      "requirement": "restricted to 3rd or 4th year psyc majors and students can't enroll if previously taken psyc 4500 topic #60 psychology of inequalities"
+    },
     "PSYC 4660": {
       "type": "AND",
       "children": [
@@ -30160,6 +31883,10 @@
         {
           "type": "program",
           "requirement": "restricted to 3rd or psyc or cog sci majors"
+        },
+        {
+          "type": "other",
+          "requirement": "students can't enroll if previously taken psyc 4500 topic #65 high level cognition"
         },
         {
           "type": "OR",
@@ -30548,6 +32275,18 @@
       "type": "other",
       "requirement": "instructor permission"
     },
+    "RELB 1010": {
+      "type": "other",
+      "requirement": "students cannot enroll if they have previously completed relb 1559 topic #4 elem"
+    },
+    "RELB 2715": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken relg 2715 intro to chinese religion"
+    },
+    "RELC 3465": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken relc 3559 topic 40: religion, reform, & democracy"
+    },
     "RELC 3790": {
       "type": "other",
       "requirement": "instructor permission"
@@ -30564,6 +32303,26 @@
       "type": "other",
       "requirement": "instructor permission"
     },
+    "RELG 2266": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken relg 2559 topic #42 religion, media, and democracy"
+    },
+    "RELG 2495": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken relg 2559 topic #29 religious violence in the west"
+    },
+    "RELG 3405": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken relg 3559 topic #51 black & womanist relg thought"
+    },
+    "RELG 3416": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken relg 3559 topic #49 sustainability and asceticism"
+    },
+    "RELG 3713": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken relg 3559 topic #65 religion and criminal justice"
+    },
     "RELG 4900": {
       "type": "major",
       "requirement": "selection by faculty for distinguished major program"
@@ -30576,37 +32335,114 @@
       "type": "other",
       "requirement": "instructor permission"
     },
+    "RELJ 3708": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken relj 3559 topic #41 enduring questions in judaism"
+    },
     "RELS 8500": {
-      "type": "program",
-      "requirement": "graduate student in religious studies"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student in religious studies"
+        }
+      ]
     },
     "RUSS 1020": {
       "type": "year",
       "requirement": "1st year"
     },
     "RUSS 8999": {
-      "type": "program",
-      "requirement": "graduate student in slavic languages"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student in slavic languages"
+        }
+      ]
     },
     "SARC 9993": {
       "type": "other",
       "requirement": "permission of the director"
     },
+    "SATR 3350": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken satr 3559 topic #3 literatures of love"
+    },
     "SLAV 8998": {
-      "type": "program",
-      "requirement": "graduate student in slavic languages"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student in slavic languages"
+        }
+      ]
     },
     "SLAV 8999": {
-      "type": "program",
-      "requirement": "graduate student in slavic languages"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student in slavic languages"
+        }
+      ]
     },
     "SLAV 9998": {
-      "type": "program",
-      "requirement": "graduate student in slavic languages"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student in slavic languages"
+        }
+      ]
+    },
+    "SOC 2280": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken soc 2559 top #20 medical sociology"
+    },
+    "SOC 2820": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken soc 2559 top #22 sociology of ignorance"
+    },
+    "SOC 2870": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken soc 2595 topic #5 immigration and society"
+    },
+    "SOC 3320": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken soc 3559 topic #28 sociology of the body"
+    },
+    "SOC 3350": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken soc 2559 topic #19 drugs and society"
     },
     "SOC 3400": {
       "type": "other",
       "requirement": "permission of instructor"
+    },
+    "SOC 3730": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken soc 3559 top #19 sociology of innovation"
     },
     "SOC 3820": {
       "type": "other",
@@ -30650,6 +32486,14 @@
         }
       ]
     },
+    "SOC 4078": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken soc 4559 topic #25 race, racism & democracy"
+    },
+    "SOC 4180": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken soc 4559 topic #29 american dream and its limits"
+    },
     "SOC 4190": {
       "type": "AND",
       "children": [
@@ -30669,6 +32513,10 @@
       "type": "other",
       "requirement": "instructor permission"
     },
+    "SOC 4400": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken soc 4559 topic #31 sociology of empire"
+    },
     "SOC 4510": {
       "type": "other",
       "requirement": "instructor permission"
@@ -30680,6 +32528,10 @@
     "SOC 4600": {
       "type": "other",
       "requirement": "instructor permission"
+    },
+    "SOC 4730": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken soc 4559 topic #35 race, ethnicity, and nation from a global perspective"
     },
     "SOC 4850": {
       "type": "other",
@@ -30813,12 +32665,30 @@
       "requirement": "instructor permission"
     },
     "SOC 8030": {
-      "type": "program",
-      "requirement": "graduate student in sociology"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student in sociology"
+        }
+      ]
     },
     "SOC 8040": {
-      "type": "program",
-      "requirement": "graduate student in sociology"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student in sociology"
+        }
+      ]
     },
     "SOC 8051": {
       "type": "school",
@@ -30835,6 +32705,14 @@
       "credits": 3.0,
       "requirement": "3 credits of 3400 3430, or departmental placement",
       "subject": "SPAN"
+    },
+    "SPAN 3060": {
+      "type": "other",
+      "requirement": "students must complete span 3010 and can't enroll if previously taken span 3020"
+    },
+    "SPAN 3070": {
+      "type": "other",
+      "requirement": "students must complete span 3010 and can't enroll if previously taken span 3030"
     },
     "SPAN 3400": {
       "type": "year",
@@ -31425,16 +33303,43 @@
       ]
     },
     "UD 8010": {
-      "type": "program",
-      "requirement": "graduate student in master of urban design (urban mud)"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student in master of urban design (urban mud)"
+        }
+      ]
     },
     "UD 8030": {
-      "type": "program",
-      "requirement": "graduate student in master of urban design (urban mud)"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student in master of urban design (urban mud)"
+        }
+      ]
     },
     "UD 8614": {
-      "type": "program",
-      "requirement": "graduate student in master of urban design (urban mud)"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student in master of urban design (urban mud)"
+        }
+      ]
     },
     "UNST 1210": {
       "type": "AND",
@@ -31462,9 +33367,35 @@
         }
       ]
     },
+    "UNST 8000": {
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate students"
+        }
+      ]
+    },
     "UNST 8130": {
-      "type": "program",
-      "requirement": "graduate student only"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "graduate student"
+        },
+        {
+          "type": "program",
+          "requirement": "graduate student only"
+        }
+      ]
+    },
+    "URDU 1310": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken urdu 1559 topic #2 heritage speaker script & grammar review"
     },
     "URDU 3010": {
       "type": "other",
@@ -31505,6 +33436,22 @@
     "USEM 2570": {
       "type": "year",
       "requirement": "2nd year"
+    },
+    "WGS 2600": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken wgs 2559 topic 21: human sexualities"
+    },
+    "WGS 3135": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken wgs 3559 topic #68 queer politics"
+    },
+    "WGS 3600": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken wgs 3559 topic# 62 pleasure activism"
+    },
+    "WGS 3897": {
+      "type": "other",
+      "requirement": "students can't enroll if previously taken wgs 4800"
     },
     "WGS 4999": {
       "type": "major",
@@ -32306,10 +34253,7 @@
     "BIOL 2200",
     "BIOL 2559",
     "BIOL 3260",
-    "BIOL 3420",
-    "BIOL 3430",
     "BIOL 3460",
-    "BIOL 3559",
     "BIOL 3910",
     "BIOL 3920",
     "BIOL 4011",
@@ -32318,12 +34262,9 @@
     "BIOL 4016",
     "BIOL 4017",
     "BIOL 4018",
-    "BIOL 4020",
-    "BIOL 4030",
     "BIOL 4045",
     "BIOL 4046",
     "BIOL 4047",
-    "BIOL 4080",
     "BIOL 4200",
     "BIOL 4270",
     "BIOL 4300",
@@ -32418,7 +34359,6 @@
     "BME 6004",
     "BME 6030",
     "BME 6056",
-    "BME 6060",
     "BME 6310",
     "BME 6311",
     "BME 6315",
@@ -33908,12 +35848,10 @@
     "ENCW 3350",
     "ENCW 3500",
     "ENCW 3559",
-    "ENCW 3610",
     "ENCW 4350",
     "ENCW 4550",
     "ENCW 4720",
     "ENCW 4810",
-    "ENCW 4820",
     "ENCW 4830",
     "ENCW 4920",
     "ENCW 4993",
@@ -34452,12 +36390,12 @@
     "FREN 1007T",
     "FREN 1010",
     "FREN 1016",
-    "FREN 1050",
     "FREN  116",
     "FREN  126",
     "FREN 1559",
     "FREN  216",
     "FREN  226",
+    "FREN 2320",
     "FREN 2559",
     "FREN 3028",
     "FREN 3029",
@@ -36112,10 +38050,6 @@
     "KINE 5700",
     "KINE 5710",
     "KINE 5715",
-    "KINE 5720",
-    "KINE 5725",
-    "KINE 5730",
-    "KINE 5735",
     "KINE 5740",
     "KINE 5745",
     "KINE 5760",
@@ -36125,15 +38059,11 @@
     "KINE 5980",
     "KINE 5993",
     "KINE 6400",
-    "KINE 6710",
     "KINE 6715",
     "KINE 6720",
     "KINE 6725",
-    "KINE 6730",
     "KINE 6735",
-    "KINE 6740",
     "KINE 6745",
-    "KINE 6755",
     "KINE 7400",
     "KINE 7410",
     "KINE 8500",
@@ -36515,7 +38445,6 @@
     "LAW 7825",
     "LAW 7826",
     "LAW 7827",
-    "LAW 7829",
     "LAW 7830",
     "LAW 8001",
     "LAW 8007",
@@ -36558,7 +38487,6 @@
     "LAW 8651",
     "LAW 8652",
     "LAW 8655",
-    "LAW 8656",
     "LAW 8657",
     "LAW 8660",
     "LAW 8661",
@@ -36675,7 +38603,6 @@
     "LAW 9156",
     "LAW 9157",
     "LAW 9158",
-    "LAW 9160",
     "LAW 9164",
     "LAW 9172",
     "LAW 9175",
@@ -37599,7 +39526,6 @@
     "NESC 3980",
     "NESC 3985",
     "NESC 3995",
-    "NESC 4030",
     "NESC 4047",
     "NESC 4245",
     "NESC 4960",
@@ -38470,7 +40396,6 @@
     "PSYC 2600",
     "PSYC 3100",
     "PSYC 3160",
-    "PSYC 3200",
     "PSYC 3240",
     "PSYC 3260",
     "PSYC 3280",
@@ -38513,7 +40438,6 @@
     "PSYC 4606",
     "PSYC 4640",
     "PSYC 4645",
-    "PSYC 4660",
     "PSYC 4755",
     "PSYC 4970",
     "PSYC 4980",
@@ -39334,7 +41258,6 @@
     "STAT 2559",
     "STAT 3020",
     "STAT 4440",
-    "STAT 4800",
     "STAT 4993",
     "STAT 5140",
     "STAT 5330",
@@ -40514,7 +42437,6 @@
     "BIOL 3400",
     "BIOL 3410",
     "BIOL 3420",
-    "BIOL 3430",
     "BIOL 3450",
     "BIOL 3460",
     "BIOL 3510",
@@ -40881,7 +42803,6 @@
     "CHEM 1330",
     "CHEM 1400",
     "CHEM 1410",
-    "CHEM 1411",
     "CHEM 1420",
     "CHEM 1500",
     "CHEM 1559",
@@ -40890,7 +42811,6 @@
     "CHEM 1821",
     "CHEM 2120",
     "CHEM 2311",
-    "CHEM 2321",
     "CHEM 2410",
     "CHEM 2411",
     "CHEM 2420",
@@ -40907,7 +42827,6 @@
     "CHEM 3610",
     "CHEM 3721",
     "CHEM 3811",
-    "CHEM 3821",
     "CHEM 3951",
     "CHEM 3961",
     "CHEM 4090",
@@ -48941,7 +50860,6 @@
     "AAS 2727",
     "AAS 2740",
     "AAS 2751",
-    "AAS 2760",
     "AAS 2800",
     "AAS 3000",
     "AAS 3113",
@@ -48966,7 +50884,6 @@
     "AAS 3749",
     "AAS 3750",
     "AAS 3755",
-    "AAS 3760",
     "AAS 3770",
     "AAS 3810",
     "AAS 3830",
@@ -49042,7 +50959,6 @@
     "AMST 1060",
     "AMST 1559",
     "AMST 2001",
-    "AMST 2130",
     "AMST 2321",
     "AMST 2420",
     "AMST 2421",
@@ -49055,8 +50971,6 @@
     "AMST 3200",
     "AMST 3221",
     "AMST 3222",
-    "AMST 3250",
-    "AMST 3280",
     "AMST 3300",
     "AMST 3321",
     "AMST 3323",
@@ -49071,12 +50985,9 @@
     "AMST 3491",
     "AMST 3500",
     "AMST 3559",
-    "AMST 3610",
     "AMST 3630",
     "AMST 3710",
     "AMST 3740",
-    "AMST 3750",
-    "AMST 3790",
     "AMST 3880",
     "AMST 4060",
     "AMST 4210",
@@ -49146,8 +51057,6 @@
     "ANTH 3220",
     "ANTH 3240",
     "ANTH 3260",
-    "ANTH 3275",
-    "ANTH 3280",
     "ANTH 3290",
     "ANTH 3295",
     "ANTH 3325",
@@ -49167,11 +51076,9 @@
     "ANTH 3559",
     "ANTH 3589",
     "ANTH 3590",
-    "ANTH 3679",
     "ANTH 3810",
     "ANTH 3840",
     "ANTH 3850",
-    "ANTH 3875",
     "ANTH 3880",
     "ANTH 3885",
     "ANTH 3915",
@@ -49465,13 +51372,11 @@
     "ARTH 1007T",
     "ARTH 1051",
     "ARTH 1054",
-    "ARTH 1153",
     "ARTH 1361",
     "ARTH 1503",
     "ARTH 1505",
     "ARTH 1507",
     "ARTH 1559",
-    "ARTH 1861",
     "ARTH 2052",
     "ARTH 2053",
     "ARTH 2054",
@@ -49497,7 +51402,6 @@
     "ARTH 2591",
     "ARTH 2745",
     "ARTH 2753",
-    "ARTH 2769",
     "ARTH 2861",
     "ARTH 2862",
     "ARTH 2882",
@@ -49740,12 +51644,9 @@
     "BIOL 3230",
     "BIOL 3240",
     "BIOL 3250",
-    "BIOL 3260",
     "BIOL 3270",
     "BIOL 3400",
     "BIOL 3410",
-    "BIOL 3420",
-    "BIOL 3430",
     "BIOL 3450",
     "BIOL 3460",
     "BIOL 3510",
@@ -49754,22 +51655,15 @@
     "BIOL 3920",
     "BIOL 4005",
     "BIOL 4011",
-    "BIOL 4012",
     "BIOL 4013",
     "BIOL 4014",
     "BIOL 4016",
-    "BIOL 4017",
-    "BIOL 4018",
     "BIOL 4019",
-    "BIOL 4020",
     "BIOL 4021",
-    "BIOL 4030",
     "BIOL 4040",
-    "BIOL 4045",
     "BIOL 4046",
     "BIOL 4047",
     "BIOL 4070",
-    "BIOL 4080",
     "BIOL 4130",
     "BIOL 4150",
     "BIOL 4190",
@@ -49825,7 +51719,6 @@
     "BIOL 7762",
     "BIOL 7994",
     "BIOL 8010",
-    "BIOL 8011",
     "BIOL 8012",
     "BIOL 8050",
     "BIOL 8080",
@@ -49839,7 +51732,6 @@
     "BIOL 8300",
     "BIOL 8310",
     "BIOL 8320",
-    "BIOL 8410",
     "BIOL 8510",
     "BIOL 8559",
     "BIOL 8840",
@@ -49884,7 +51776,6 @@
     "BME 6280",
     "BME 6310",
     "BME 6311",
-    "BME 6315",
     "BME 8000T",
     "BME 8550",
     "BME 8782",
@@ -49966,7 +51857,6 @@
     "CE 6035",
     "CE 6045",
     "CE 6070",
-    "CE 6215",
     "CE 6220",
     "CE 6250",
     "CE 6260",
@@ -50303,14 +52193,12 @@
     "CLAS 2010",
     "CLAS 2020",
     "CLAS 2040",
-    "CLAS 2300",
     "CLAS 2559",
     "CLAS 3040",
     "CLAS 3120",
     "CLAS 3160",
     "CLAS 3210",
     "CLAS 3220",
-    "CLAS 3260",
     "CLAS 3300",
     "CLAS 3350",
     "CLAS 3559",
@@ -50395,10 +52283,6 @@
     "CREO 2020",
     "CREO 2559",
     "CS 1010",
-    "CS 1110",
-    "CS 1111",
-    "CS 1112",
-    "CS 1113",
     "CS 1501",
     "CS 2100",
     "CS 2110",
@@ -50469,7 +52353,6 @@
     "CS 8999",
     "CS 9897",
     "CS 9999",
-    "DANC 1200",
     "DANC 1400",
     "DANC 1559",
     "DANC 2210",
@@ -50483,7 +52366,6 @@
     "DANC 3230",
     "DANC 3300",
     "DANC 3400",
-    "DANC 3460",
     "DANC 3559",
     "DANC 3590",
     "DANC 3610",
@@ -50554,9 +52436,7 @@
     "DRAM 3730",
     "DRAM 3820",
     "DRAM 3825",
-    "DRAM 4020",
     "DRAM 4040",
-    "DRAM 4070",
     "DRAM 4110",
     "DRAM 4384",
     "DRAM 4410",
@@ -50580,7 +52460,6 @@
     "DRAM 9559",
     "DS 1000T",
     "DS 1001",
-    "DS 1002",
     "DS 2000T",
     "DS 2002",
     "DS 2003",
@@ -50643,7 +52522,6 @@
     "EALC 4559",
     "EALC 5559",
     "EAST 1010",
-    "EAST 1200",
     "EAST 1559",
     "EAST 2559",
     "EAST 3559",
@@ -50652,11 +52530,8 @@
     "EAST 4993",
     "EAST 5110",
     "EAST 5111",
-    "EAST 5162",
     "EAST 5180",
     "EAST 5304",
-    "EAST 5321",
-    "EAST 5323",
     "EAST 5559",
     "EAST 5861",
     "EAST 5863",
@@ -50748,10 +52623,8 @@
     "ECE 6711",
     "ECE 6713",
     "ECE 6714",
-    "ECE 6750",
     "ECE 6782",
     "ECE 6784",
-    "ECE 6850",
     "ECE 6993",
     "ECE 6995",
     "ECE 6996",
@@ -50766,7 +52639,6 @@
     "ECON 2010",
     "ECON 2020",
     "ECON 2060",
-    "ECON 2070",
     "ECON 2559",
     "ECON 3010",
     "ECON 3030",
@@ -50774,9 +52646,7 @@
     "ECON 3080",
     "ECON 3110",
     "ECON 3559",
-    "ECON 3600",
     "ECON 3640",
-    "ECON 3650",
     "ECON 3720",
     "ECON 3820",
     "ECON 4010",
@@ -50784,7 +52654,6 @@
     "ECON 4030",
     "ECON 4070",
     "ECON 4095",
-    "ECON 4110",
     "ECON 4160",
     "ECON 4170",
     "ECON 4175",
@@ -50794,7 +52663,6 @@
     "ECON 4210",
     "ECON 4220",
     "ECON 4230",
-    "ECON 4240",
     "ECON 4300",
     "ECON 4310",
     "ECON 4320",
@@ -50814,7 +52682,6 @@
     "ECON 4620",
     "ECON 4710",
     "ECON 4720",
-    "ECON 4740",
     "ECON 4880",
     "ECON 4993",
     "ECON 4995",
@@ -51302,7 +53169,6 @@
     "ENGL 3002",
     "ENGL 3010",
     "ENGL 3020",
-    "ENGL 3025",
     "ENGL 3100",
     "ENGL 3110",
     "ENGL 3161",
@@ -51369,15 +53235,12 @@
     "ENGL 3740",
     "ENGL 3741",
     "ENGL 3744",
-    "ENGL 3750",
     "ENGL 3760",
     "ENGL 3762",
     "ENGL 3780",
     "ENGL 3781",
     "ENGL 3783",
     "ENGL 3784",
-    "ENGL 3790",
-    "ENGL 3791",
     "ENGL 3800",
     "ENGL 3815",
     "ENGL 3825",
@@ -51413,8 +53276,6 @@
     "ENGL 4590",
     "ENGL 4700",
     "ENGL 4900",
-    "ENGL 4901",
-    "ENGL 4902",
     "ENGL 4998",
     "ENGL 4999",
     "ENGL 5060",
@@ -51569,7 +53430,6 @@
     "ENTP 1010",
     "ENTP 1501",
     "ENTP 1559",
-    "ENTP 3501",
     "ENVH 6000",
     "ENWR 1501",
     "ENWR 1507",
@@ -51592,8 +53452,6 @@
     "ENWR 3680",
     "ENWR 3720",
     "ENWR 3730",
-    "ENWR 3740",
-    "ENWR 3760",
     "ENWR 3810",
     "ENWR 4559",
     "ENWR 4993",
@@ -51663,7 +53521,6 @@
     "EVGE 5850",
     "EVGE 5860",
     "EVGE 5870",
-    "EVGE 5880",
     "EVGE 7270",
     "EVGE 7542",
     "EVGE 7559",
@@ -51703,7 +53560,6 @@
     "EVSC 2559",
     "EVSC 2800",
     "EVSC 2801",
-    "EVSC 2850",
     "EVSC 2900",
     "EVSC 3060",
     "EVSC 3100",
@@ -51733,9 +53589,7 @@
     "EVSC 4240",
     "EVSC 4340",
     "EVSC 4380",
-    "EVSC 4390",
     "EVSC 4452",
-    "EVSC 4460",
     "EVSC 4490",
     "EVSC 4542",
     "EVSC 4559",
@@ -52321,7 +54175,6 @@
     "GERM 3559",
     "GERM 3590",
     "GERM 3610",
-    "GERM 3620",
     "GERM 3993",
     "GERM 4559",
     "GERM 4600",
@@ -52353,7 +54206,6 @@
     "GETR 3393",
     "GETR 3420",
     "GETR 3462",
-    "GETR 3464",
     "GETR 3470",
     "GETR 3472",
     "GETR 3475",
@@ -52535,28 +54387,21 @@
     "GSGS 1005T",
     "GSGS 1006T",
     "GSGS 1007T",
-    "GSGS 2000",
     "GSGS 2010",
     "GSGS 2100",
     "GSGS 2310",
-    "GSGS 2400",
     "GSGS 2510",
     "GSGS 2530",
     "GSGS 2559",
     "GSGS 2610",
     "GSGS 3030",
-    "GSGS 3100",
     "GSGS 3111",
     "GSGS 3112",
-    "GSGS 3117",
-    "GSGS 3118",
     "GSGS 3120",
     "GSGS 3220",
     "GSGS 3240",
     "GSGS 3245",
     "GSGS 3250",
-    "GSGS 3330",
-    "GSGS 3350",
     "GSGS 3510",
     "GSGS 3530",
     "GSGS 3550",
@@ -52564,7 +54409,6 @@
     "GSGS 3590",
     "GSGS 4100",
     "GSGS 4150",
-    "GSGS 4200",
     "GSGS 4310",
     "GSGS 4410",
     "GSGS 4510",
@@ -52580,7 +54424,6 @@
     "GSMS 4991",
     "GSMS 4993",
     "GSSJ 3010",
-    "GSSJ 3420",
     "GSSJ 3559",
     "GSSJ 3579",
     "GSSJ 4559",
@@ -52599,11 +54442,8 @@
     "GSVS 3150",
     "GSVS 3160",
     "GSVS 3210",
-    "GSVS 3310",
     "GSVS 3500",
     "GSVS 3559",
-    "GSVS 4020",
-    "GSVS 4100",
     "GSVS 4500",
     "GSVS 4559",
     "GSVS 4810",
@@ -52685,7 +54525,6 @@
     "HIEA 3283",
     "HIEA 3321",
     "HIEA 3323",
-    "HIEA 3351",
     "HIEA 3481",
     "HIEA 3501",
     "HIEA 3559",
@@ -52822,7 +54661,6 @@
     "HILA 2559",
     "HILA 3021",
     "HILA 3051",
-    "HILA 3261",
     "HILA 3501",
     "HILA 3559",
     "HILA 4501",
@@ -52847,7 +54685,6 @@
     "HIME 2001",
     "HIME 2002",
     "HIME 2003",
-    "HIME 2010",
     "HIME 2559",
     "HIME 3191",
     "HIME 3192",
@@ -52868,12 +54705,9 @@
     "HIME 9993",
     "HIND 1010",
     "HIND 1020",
-    "HIND 1310",
     "HIND 1559",
     "HIND 2010",
     "HIND 2020",
-    "HIND 3011",
-    "HIND 3012",
     "HIND 3559",
     "HIND 4993",
     "HISA 1001T",
@@ -52919,7 +54753,6 @@
     "HIST 2002",
     "HIST 2011",
     "HIST 2012",
-    "HIST 2013",
     "HIST 2014",
     "HIST 2152",
     "HIST 2210",
@@ -52939,7 +54772,6 @@
     "HIST 3559",
     "HIST 3600",
     "HIST 3611",
-    "HIST 3861",
     "HIST 3910",
     "HIST 4400",
     "HIST 4501",
@@ -52999,7 +54831,6 @@
     "HIUS 2061",
     "HIUS 2101",
     "HIUS 2168",
-    "HIUS 2201",
     "HIUS 2559",
     "HIUS 2641",
     "HIUS 3011",
@@ -53030,7 +54861,6 @@
     "HIUS 3559",
     "HIUS 3611",
     "HIUS 3612",
-    "HIUS 3620",
     "HIUS 3641",
     "HIUS 3652",
     "HIUS 3654",
@@ -53047,7 +54877,6 @@
     "HIUS 4559",
     "HIUS 4591",
     "HIUS 4993",
-    "HIUS 5000",
     "HIUS 5232",
     "HIUS 5559",
     "HIUS 6175",
@@ -53355,13 +55184,9 @@
     "JAPN 1559",
     "JAPN 2010",
     "JAPN 2020",
-    "JAPN 2100",
     "JAPN 2559",
-    "JAPN 2601",
     "JAPN 3010",
     "JAPN 3020",
-    "JAPN 3050",
-    "JAPN 3300",
     "JAPN 3559",
     "JAPN 4500",
     "JAPN 4559",
@@ -53381,11 +55206,9 @@
     "JPTR 3290",
     "JPTR 3310",
     "JPTR 3320",
-    "JPTR 3391",
     "JPTR 3400",
     "JPTR 3559",
     "JPTR 3600",
-    "JPTR 3601",
     "JPTR 4559",
     "JPTR 4991",
     "JPTR 5020",
@@ -53586,9 +55409,6 @@
     "LASE 3500",
     "LASE 3510",
     "LASE 3559",
-    "LASE 3600",
-    "LASE 3601",
-    "LASE 3602",
     "LASE 4559",
     "LAST 1001T",
     "LAST 1002T",
@@ -53669,7 +55489,6 @@
     "LAW 6109",
     "LAW 6112",
     "LAW 6113",
-    "LAW 6114",
     "LAW 7001",
     "LAW 7002",
     "LAW 7005",
@@ -53744,12 +55563,10 @@
     "LAW 7118",
     "LAW 7123",
     "LAW 7125",
-    "LAW 7126",
     "LAW 7127",
     "LAW 7128",
     "LAW 7131",
     "LAW 7133",
-    "LAW 7135",
     "LAW 7136",
     "LAW 7140",
     "LAW 7141",
@@ -53888,7 +55705,6 @@
     "LAW 7812",
     "LAW 7820",
     "LAW 7821",
-    "LAW 7823",
     "LAW 7825",
     "LAW 7826",
     "LAW 7827",
@@ -54065,7 +55881,6 @@
     "LAW 9156",
     "LAW 9157",
     "LAW 9158",
-    "LAW 9160",
     "LAW 9164",
     "LAW 9165",
     "LAW 9172",
@@ -54178,7 +55993,6 @@
     "LING 3400",
     "LING 3559",
     "LING 4559",
-    "LING 4650",
     "LING 4993",
     "LING 4994",
     "LING 5090",
@@ -54273,7 +56087,6 @@
     "LPPS 3350",
     "LPPS 3365",
     "LPPS 3370",
-    "LPPS 3380",
     "LPPS 3390",
     "LPPS 3410",
     "LPPS 3420",
@@ -54527,8 +56340,6 @@
     "MDST 3050",
     "MDST 3105",
     "MDST 3107",
-    "MDST 3108",
-    "MDST 3111",
     "MDST 3113",
     "MDST 3115",
     "MDST 3154",
@@ -54536,12 +56347,10 @@
     "MDST 3244",
     "MDST 3252",
     "MDST 3277",
-    "MDST 3281",
     "MDST 3307",
     "MDST 3320",
     "MDST 3338",
     "MDST 3380",
-    "MDST 3388",
     "MDST 3407",
     "MDST 3409",
     "MDST 3430",
@@ -54555,17 +56364,14 @@
     "MDST 3559",
     "MDST 3584",
     "MDST 3650",
-    "MDST 3662",
     "MDST 3665",
     "MDST 3680",
     "MDST 3701",
     "MDST 3704",
     "MDST 3706",
     "MDST 3710",
-    "MDST 3712",
     "MDST 3720",
     "MDST 3740",
-    "MDST 3742",
     "MDST 3750",
     "MDST 3751",
     "MDST 3755",
@@ -54576,7 +56382,6 @@
     "MDST 3883",
     "MDST 3900",
     "MDST 3903",
-    "MDST 3912",
     "MDST 3944",
     "MDST 4210",
     "MDST 4251",
@@ -54598,7 +56403,6 @@
     "MDST 7559",
     "MDST 7600",
     "MDST 7701",
-    "MDST 7704",
     "MDST 7803",
     "MDST 8000",
     "MDST 8005",
@@ -54689,7 +56493,6 @@
     "MESA 3131",
     "MESA 3270",
     "MESA 3345",
-    "MESA 3380",
     "MESA 3381",
     "MESA 3559",
     "MESA 3640",
@@ -54710,10 +56513,8 @@
     "MEST 3131",
     "MEST 3225",
     "MEST 3232",
-    "MEST 3240",
     "MEST 3270",
     "MEST 3282",
-    "MEST 3490",
     "MEST 3491",
     "MEST 3492",
     "MEST 3559",
@@ -54844,7 +56645,6 @@
     "MUSI 1410",
     "MUSI 1559",
     "MUSI 1620",
-    "MUSI 2021",
     "MUSI 2070",
     "MUSI 2072",
     "MUSI 2090",
@@ -54853,9 +56653,7 @@
     "MUSI 2150",
     "MUSI 2307",
     "MUSI 2308",
-    "MUSI 2309",
     "MUSI 2310",
-    "MUSI 2311",
     "MUSI 2340",
     "MUSI 2342",
     "MUSI 2350",
@@ -54869,7 +56667,6 @@
     "MUSI 2600",
     "MUSI 3010",
     "MUSI 3040",
-    "MUSI 3060",
     "MUSI 3065",
     "MUSI 3230",
     "MUSI 3307",
@@ -54951,7 +56748,6 @@
     "NESC 3559",
     "NESC 3960",
     "NESC 3995",
-    "NESC 4030",
     "NESC 4046",
     "NESC 4047",
     "NESC 4245",
@@ -55109,7 +56905,6 @@
     "PHIL 2060",
     "PHIL 2110",
     "PHIL 2120",
-    "PHIL 2350",
     "PHIL 2420",
     "PHIL 2500",
     "PHIL 2510",
@@ -55135,13 +56930,11 @@
     "PHIL 3520",
     "PHIL 3559",
     "PHIL 3620",
-    "PHIL 3640",
     "PHIL 3710",
     "PHIL 3720",
     "PHIL 3730",
     "PHIL 3800",
     "PHIL 3810",
-    "PHIL 3830",
     "PHIL 3999",
     "PHIL 4010",
     "PHIL 4020",
@@ -55299,16 +57092,13 @@
     "PHYS 1090",
     "PHYS 1110",
     "PHYS 1130",
-    "PHYS 1425",
     "PHYS 1429",
     "PHYS 1559",
     "PHYS 1660",
-    "PHYS 1930",
     "PHYS 2010",
     "PHYS 2020",
     "PHYS 2030",
     "PHYS 2040",
-    "PHYS 2410",
     "PHYS 2419",
     "PHYS 2559",
     "PHYS 2660",
@@ -55346,7 +57136,6 @@
     "PHYS 8710",
     "PHYS 8750",
     "PHYS 8999",
-    "PHYS 9010",
     "PHYS 9020",
     "PHYS 9998",
     "PHYS 9999",
@@ -55705,10 +57494,12 @@
     "PSHM 3330",
     "PSHM 4020",
     "PSHM 4050",
+    "PSHM 4052",
     "PSHM 4400",
     "PSHM 4600",
     "PSHM 4650",
     "PSHM 4700",
+    "PSHM 4750",
     "PSHM 4900",
     "PSHM 4950",
     "PSHM 4993",
@@ -55791,9 +57582,7 @@
     "PSYC 3310",
     "PSYC 3326",
     "PSYC 3400",
-    "PSYC 3415",
     "PSYC 3420",
-    "PSYC 3439",
     "PSYC 3440",
     "PSYC 3445",
     "PSYC 3450",
@@ -55803,7 +57592,6 @@
     "PSYC 3559",
     "PSYC 3560",
     "PSYC 3690",
-    "PSYC 3910",
     "PSYC 3990",
     "PSYC 3991",
     "PSYC 4135",
@@ -55818,8 +57606,6 @@
     "PSYC 4559",
     "PSYC 4585",
     "PSYC 4606",
-    "PSYC 4640",
-    "PSYC 4645",
     "PSYC 5035",
     "PSYC 5305",
     "PSYC 5321",
@@ -55896,7 +57682,6 @@
     "RELA 7559",
     "RELA 8559",
     "RELA 8757",
-    "RELB 1010",
     "RELB 1020",
     "RELB 1559",
     "RELB 2010",
@@ -55911,7 +57696,6 @@
     "RELB 2280",
     "RELB 2450",
     "RELB 2559",
-    "RELB 2715",
     "RELB 2770",
     "RELB 2900",
     "RELB 3000",
@@ -55980,7 +57764,6 @@
     "RELC 3245",
     "RELC 3280",
     "RELC 3447",
-    "RELC 3465",
     "RELC 3559",
     "RELC 3603",
     "RELC 3620",
@@ -56033,12 +57816,10 @@
     "RELG 2190",
     "RELG 2210",
     "RELG 2255",
-    "RELG 2266",
     "RELG 2285",
     "RELG 2300",
     "RELG 2380",
     "RELG 2464",
-    "RELG 2495",
     "RELG 2559",
     "RELG 2630",
     "RELG 2650",
@@ -56053,15 +57834,12 @@
     "RELG 3255",
     "RELG 3300",
     "RELG 3360",
-    "RELG 3405",
     "RELG 3406",
     "RELG 3410",
-    "RELG 3416",
     "RELG 3470",
     "RELG 3559",
     "RELG 3560",
     "RELG 3630",
-    "RELG 3713",
     "RELG 3730",
     "RELG 3950",
     "RELG 3960",
@@ -56193,7 +57971,6 @@
     "RELJ 3390",
     "RELJ 3559",
     "RELJ 3590",
-    "RELJ 3708",
     "RELJ 3885",
     "RELJ 4590",
     "RELJ 5030",
@@ -56354,7 +58131,6 @@
     "SATR 3040",
     "SATR 3110",
     "SATR 3300",
-    "SATR 3350",
     "SATR 3559",
     "SATR 5110",
     "SATR 5559",
@@ -56419,7 +58195,6 @@
     "SOC 2056",
     "SOC 2230",
     "SOC 2241",
-    "SOC 2280",
     "SOC 2320",
     "SOC 2442",
     "SOC 2470",
@@ -56431,8 +58206,6 @@
     "SOC 2630",
     "SOC 2680",
     "SOC 2701",
-    "SOC 2820",
-    "SOC 2870",
     "SOC 2900",
     "SOC 3020",
     "SOC 3056",
@@ -56442,8 +58215,6 @@
     "SOC 3260",
     "SOC 3290",
     "SOC 3310",
-    "SOC 3320",
-    "SOC 3350",
     "SOC 3371",
     "SOC 3390",
     "SOC 3410",
@@ -56460,18 +58231,14 @@
     "SOC 3650",
     "SOC 3700",
     "SOC 3710",
-    "SOC 3730",
     "SOC 3860",
     "SOC 4054",
     "SOC 4058",
-    "SOC 4078",
     "SOC 4100",
     "SOC 4140",
-    "SOC 4180",
     "SOC 4260",
     "SOC 4280",
     "SOC 4370",
-    "SOC 4400",
     "SOC 4430",
     "SOC 4480",
     "SOC 4520",
@@ -56482,7 +58249,6 @@
     "SOC 4660",
     "SOC 4690",
     "SOC 4720",
-    "SOC 4730",
     "SOC 4740",
     "SOC 4750",
     "SOC 4780",
@@ -56547,8 +58313,6 @@
     "SPAN 3030",
     "SPAN 3040",
     "SPAN 3050",
-    "SPAN 3060",
-    "SPAN 3070",
     "SPAN 3200",
     "SPAN 3300",
     "SPAN 3300P",
@@ -56790,8 +58554,6 @@
     "UNST 3510",
     "UNST 3910",
     "UNST 3920",
-    "UNST 8000",
-    "URDU 1310",
     "URDU 1559",
     "URDU 2010",
     "URDU 2020",
@@ -56808,14 +58570,12 @@
     "WGS 2100",
     "WGS 2500",
     "WGS 2559",
-    "WGS 2600",
     "WGS 2650",
     "WGS 2700",
     "WGS 2800",
     "WGS 3100",
     "WGS 3121",
     "WGS 3125",
-    "WGS 3135",
     "WGS 3150",
     "WGS 3210",
     "WGS 3220",
@@ -56827,14 +58587,12 @@
     "WGS 3415",
     "WGS 3500",
     "WGS 3559",
-    "WGS 3600",
     "WGS 3611",
     "WGS 3612",
     "WGS 3680",
     "WGS 3750",
     "WGS 3895",
     "WGS 3896",
-    "WGS 3897",
     "WGS 3900",
     "WGS 3993",
     "WGS 4120",

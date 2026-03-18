@@ -195,6 +195,44 @@ interface CourseDescriptionProps {
   courseInfo: CourseInfo | null;
 }
 
+function formatEnrollmentRequirement(requirement: string): { label: string; value: string } {
+  const trimmed = requirement.trim();
+
+  if (/^(?:Other Requirement:\s*)?instructor(?:'s)?\s+(?:permission|consent)\b/i.test(trimmed)) {
+    return {
+      label: 'Instructor Permission',
+      value: 'Instructor Permission',
+    };
+  }
+
+  const prefixMatch = trimmed.match(/^(Major Restriction|Program Restriction|Year Requirement|School Requirement|Credit Requirement|Other Requirement):\s*(.+)$/i);
+  if (prefixMatch) {
+    return {
+      label: prefixMatch[1],
+      value: prefixMatch[2],
+    };
+  }
+
+  if (trimmed.includes(' OR ')) {
+    return {
+      label: 'One Of',
+      value: trimmed,
+    };
+  }
+
+  if (trimmed.includes(' AND ')) {
+    return {
+      label: 'All Of',
+      value: trimmed,
+    };
+  }
+
+  return {
+    label: 'Course Requirement',
+    value: trimmed,
+  };
+}
+
 function CourseDescriptionContent({
   courseInfo,
 }: CourseDescriptionProps) {
@@ -223,21 +261,17 @@ function CourseDescriptionContent({
 
   const notRestrictions = courseInfo.notRestrictions ?? courseInfo.enrollmentRestrictions ?? [];
 
-  const RequirementCard = ({ requirement, tone }: { requirement: string; tone: 'blue' | 'orange' | 'slate' }) => {
-    const toneClasses = {
-      blue: 'bg-uva-blue/10 text-uva-blue',
-      orange: 'bg-uva-orange/10 text-uva-orange',
-      slate: 'bg-text-muted/10 text-text-secondary',
-    } as const;
+  const RequirementCard = ({ requirement }: { requirement: string }) => {
+    const formattedRequirement = formatEnrollmentRequirement(requirement);
 
     return (
       <div className="rounded-xl border border-panel-border bg-hover-bg/40 px-3 py-2">
         <div className="mb-1 flex items-center gap-2">
-          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${toneClasses[tone]}`}>
-            Requirement
+          <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide bg-text-muted/10 text-text-secondary">
+            {formattedRequirement.label}
           </span>
         </div>
-        <p className="text-sm text-text-secondary leading-6">{requirement}</p>
+        <p className="text-sm text-text-secondary leading-6">{formattedRequirement.value}</p>
       </div>
     );
   };
@@ -274,7 +308,7 @@ function CourseDescriptionContent({
                 <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">Prerequisites</h4>
                 <div className="space-y-2">
                   {courseInfo.prerequisites.map((requirement, i) => (
-                    <RequirementCard key={`prerequisite-${i}`} requirement={requirement} tone="blue" />
+                    <RequirementCard key={`prerequisite-${i}`} requirement={requirement} />
                   ))}
                 </div>
               </div>
@@ -285,7 +319,7 @@ function CourseDescriptionContent({
                 <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">Corequisites</h4>
                 <div className="space-y-2">
                   {courseInfo.corequisites.map((requirement, i) => (
-                    <RequirementCard key={`corequisite-${i}`} requirement={requirement} tone="orange" />
+                    <RequirementCard key={`corequisite-${i}`} requirement={requirement} />
                   ))}
                 </div>
               </div>
@@ -296,7 +330,7 @@ function CourseDescriptionContent({
                 <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">Other Requirements</h4>
                 <div className="space-y-2">
                   {courseInfo.otherRequirements.map((requirement, i) => (
-                    <RequirementCard key={`other-requirement-${i}`} requirement={requirement} tone="slate" />
+                    <RequirementCard key={`other-requirement-${i}`} requirement={requirement} />
                   ))}
                 </div>
               </div>
@@ -307,7 +341,7 @@ function CourseDescriptionContent({
                 <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">NOT</h4>
                 <div className="space-y-2">
                   {notRestrictions.map((requirement, i) => (
-                    <RequirementCard key={`not-restriction-${i}`} requirement={requirement} tone="slate" />
+                    <RequirementCard key={`not-restriction-${i}`} requirement={requirement} />
                   ))}
                 </div>
               </div>

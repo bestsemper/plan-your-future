@@ -173,7 +173,16 @@ function storeSelectedPlanId(userId: string, planId: string) {
 
 function formatEnrollmentRequirement(requirement: string): { label: string; value: string } {
   const trimmed = requirement.trim();
-  const prefixMatch = trimmed.match(/^(Major Restriction|Program Restriction|Year Requirement|School Requirement|Credit Requirement):\s*(.+)$/i);
+
+  // Instructor permission is advisory and should render as a simple requirement label/value.
+  if (/^(?:Other Requirement:\s*)?instructor(?:'s)?\s+(?:permission|consent)\b/i.test(trimmed)) {
+    return {
+      label: 'Instructor Permission',
+      value: 'Instructor Permission',
+    };
+  }
+
+  const prefixMatch = trimmed.match(/^(Major Restriction|Program Restriction|Year Requirement|School Requirement|Credit Requirement|Other Requirement):\s*(.+)$/i);
 
   if (prefixMatch) {
     return {
@@ -1703,7 +1712,7 @@ export default function PlanBuilderPage() {
                               >
                                 <div className="mb-1 flex items-center gap-2">
                                   <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${
-                                    isUnsatisfied ? 'bg-red-500/15 text-red-600' : 'bg-uva-blue/10 text-uva-blue'
+                                    isUnsatisfied ? 'bg-red-500/15 text-red-600' : 'bg-text-muted/10 text-text-secondary'
                                   }`}>
                                     {formattedRequirement.label}
                                   </span>
@@ -1737,7 +1746,7 @@ export default function PlanBuilderPage() {
                               >
                                 <div className="mb-1 flex items-center gap-2">
                                   <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${
-                                    isUnsatisfied ? 'bg-red-500/15 text-red-600' : 'bg-uva-orange/10 text-uva-orange'
+                                    isUnsatisfied ? 'bg-red-500/15 text-red-600' : 'bg-text-muted/10 text-text-secondary'
                                   }`}>
                                     {formattedRequirement.label}
                                   </span>

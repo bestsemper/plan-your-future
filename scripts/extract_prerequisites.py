@@ -38,6 +38,14 @@ DESCRIPTION_REQUISITE_SENTENCE_PATTERN = re.compile(
 )
 
 # Regex patterns for requisite prefixes
+# Matches inline concurrent requirement sentences that lack a formal label, e.g.:
+# "CHEM 1410, 1610, or 1810 must be taken concurrently or prior to CHEM 1411."
+DESCRIPTION_INLINE_CONCURRENT_PATTERN = re.compile(
+    r'([A-Z]{2,6}\s+\d+[^.]*?must\s+be\s+taken\s+concurrently[^.]*\.)',
+    re.IGNORECASE,
+)
+
+# Regex patterns for requisite prefixes
 PREREQ_PREFIX_PATTERN = r'(?:prerequisites?|prereqs?)(?:\s*[:\-]?)\s*'
 REQUISITE_LABEL_PATTERN = re.compile(
     r'(?<!recommended\s)(?P<label>'
@@ -54,6 +62,18 @@ REQUISITE_LABEL_PATTERN = re.compile(
 # Regex pattern for "N of the following" constraints
 COUNT_OF_PATTERN = r'(?:at\s+least\s+)?(\d+)\s+(?:of\s+(?:the\s+)?following|from\s+the\s+following|courses?\s+from)'
 MANUAL_EQUIVALENT_GROUPS_PATH = Path('data/manual_equivalent_groups.json')
+COUNT_WORD_TO_NUMBER = {
+    'one': 1,
+    'two': 2,
+    'three': 3,
+    'four': 4,
+    'five': 5,
+    'six': 6,
+    'seven': 7,
+    'eight': 8,
+    'nine': 9,
+    'ten': 10,
+}
 
 
 @dataclass
@@ -216,7 +236,7 @@ def extract_major_program_requirements(enrollment_requirements: str) -> List[Any
         r'\b('
         r'program|rotc|admission|cohort|track|certificate|'
         r'jd\s+student|llm\s+student|mba\s+student|phd\s+student|'
-        r'graduate\s+student|undergraduate\s+student|engineering\s+undergraduate|'
+        r'graduate\s+students?|undergraduate\s+students?|engineering\s+undergraduate|'
         r'graduate\s+standing|undergraduate\s+standing|grad\s+standing|undergrad\s+standing'
         r')\b',
         re.IGNORECASE,
@@ -437,9 +457,14 @@ def extract_major_program_requirements(enrollment_requirements: str) -> List[Any
 
     for clause in clauses:
         lower_clause = clause.lower()
-        if "can't enroll if" in lower_clause or "cannot enroll if" in lower_clause:
-            continue
-        if "credit not granted" in lower_clause:
+        if any(phrase in lower_clause for phrase in (
+            "can't enroll if",
+            "cannot enroll if",
+            "may not enroll if",
+            "credit not granted",
+            "not open to",
+        )):
+            other_nodes.append(OtherRequirementNode(requirement=normalize_requirement_text(clause)))
             continue
 
         graduate_option_node = build_graduate_option_node(clause)
@@ -564,9 +589,17 @@ def extract_major_program_requirements(enrollment_requirements: str) -> List[Any
             for match in school_pattern.finditer(segment):
                 school_nodes.append(SchoolRequirementNode(requirement=canonical_school(match.group(0), segment)))
 
-            # Treat graduate/undergraduate standing as a program requirement.
+            # Treat graduate/undergraduate standing or student labels as a program requirement.
             for match in grad_standing_pattern.finditer(segment):
                 program_nodes.append(ProgramRequirementNode(requirement=normalize_requirement_text(match.group(0))))
+
+            graduate_student_match = re.search(r'\b(?:be\s+a\s+)?graduate\s+students?\b', segment, re.IGNORECASE)
+            if graduate_student_match:
+                program_nodes.append(ProgramRequirementNode(requirement='graduate student'))
+
+            undergraduate_student_match = re.search(r'\b(?:be\s+an?\s+)?undergraduate\s+students?\b', segment, re.IGNORECASE)
+            if undergraduate_student_match:
+                program_nodes.append(ProgramRequirementNode(requirement='undergraduate student'))
 
             # Remove year fragments before classifying the remainder as major/program.
             segment_wo_year = year_standing_pattern.sub(' ', segment)
@@ -766,6 +799,17 @@ def extract_requisite_sentences_from_description(description: str) -> List[str]:
     normalized = " ".join(str(description).split())
     matches = DESCRIPTION_REQUISITE_SENTENCE_PATTERN.findall(normalized)
     if not matches:
+        # Also look for inline concurrent requirement sentences without a formal label.
+        # e.g. "CHEM 1410, 1610, or 1810 must be taken concurrently or prior to CHEM 1411."
+        inline_raw = DESCRIPTION_INLINE_CONCURRENT_PATTERN.findall(normalized)
+        # Strip the "or prior to COURSE" context tail since that names the target course,
+        # not an additional requirement. E.g. strip " or prior to CHEM 1411.".
+        matches = [
+            re.sub(r'\s+(?:or\s+)?prior\s+to\s+[A-Z]{2,6}[^,.]*\.?', '', m, flags=re.IGNORECASE).strip()
+            for m in inline_raw
+        ]
+        matches = [m for m in matches if m]
+    if not matches:
         return []
 
     snippets: List[str] = []
@@ -799,6 +843,28 @@ def classify_requisite_text(text: str) -> str:
         re.IGNORECASE,
     ))
     return 'corequisite' if concurrent_language else 'prerequisite'
+
+
+def split_requisite_subsnippets(raw_snippet: str, default_kind: str) -> List[Tuple[str, str]]:
+    """Split mixed labeled snippets into smaller prerequisite/corequisite/other pieces."""
+    pieces = re.split(r'(?<=[.;])\s+', raw_snippet)
+    snippets: List[Tuple[str, str]] = []
+    seen = set()
+
+    for index, piece in enumerate(pieces):
+        normalized_piece = normalize_requirement_text(piece)
+        if not normalized_piece:
+            continue
+
+        inferred_kind = classify_requisite_text(normalized_piece)
+        kind = default_kind if index == 0 and default_kind == 'prerequisite' and inferred_kind == 'prerequisite' else inferred_kind
+        key = (kind, normalized_piece.lower())
+        if key in seen:
+            continue
+        seen.add(key)
+        snippets.append((kind, normalized_piece))
+
+    return snippets
 
 
 def extract_requirement_snippets(description: str, enrollment_requirements: str) -> List[Tuple[str, str]]:
@@ -835,7 +901,7 @@ def extract_requirement_snippets(description: str, enrollment_requirements: str)
 
             snippet = normalize_requirement_text(raw_snippet)
             if snippet:
-                snippets.append((classify_requisite_label(match.group('label')), snippet))
+                snippets.extend(split_requisite_subsnippets(snippet, classify_requisite_label(match.group('label'))))
         return snippets
 
     snippets: List[Tuple[str, str]] = []
@@ -863,10 +929,12 @@ def extract_requirement_snippets(description: str, enrollment_requirements: str)
             if all_courses:
                 normalized = normalize_requirement_text(enrollment_text)
                 inferred_kind = classify_requisite_text(enrollment_text)
-                key = (inferred_kind, normalized.lower())
-                if key not in seen:
+                for kind, snippet in split_requisite_subsnippets(normalized, inferred_kind):
+                    key = (kind, snippet.lower())
+                    if key in seen:
+                        continue
                     seen.add(key)
-                    snippets.append((inferred_kind, normalized))
+                    snippets.append((kind, snippet))
                 enrollment_has_courses = True
 
     description_text = description.strip()
@@ -908,41 +976,63 @@ def extract_course_codes(text: str) -> List[str]:
 
 
 def expand_level_based_courses(text: str) -> List[str]:
-    """
-    Expand level-based course references to course codes.
-    
-    Example: "at least one 2000- or 3000-level STS course" 
-    -> extracts STS 2000, STS 3000
-    
-    Handles patterns like:
-    - "2000-level CS course" -> "CS 2000"
-    - "2000- or 3000-level STS course" -> "STS 2000", "STS 3000"
-    - "2000 or 3000-level course" -> "2000" or "3000" (no department)
-    """
-    courses = []
-    # Pattern: optional digits/dash followed by "NNNN-level DEPT course"
-    # or "NNNN - or XXXX - level DEPT course"
-    level_pattern = r'(\d{4})\s*-?\s*(?:or\s+)?(?:the\s+)?(\d{4})?-?level\s+([A-Z]{2,6})\s+(?:courses?)?'
-    matches = re.finditer(level_pattern, text, re.IGNORECASE)
-    
-    for match in matches:
-        level1 = match.group(1)
-        level2 = match.group(2)
-        dept = match.group(3).upper()
-        
-        # Filter out invalid departments
-        if dept not in INVALID_SUBJECT_CODES:
-            courses.append(f"{dept} {level1}")
-            if level2:
-                courses.append(f"{dept} {level2}")
-    
-    # Also handle "2000- or 3000-level course" without department
-    # Pattern: NNNN- or XXXX-level where nearby text might indicate department
-    for match in re.finditer(r'(\d{4})\s*(?:-|to)\s*(?:or\s+)?(\d{4})\s*-?level', text):
-        # Only add these if we have a department nearby
-        pass
-    
+    """Expand level-based course references to course codes."""
+    courses: List[str] = []
+
+    def add_course(dept: str, level: str) -> None:
+        normalized_dept = dept.upper()
+        if normalized_dept not in INVALID_SUBJECT_CODES:
+            courses.append(f"{normalized_dept} {level}")
+
+    forward_pattern = r'(\d{4})\s*-?\s*(?:,\s*)?(?:or\s+)?(?:the\s+)?(\d{4})?\s*-?\s*(?:,\s*)?(?:or\s+)?(\d{4})?\s*-?level\s+([A-Z]{2,6})\s+(?:courses?)?'
+    reverse_patterns = [
+        r'([A-Z]{2,6})\s+courses?\s+at\s+the\s+(\d{4})\s*-,\s*(\d{4})\s*-,\s*or\s*(\d{4})\s*-level',
+        r'([A-Z]{2,6})\s+courses?\s+at\s+the\s+(\d{4})\s*-?\s*(?:or\s+)?(\d{4})?\s*-?level',
+    ]
+
+    for match in re.finditer(forward_pattern, text, re.IGNORECASE):
+        dept = match.group(4).upper()
+        for level in match.groups()[:3]:
+            if level:
+                add_course(dept, level)
+
+    for pattern in reverse_patterns:
+        for match in re.finditer(pattern, text, re.IGNORECASE):
+            dept = match.group(1).upper()
+            for level in match.groups()[1:]:
+                if level:
+                    add_course(dept, level)
+
     return courses
+
+
+def replace_level_phrases_for_tokenization(text: str) -> str:
+    """Normalize level-based course language into tokenizable pseudo-course expressions."""
+
+    def replace_forward(match):
+        dept = match.group(4).upper()
+        if dept in INVALID_SUBJECT_CODES:
+            return match.group(0)
+        levels = [level for level in match.groups()[:3] if level]
+        return ' OR '.join(f"__LEVEL__{dept} {level}" for level in levels)
+
+    def replace_reverse(match):
+        dept = match.group(1).upper()
+        if dept in INVALID_SUBJECT_CODES:
+            return match.group(0)
+        levels = [level for level in match.groups()[1:] if level]
+        return ' OR '.join(f"__LEVEL__{dept} {level}" for level in levels)
+
+    forward_pattern = r'(\d{4})\s*-?\s*(?:,\s*)?(?:or\s+)?(?:the\s+)?(\d{4})?\s*-?\s*(?:,\s*)?(?:or\s+)?(\d{4})?\s*-?level\s+([A-Z]{2,6})\s+(?:courses?)?'
+    reverse_patterns = [
+        r'([A-Z]{2,6})\s+courses?\s+at\s+the\s+(\d{4})\s*-,\s*(\d{4})\s*-,\s*or\s*(\d{4})\s*-level',
+        r'([A-Z]{2,6})\s+courses?\s+at\s+the\s+(\d{4})\s*-?\s*(?:or\s+)?(\d{4})?\s*-?level',
+    ]
+
+    text = re.sub(forward_pattern, replace_forward, text, flags=re.IGNORECASE)
+    for pattern in reverse_patterns:
+        text = re.sub(pattern, replace_reverse, text, flags=re.IGNORECASE)
+    return text
 
 
 def normalize_course_code(code: str) -> str:
@@ -1122,31 +1212,20 @@ def extract_words_after_prefix(text: str) -> List[str]:
     return filtered_words
 
 
-def tokenize_prerequisite(text: str) -> List[str]:
+def tokenize_prerequisite(text: str, default_subject: Optional[str] = None) -> List[str]:
     """Tokenize the prerequisite text into tokens (course codes, operators, parens, count constraints)"""
-    # Replace level-based course references with actual course codes for tokenization
-    # E.g., "2000- or 3000-level STS course" -> "__LEVEL__STS 2000 OR __LEVEL__STS 3000"
-    # The __LEVEL__ prefix will be used to mark these courses as level-based
-    level_pattern = r'(\d{4})\s*-?\s*(?:or\s+)?(?:the\s+)?(\d{4})?-?level\s+([A-Z]{2,6})\s+(?:courses?)?'
+    # Drop parenthetical program codes like (ATHTRN-MS) before tokenization.
+    text = re.sub(r'\((?![^)]*\b[A-Z]{2,6}\s*\d{3,4}[A-Z]?\b)[^)]*\)', ' ', text)
+
+    # Replace level-based course references with tokenizable pseudo-courses.
+    text = replace_level_phrases_for_tokenization(text)
     
-    def replace_level_ref(match):
-        level1 = match.group(1)
-        level2 = match.group(2)
-        dept = match.group(3).upper()
-        
-        # Filter out invalid departments
-        if dept in INVALID_SUBJECT_CODES:
-            return match.group(0)
-        
-        if level2:
-            return f"__LEVEL__{dept} {level1} OR __LEVEL__{dept} {level2}"
-        else:
-            return f"__LEVEL__{dept} {level1}"
-    
-    text = re.sub(level_pattern, replace_level_ref, text, flags=re.IGNORECASE)
-    
-    # Check for count pattern first (e.g., "2 of the following")
-    count_match = re.search(COUNT_OF_PATTERN, text, re.IGNORECASE)
+    # Check for count pattern first (e.g., "2 of the following" or "ONE of the following")
+    count_match = re.search(
+        r'(?:at\s+least\s+)?(\d+|one|two|three|four|five|six|seven|eight|nine|ten)\s+(?:of\s+(?:the\s+)?following|from\s+the\s+following|courses?\s+from)',
+        text,
+        re.IGNORECASE,
+    )
 
     # Normalize for consistent matching and parsing.
     text = text.upper()
@@ -1175,7 +1254,9 @@ def tokenize_prerequisite(text: str) -> List[str]:
 
     # If we found a count pattern, add it as a special token
     if count_match:
-        tokens.append(f"COUNT:{count_match.group(1)}")
+        raw_count = count_match.group(1).lower()
+        count_value = COUNT_WORD_TO_NUMBER.get(raw_count, int(raw_count) if raw_count.isdigit() else 1)
+        tokens.append(f"COUNT:{count_value}")
         # Parse text after the count constraint
         text_after = text[count_match.end():]
         for match in pattern.finditer(text_after):
@@ -1205,6 +1286,8 @@ def tokenize_prerequisite(text: str) -> List[str]:
             if re.match(r'^\d{4}$', token):
                 if last_dept:
                     tokens.append(f"{last_dept} {token}")
+                elif default_subject:
+                    tokens.append(f"{default_subject} {token}")
                 continue
 
             if token in ('AND', 'OR', '(', ')'):
@@ -1237,6 +1320,8 @@ def tokenize_prerequisite(text: str) -> List[str]:
             if re.match(r'^\d{4}$', token):
                 if last_dept:
                     tokens.append(f"{last_dept} {token}")
+                elif default_subject:
+                    tokens.append(f"{default_subject} {token}")
                 continue
 
             if token in ('AND', 'OR', '(', ')'):
@@ -1593,10 +1678,13 @@ def build_course_requirement_tree(
 
     for requirement_text in snippets:
         courses = extract_course_codes(requirement_text)
-        if not courses:
+        level_courses = expand_level_based_courses(requirement_text)
+        if not courses and not level_courses:
             continue
 
-        tokens = tokenize_prerequisite(requirement_text)
+        owner_subject_match = re.match(r'^([A-Z]{2,6})\s+\d{4}[A-Z]?$', normalize_course_code(course_code))
+        default_subject = owner_subject_match.group(1) if owner_subject_match else None
+        tokens = tokenize_prerequisite(requirement_text, default_subject)
         course_tree = parse_prerequisite_tree(tokens)
         course_tree = expand_equivalent_courses(course_tree, equivalent_course_map)
         course_tree = prune_self_reference(course_tree, course_code)

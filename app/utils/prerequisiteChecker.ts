@@ -103,6 +103,12 @@ type EvaluationContext = {
   targetCourseSubject?: string;
 };
 
+function isAdvisoryOtherRequirement(requirement: string): boolean {
+  return /\b(?:instructor(?:'s)?\s+(?:permission|consent)|permission\s+of\s+(?:the\s+)?instructor|consent\s+of\s+(?:the\s+)?instructor|permission\s+by\s+audition)\b/i.test(
+    requirement
+  );
+}
+
 function formatCreditValue(credits: number): string {
   return Number.isInteger(credits) ? `${credits}` : `${credits}`;
 }
@@ -619,7 +625,7 @@ export function evaluateTreeRecursive(
   }
 
   if (tree.type === 'other') {
-    return false;
+    return isAdvisoryOtherRequirement(tree.requirement);
   }
 
   if (tree.type === 'count') {
@@ -833,6 +839,9 @@ export function getDetailedMissingRequirements(
   }
 
   if (tree.type === 'other') {
+    if (isAdvisoryOtherRequirement(tree.requirement)) {
+      return [];
+    }
     return [{ type: 'other', description: `Other Requirement: ${formatRequirementText(tree.requirement)}`, missingCourses: [] }];
   }
 

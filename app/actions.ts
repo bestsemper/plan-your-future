@@ -1834,6 +1834,7 @@ type CourseDetailsJsonRecord = {
   description?: string;
   enrollment_requirements?: string;
   term?: string;
+  terms?: string;
 };
 
 type AggregatedCourseDetails = {
@@ -1940,6 +1941,18 @@ function formatTermLabel(term: string): string {
   return season ? `${season} ${year}` : cleaned;
 }
 
+function parseTermLabels(rawTerms: string): string[] {
+  const normalized = normalizeCsvText(rawTerms);
+  if (!normalized) {
+    return [];
+  }
+
+  return normalized
+    .split(',')
+    .map((part) => formatTermLabel(part.trim()))
+    .filter(Boolean);
+}
+
 function getTermSortKey(termLabel: string): number {
   const match = termLabel.match(/^(Winter|Spring|Summer|Fall) (\d{4})$/);
   if (!match) {
@@ -2017,8 +2030,8 @@ function loadCourseDetailsFromJSON(): {
       existing.prerequisites.add(prereqText);
     }
 
-    const termLabel = formatTermLabel(record.term ?? '');
-    if (termLabel) {
+    const rawTermField = record.terms ?? record.term ?? '';
+    for (const termLabel of parseTermLabels(rawTermField)) {
       existing.terms.add(termLabel);
     }
 
