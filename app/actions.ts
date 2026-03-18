@@ -1266,13 +1266,59 @@ export async function generatePreliminaryPlan(userId: string, major: string, goa
 
 export async function addCourseToSemester(semesterId: string, courseCode: string, credits: number) {
   if (!courseCode || !credits) throw new Error("Course details missing");
+  const normalizedCourseCode = courseCode.toUpperCase().replace(/\s+/g, ' ').trim();
+
+  const existing = await prisma.plannedCourse.findFirst({
+    where: {
+      semesterId,
+      courseCode: normalizedCourseCode,
+    },
+    select: { id: true },
+  });
+
+  // Do not allow duplicate copies of the same course in one semester.
+  if (existing) {
+    return;
+  }
+
   await prisma.plannedCourse.create({
     data: {
       semesterId,
-      courseCode,
+      courseCode: normalizedCourseCode,
       credits
     }
   });
+  revalidatePath('/plan');
+}
+
+export async function removeDuplicateCoursesInSemester(semesterId: string, courseCode: string) {
+  const normalizedCourseCode = courseCode.toUpperCase().replace(/\s+/g, ' ').trim();
+  const duplicates = await prisma.plannedCourse.findMany({
+    where: {
+      semesterId,
+      courseCode: normalizedCourseCode,
+    },
+    orderBy: {
+      id: 'asc',
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (duplicates.length <= 1) {
+    return;
+  }
+
+  const idsToRemove = duplicates.slice(1).map((row) => row.id);
+  await prisma.plannedCourse.deleteMany({
+    where: {
+      id: {
+        in: idsToRemove,
+      },
+    },
+  });
+
   revalidatePath('/plan');
 }
 

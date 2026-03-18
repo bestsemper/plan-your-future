@@ -9,6 +9,7 @@ import {
   addSchoolYearToPlan,
   addSemesterToPlan,
   addCourseToSemester,
+  removeDuplicateCoursesInSemester,
   createNewPlan,
   deleteSchoolYearFromPlan,
   deleteSemesterFromPlan,
@@ -376,9 +377,13 @@ function AddCourseInline({
               placeholder="Course Code"
               value={courseCode}
               onChange={(e) => {
-                setCourseCode(e.target.value);
+                const newValue = e.target.value;
+                setCourseCode(newValue);
                 setShowDropdown(true);
-                onClearWarning();
+                // Only clear warning if user is actively typing (not on programmatic clear)
+                if (newValue.length > 0) {
+                  onClearWarning();
+                }
               }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
@@ -593,6 +598,14 @@ export default function PlanBuilderPage() {
     void checkExistingCoursesPrerequisites();
   }, [activePlan, completedCourses]);
 
+  const courseCodeToTitle = useMemo(() => {
+    const map = new Map<string, string | null>();
+    for (const course of allCourses) {
+      map.set(course.code, course.title);
+    }
+    return map;
+  }, [allCourses]);
+
   const schoolYearRows = useMemo<SchoolYearRow[]>(() => {
     if (!activePlan) return [];
 
@@ -655,7 +668,7 @@ export default function PlanBuilderPage() {
   const handleAddCourse = async (semesterId: string, rawCourseCode: string, creditsText: string): Promise<boolean> => {
     if (!rawCourseCode || !activePlan) return false;
 
-    const code = rawCourseCode.toUpperCase();
+    const code = rawCourseCode.toUpperCase().replace(/\s+/g, ' ').trim();
     const cr = Number.parseInt(creditsText, 10);
     if (Number.isNaN(cr)) {
       return false;
@@ -664,6 +677,54 @@ export default function PlanBuilderPage() {
     // Find the current semester to get termOrder
     const currentSem = activePlan.semesters.find((s) => s.id === semesterId);
     if (!currentSem) return false;
+
+    const normalizeCode = (value: string) => value.toUpperCase().replace(/\s+/g, ' ').trim();
+    const sameSemesterMatches = currentSem.courses.filter((courseInSemester) => normalizeCode(courseInSemester.courseCode) === code);
+    if (sameSemesterMatches.length > 0) {
+      // If duplicates are already present, collapse to one and clean up server-side.
+      if (sameSemesterMatches.length > 1) {
+        setOptimisticPlans((prev) =>
+          prev.map((plan) => ({
+            ...plan,
+            semesters: plan.semesters.map((semester) => {
+              if (semester.id !== semesterId) {
+                return semester;
+              }
+
+              let keptOne = false;
+              return {
+                ...semester,
+                courses: semester.courses.filter((courseInSemester) => {
+                  if (normalizeCode(courseInSemester.courseCode) !== code) {
+                    return true;
+                  }
+                  if (!keptOne) {
+                    keptOne = true;
+                    return true;
+                  }
+                  return false;
+                }),
+              };
+            }),
+          }))
+        );
+        void removeDuplicateCoursesInSemester(semesterId, code).then(() => {
+          void loadData();
+        });
+      }
+
+      setPrereqWarning({
+        type: 'info',
+        message: `${code} is already in this semester. Duplicate not added.`,
+      });
+      return false;
+    }
+
+    const existsInAnotherSemester = activePlan.semesters.some(
+      (semester) =>
+        semester.id !== semesterId &&
+        semester.courses.some((courseInSemester) => normalizeCode(courseInSemester.courseCode) === code)
+    );
 
     // Check prerequisites
     const result = await checkCoursePrerequisites({
@@ -676,9 +737,16 @@ export default function PlanBuilderPage() {
 
     // Handle the prerequisite result
     if (result.isSatisfied) {
-      // Prerequisites are satisfied, proceed with adding course
-      setPrereqWarning(null);
-      addCourseOptimistically(semesterId, code, cr);
+      // Prerequisites are satisfied, proceed with adding course.
+      if (existsInAnotherSemester) {
+        setPrereqWarning({
+          type: 'warning',
+          message: `${code} is already planned in another semester.`,
+        });
+      } else {
+        setPrereqWarning(null);
+      }
+      addCourseOptimistically(semesterId, code, cr, !existsInAnotherSemester);
       return true;
     } else if (result.hasNoPrerequisites && result.hasNoCorequisites && result.hasNoOtherRequirements && result.hasUnknownPrerequisites) {
       // No prerequisites found but not 1000-level - show soft warning
@@ -704,7 +772,7 @@ export default function PlanBuilderPage() {
     }
   };
 
-  const addCourseOptimistically = (semesterId: string, code: string, cr: number) => {
+  const addCourseOptimistically = (semesterId: string, code: string, cr: number, clearWarning: boolean = true) => {
     setOptimisticPlans((prev) =>
       prev.map((p) => ({
         ...p,
@@ -720,7 +788,9 @@ export default function PlanBuilderPage() {
     );
 
     setNewCourseSem(null);
-    setPrereqWarning(null);
+    if (clearWarning) {
+      setPrereqWarning(null);
+    }
 
     void addCourseToSemesterAsync(semesterId, code, cr);
   };
@@ -1356,21 +1426,27 @@ export default function PlanBuilderPage() {
                               const tooltipMessage = requirementsMissing.length > 0
                                 ? buildRequirementTooltip(requirementsMissing)
                                 : 'Requirements not satisfied';
+                              const courseTitle = courseCodeToTitle.get(course.courseCode);
                               return (
-                                <div key={course.id} onClick={() => handleCourseClick(course.courseCode, requirementsMissing)} className="px-3 bg-panel-bg-alt border border-panel-border-strong rounded-xl text-sm flex justify-between items-center hover:border-uva-blue transition-colors cursor-pointer group h-[46px]">
-                                  <span className="font-medium text-text-primary flex items-center gap-2">
-                                    {course.courseCode}
-                                    {isProblematic && (
-                                      <HoverTooltip message={tooltipMessage}>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-yellow-500 flex-shrink-0 cursor-help hover:text-yellow-600 transition-colors">
-                                          <circle cx="12" cy="12" r="10"/>
-                                          <line x1="12" y1="8" x2="12" y2="12"/>
-                                          <line x1="12" y1="16" x2="12.01" y2="16"/>
-                                        </svg>
-                                      </HoverTooltip>
+                                <div key={course.id} onClick={() => handleCourseClick(course.courseCode, requirementsMissing)} className="px-3 py-2 bg-panel-bg-alt border border-panel-border-strong rounded-xl text-sm flex justify-between items-stretch hover:border-uva-blue transition-colors cursor-pointer group">
+                                  <div className="flex flex-col justify-center flex-1">
+                                    <span className="font-medium text-text-primary flex items-center gap-2">
+                                      {course.courseCode}
+                                      {isProblematic && (
+                                        <HoverTooltip message={tooltipMessage}>
+                                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-yellow-500 flex-shrink-0 cursor-help hover:text-yellow-600 transition-colors">
+                                            <circle cx="12" cy="12" r="10"/>
+                                            <line x1="12" y1="8" x2="12" y2="12"/>
+                                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                                          </svg>
+                                        </HoverTooltip>
+                                      )}
+                                    </span>
+                                    {courseTitle && (
+                                      <p className="text-xs text-text-muted truncate mt-0.5">{courseTitle}</p>
                                     )}
-                                  </span>
-                                  <div className="relative flex items-center justify-end min-w-[84px] h-full pr-1">
+                                  </div>
+                                  <div className="relative flex items-center justify-end min-w-[84px] pl-2">
                                     <span className="text-gray-500 font-semibold whitespace-nowrap transition-transform duration-200 group-hover:-translate-x-6">{course.credits ?? 0} cr</span>
                                     <button onClick={(e) => { e.stopPropagation(); void handleRemoveCourse(course.id); }} className="absolute right-0 text-danger-text hover:text-danger-text-hover opacity-0 translate-x-1 group-hover:opacity-100 p-2 cursor-pointer flex items-center justify-center transition-all duration-200 hover:scale-110">
                                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -1394,7 +1470,9 @@ export default function PlanBuilderPage() {
                                 <div className={`mt-2 p-3 rounded-lg text-sm ${
                                   prereqWarning.type === 'error'
                                     ? 'bg-red-500/10 border border-red-500/30 text-red-600'
-                                    : 'bg-blue-500/10 border border-blue-500/30 text-blue-600'
+                                    : prereqWarning.type === 'warning'
+                                      ? 'bg-amber-500/10 border border-amber-500/30 text-amber-700'
+                                      : 'bg-blue-500/10 border border-blue-500/30 text-blue-600'
                                 }`}>
                                   {prereqWarning.type === 'error' && (
                                     <div className="flex items-start gap-2">
@@ -1426,6 +1504,12 @@ export default function PlanBuilderPage() {
                                   {prereqWarning.type === 'info' && (
                                     <div className="flex items-start gap-2">
                                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 mt-0.5 flex-shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                                      <p>{prereqWarning.message}</p>
+                                    </div>
+                                  )}
+                                  {prereqWarning.type === 'warning' && (
+                                    <div className="flex items-start gap-2">
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 mt-0.5 flex-shrink-0"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3l-8.47-14.14a2 2 0 0 0-3.42 0Z"/></svg>
                                       <p>{prereqWarning.message}</p>
                                     </div>
                                   )}
