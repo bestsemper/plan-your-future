@@ -36,8 +36,8 @@ export default async function Profile() {
               <p className="text-text-secondary text-base md:text-lg font-medium break-words">
                 {profileSummary}
               </p>
-              {user.additionalPrograms.length > 0 && (
-                <p className="text-text-secondary text-sm md:text-base mt-2 break-words">Programs: {user.additionalPrograms.join(', ')}</p>
+              {(user.additionalPrograms ?? []).length > 0 && (
+                <p className="text-text-secondary text-sm md:text-base mt-2 break-words">Programs: {(user.additionalPrograms ?? []).join(', ')}</p>
               )}
               {user.bio && <p className="text-text-secondary text-sm md:text-base mt-2 break-words">{user.bio}</p>}
             </div>

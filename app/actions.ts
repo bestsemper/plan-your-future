@@ -374,9 +374,15 @@ export async function getCurrentUser() {
   
   if (!computingId) return null;
   
-  return await prisma.user.findUnique({
+  const user = await prisma.user.findUnique({
     where: { computingId }
   });
+
+  if (user && !user.additionalPrograms) {
+    user.additionalPrograms = [];
+  }
+
+  return user;
 }
 
 export async function updateCurrentUserProfile(data: {
@@ -512,7 +518,7 @@ export async function createForumPost(title: string, body: string, attachedPlanI
     };
   }
 
-  await prisma.forumPost.create({
+  const post = await prisma.forumPost.create({
     data: {
       authorId: user.id,
       title: trimmedTitle,
@@ -522,7 +528,18 @@ export async function createForumPost(title: string, body: string, attachedPlanI
     },
   });
 
+  // Automatically upvote the post as the author
+  await prisma.vote.create({
+    data: {
+      userId: user.id,
+      postId: post.id,
+      value: 1,
+    },
+  });
+
   revalidatePath('/forum');
+  revalidatePath('/forum/questions');
+  revalidatePath(`/forum/${post.postNumber}`);
   return { success: true };
 }
 
