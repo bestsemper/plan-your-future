@@ -60,11 +60,11 @@ async function main() {
         create: [
           {
             termName: 'Fall', termOrder: 1, year: 2022,
-            courses: { create: [{ courseCode: 'CS 1110', credits: 3 }, { courseCode: 'ENWR 1510', credits: 3 }] }
+            courses: { create: [{ courseCode: 'CS 1110', creditsMin: 3, creditsMax: 3 }, { courseCode: 'ENWR 1510', creditsMin: 3, creditsMax: 3 }] }
           },
           {
             termName: 'Spring', termOrder: 2, year: 2023,
-            courses: { create: [{ courseCode: 'CS 2100', credits: 4 }, { courseCode: 'APMA 1090', credits: 4 }] }
+            courses: { create: [{ courseCode: 'CS 2100', creditsMin: 4, creditsMax: 4 }, { courseCode: 'APMA 1090', creditsMin: 4, creditsMax: 4 }] }
           }
         ]
       }

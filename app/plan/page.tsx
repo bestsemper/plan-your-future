@@ -10,12 +10,13 @@ import {
   addSemesterToPlan,
   addCourseToSemester,
   removeDuplicateCoursesInSemester,
+  updateCourseCreditValue,
   createNewPlan,
   deleteSchoolYearFromPlan,
   deleteSemesterFromPlan,
   deletePlan,
   generatePreliminaryPlan,
-  getCourseCreditsFromJSON,
+  getCourseCreditsInfoFromJSON,
   getCourseInfoFromJSON,
   getPlanBuilderData,
   importPlanFromStellicPdf,
@@ -45,7 +46,8 @@ type CourseOption = {
 type PlanCourse = {
   id: string;
   courseCode: string;
-  credits: number | null;
+  creditsMin: number | null;
+  creditsMax: number | null;
 };
 
 type PlanSemester = {
@@ -335,6 +337,8 @@ function AddCourseInline({
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [courseCode, setCourseCode] = useState('');
   const [credits, setCredits] = useState('3');
+  const [creditsMin, setCreditsMin] = useState<number | undefined>();
+  const [creditsMax, setCreditsMax] = useState<number | undefined>();
   const [showDropdown, setShowDropdown] = useState(false);
 
   const filteredCourses = useMemo(() => {
@@ -362,6 +366,8 @@ function AddCourseInline({
     if (didAdd) {
       setCourseCode('');
       setCredits('3');
+      setCreditsMin(undefined);
+      setCreditsMax(undefined);
       setShowDropdown(false);
     }
   };
@@ -397,7 +403,21 @@ function AddCourseInline({
               autoFocus
             />
           </div>
-          <span className="text-gray-500 font-semibold whitespace-nowrap">{credits} cr</span>
+          {creditsMin && creditsMax && creditsMin !== creditsMax ? (
+            <select
+              value={credits}
+              onChange={(e) => setCredits(e.target.value)}
+              className="bg-panel-bg-alt text-text-primary border-none focus:outline-none font-semibold px-1 py-1 rounded text-sm"
+            >
+              {Array.from({ length: creditsMax - creditsMin + 1 }, (_, i) => creditsMin + i).map((val) => (
+                <option key={val} value={val.toString()}>
+                  {val} cr
+                </option>
+              ))}
+            </select>
+          ) : (
+            <span className="text-gray-500 font-semibold whitespace-nowrap">{credits} cr</span>
+          )}
         </div>
         {showDropdown && filteredCourses.length > 0 && (
           <div className="absolute z-10 left-0 top-full w-full mt-1.5 bg-panel-bg border border-panel-border rounded-xl shadow-lg overflow-hidden">
@@ -409,7 +429,11 @@ function AddCourseInline({
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => {
                     setCourseCode(course.code);
-                    getCourseCreditsFromJSON(course.code).then((res: string) => setCredits(res));
+                    getCourseCreditsInfoFromJSON(course.code).then((res) => {
+                      setCredits(res.credits.toString());
+                      setCreditsMin(res.creditsMin);
+                      setCreditsMax(res.creditsMax);
+                    });
                     setShowDropdown(false);
                     requestAnimationFrame(() => {
                       inputRef.current?.focus();
@@ -483,6 +507,8 @@ export default function PlanBuilderPage() {
   const [importError, setImportError] = useState<string | null>(null);
   const [isImportPlanDropdownOpen, setIsImportPlanDropdownOpen] = useState(false);
   const [importingPdf, setImportingPdf] = useState(false);
+  const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
+  const [editingCourseCreditsRange, setEditingCourseCreditsRange] = useState<{ min: number; max: number } | null>(null);
 
   // Prerequisite tracking
   const [completedCourses, setCompletedCourses] = useState<string[]>([]);
@@ -735,6 +761,11 @@ export default function PlanBuilderPage() {
       currentSemesterCourseCodes: currentSem.courses.map((courseInSemester) => courseInSemester.courseCode),
     });
 
+    // Get the course's actual credit range from JSON
+    const creditsInfo = await getCourseCreditsInfoFromJSON(code);
+    const creditsMin = creditsInfo.creditsMin ?? cr;
+    const creditsMax = creditsInfo.creditsMax ?? cr;
+
     // Handle the prerequisite result
     if (result.isSatisfied) {
       // Prerequisites are satisfied, proceed with adding course.
@@ -746,7 +777,7 @@ export default function PlanBuilderPage() {
       } else {
         setPrereqWarning(null);
       }
-      addCourseOptimistically(semesterId, code, cr, !existsInAnotherSemester);
+      addCourseOptimistically(semesterId, code, creditsMin, creditsMax, !existsInAnotherSemester);
       return true;
     } else if (result.hasNoPrerequisites && result.hasNoCorequisites && result.hasNoOtherRequirements && result.hasUnknownPrerequisites) {
       // No prerequisites found but not 1000-level - show soft warning
@@ -754,7 +785,7 @@ export default function PlanBuilderPage() {
         type: 'info',
         message: `${code} might have enrollment requirements we don't have in our system (it's not a 1000-level course). It's been added anyway.`,
       });
-      addCourseOptimistically(semesterId, code, cr);
+      addCourseOptimistically(semesterId, code, creditsMin, creditsMax);
       return true;
     } else {
       setPrereqWarning({
@@ -772,7 +803,7 @@ export default function PlanBuilderPage() {
     }
   };
 
-  const addCourseOptimistically = (semesterId: string, code: string, cr: number, clearWarning: boolean = true) => {
+  const addCourseOptimistically = (semesterId: string, code: string, creditsMin: number, creditsMax: number, clearWarning: boolean = true) => {
     setOptimisticPlans((prev) =>
       prev.map((p) => ({
         ...p,
@@ -780,7 +811,7 @@ export default function PlanBuilderPage() {
           s.id === semesterId
             ? {
                 ...s,
-                courses: [...s.courses, { id: `temp-${Date.now()}`, courseCode: code, credits: cr }],
+                courses: [...s.courses, { id: `temp-${Date.now()}`, courseCode: code, creditsMin, creditsMax }],
               }
             : s
         ),
@@ -792,15 +823,16 @@ export default function PlanBuilderPage() {
       setPrereqWarning(null);
     }
 
-    void addCourseToSemesterAsync(semesterId, code, cr);
+    void addCourseToSemesterAsync(semesterId, code, creditsMin, creditsMax);
   };
 
-  const addCourseToSemesterAsync = async (semesterId: string, code: string, cr: number) => {
-    await addCourseToSemester(semesterId, code, cr);
+  const addCourseToSemesterAsync = async (semesterId: string, code: string, creditsMin: number, creditsMax: number) => {
+    // Pass the selected credit value (use creditsMin as the "selected" value)
+    await addCourseToSemester(semesterId, code, creditsMin);
     void loadData();
   };
 
-  const handleProceedWithWarning = () => {
+  const handleProceedWithWarning = async () => {
     if (!pendingCourseAdd || !prereqWarning) return;
     
     // Add the course despite the warning
@@ -814,8 +846,13 @@ export default function PlanBuilderPage() {
       updated.set(pendingCourseAdd.semesterId, current);
       return updated;
     });
+
+    // Get the course's actual credit range
+    const creditsInfo = await getCourseCreditsInfoFromJSON(pendingCourseAdd.courseCode);
+    const creditsMin = creditsInfo.creditsMin ?? pendingCourseAdd.credits;
+    const creditsMax = creditsInfo.creditsMax ?? pendingCourseAdd.credits;
     
-    addCourseOptimistically(pendingCourseAdd.semesterId, pendingCourseAdd.courseCode, pendingCourseAdd.credits);
+    addCourseOptimistically(pendingCourseAdd.semesterId, pendingCourseAdd.courseCode, creditsMin, creditsMax);
     setPendingCourseAdd(null);
   };
 
@@ -1337,7 +1374,7 @@ export default function PlanBuilderPage() {
               const isCollapsed = Boolean(collapsedSchoolYears[row.startYear]);
               const totalCourses = orderedTerms.reduce((count, term) => count + (row.terms[term]?.courses.length ?? 0), 0);
               const totalCredits = orderedTerms.reduce(
-                (count, term) => count + (row.terms[term]?.courses.reduce((sum, course) => sum + (course.credits ?? 0), 0) ?? 0),
+                (count, term) => count + (row.terms[term]?.courses.reduce((sum, course) => sum + (course.creditsMin ?? 0), 0) ?? 0),
                 0
               );
 
@@ -1406,7 +1443,7 @@ export default function PlanBuilderPage() {
                             </h3>
                             <div className="flex items-center gap-2">
                               <span className="text-xs font-semibold bg-input-disabled px-2 py-1 rounded-lg text-text-secondary">
-                                {sem.courses.reduce((acc, c) => acc + (c.credits ?? 0), 0)} cr
+                                {sem.courses.reduce((acc, c) => acc + (c.creditsMin ?? 0), 0)} cr
                               </span>
                               <button
                                 type="button"
@@ -1446,8 +1483,46 @@ export default function PlanBuilderPage() {
                                       <p className="text-xs text-text-muted truncate mt-0.5">{courseTitle}</p>
                                     )}
                                   </div>
-                                  <div className="relative flex items-center justify-end min-w-[84px] pl-2">
-                                    <span className="text-gray-500 font-semibold whitespace-nowrap transition-transform duration-200 group-hover:-translate-x-6">{course.credits ?? 0} cr</span>
+                                  <div className="relative flex items-center justify-end min-w-fit gap-2 pl-2">
+                                    {editingCourseId === course.id && editingCourseCreditsRange ? (
+                                      <select
+                                        value={course.creditsMin ?? 3}
+                                        onChange={(e) => {
+                                          const newCredits = Number.parseInt(e.target.value, 10);
+                                          void updateCourseCreditValue(course.id, newCredits).then(() => {
+                                            setEditingCourseId(null);
+                                            setEditingCourseCreditsRange(null);
+                                            void loadData();
+                                          });
+                                        }}
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="bg-panel-bg-alt text-text-primary border-none focus:outline-none font-semibold px-1 py-1 rounded text-sm transition-transform duration-200 group-hover:-translate-x-6"
+                                        autoFocus
+                                      >
+                                        {Array.from({ length: editingCourseCreditsRange.max - editingCourseCreditsRange.min + 1 }, (_, i) => editingCourseCreditsRange.min + i).map((val) => (
+                                          <option key={val} value={val}>
+                                            {val} cr
+                                          </option>
+                                        ))}
+                                      </select>
+                                    ) : ((course.creditsMin ?? 3) !== (course.creditsMax ?? 3)) ? (
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          const creditsMin = course.creditsMin ?? 3;
+                                          const creditsMax = course.creditsMax ?? 3;
+                                          setEditingCourseId(course.id);
+                                          setEditingCourseCreditsRange({ min: creditsMin, max: creditsMax });
+                                        }}
+                                        className="text-gray-500 font-semibold whitespace-nowrap cursor-pointer hover:text-uva-orange transition-transform duration-200 group-hover:-translate-x-6"
+                                      >
+                                        {course.creditsMin ?? 0}-{course.creditsMax ?? 0} cr
+                                      </button>
+                                    ) : (
+                                      <span className="text-gray-500 font-semibold whitespace-nowrap transition-transform duration-200 group-hover:-translate-x-6">
+                                        {course.creditsMin ?? 0} cr
+                                      </span>
+                                    )}
                                     <button onClick={(e) => { e.stopPropagation(); void handleRemoveCourse(course.id); }} className="absolute right-0 text-danger-text hover:text-danger-text-hover opacity-0 translate-x-1 group-hover:opacity-100 p-2 cursor-pointer flex items-center justify-center transition-all duration-200 hover:scale-110">
                                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                                     </button>

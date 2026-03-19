@@ -55,7 +55,7 @@ export default async function AttachedPlanPage({ params }: { params: Promise<Pag
                 {sem.termName} {sem.year}
               </h3>
               <span className="text-xs font-semibold bg-input-disabled px-2 py-1 rounded text-text-secondary">
-                {sem.courses.reduce((acc, c) => acc + (c.credits ?? 0), 0)} cr
+                {sem.courses.reduce((acc, c) => acc + (c.creditsMin ?? 0), 0)} cr
               </span>
             </div>
 
@@ -70,7 +70,7 @@ export default async function AttachedPlanPage({ params }: { params: Promise<Pag
                   className="px-3 bg-panel-bg-alt border border-panel-border-strong rounded-md text-sm flex justify-between items-center h-[46px]"
                 >
                   <span className="font-medium text-text-primary">{course.courseCode}</span>
-                  <span className="text-gray-500 font-semibold">{course.credits ?? 0} cr</span>
+                  <span className="text-gray-500 font-semibold">{course.creditsMin ?? 0} cr</span>
                 </div>
               ))}
             </div>

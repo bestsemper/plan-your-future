@@ -78,7 +78,8 @@ model PlannedCourse {
   semesterId String
   courseCode String
   title      String?
-  credits    Int?
+  creditsMin Int?
+  creditsMax Int?
   locked     Boolean  @default(false)
   notes      String?
   semester   Semester @relation(fields: [semesterId], references: [id], onDelete: Cascade)

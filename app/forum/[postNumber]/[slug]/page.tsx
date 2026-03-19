@@ -64,7 +64,8 @@ type AttachedPlanView = {
     courses: Array<{
       id: string;
       courseCode: string;
-      credits: number | null;
+      creditsMin: number | null;
+      creditsMax: number | null;
     }>;
   }>;
 };
@@ -817,7 +818,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                       <div className="flex justify-between items-center border-b border-panel-border pb-2 mb-3">
                         <h5 className="font-bold text-heading">{sem.termName} {sem.year}</h5>
                         <span className="text-xs font-semibold bg-input-disabled px-2 py-1 rounded text-text-secondary">
-                          {sem.courses.reduce((acc, c) => acc + (c.credits ?? 0), 0)} cr
+                          {sem.courses.reduce((acc, c) => acc + (c.creditsMin ?? 0), 0)} cr
                         </span>
                       </div>
 
@@ -828,7 +829,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                         {sem.courses.map((course) => (
                           <div key={course.id} className="px-3 bg-panel-bg border border-panel-border-strong rounded-lg text-sm flex justify-between items-center h-[42px]">
                             <span className="font-medium text-text-primary">{course.courseCode}</span>
-                            <span className="text-text-secondary font-semibold">{course.credits ?? 0} cr</span>
+                            <span className="text-text-secondary font-semibold">{course.creditsMin ?? 0} cr</span>
                           </div>
                         ))}
                       </div>
