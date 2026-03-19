@@ -82,7 +82,8 @@ type AttachedPlanViewData = {
       courses: Array<{
         id: string;
         courseCode: string;
-        credits: number | null;
+        creditsMin: number | null;
+        creditsMax: number | null;
       }>;
     }>;
   };
@@ -230,10 +231,10 @@ function parseStellicCoursesFromText(text: string): ParsedStellicCourse[] {
   let currentTerm: ParsedStellicCourse['termName'] = null;
   let currentYear: number | null = null;
 
-  // Stellic "Plan Report" semester header, e.g. "Fall 2025 - 16 credits attempted"
-  const termHeaderRegex = /\b(Fall|Winter|Spring|Summer)\s+(20\d{2})\s*-\s*\d+(?:\.\d+)?\s+credits\s+attempted/i;
-  // Stellic "Plan Report" row, e.g. "CS 2120 ... 3A+Taken" or compact "... (001)3Planned"
-  const courseRowRegex = /^([A-Z]{2,4})\s?-?(\d{4}T?)\s+(.+?)\s*(\d+(?:\.\d+)?)([A-Z][A-Z+-]?|CR|NC|P|S|U|W)?(Taken|Planned)$/i;
+  // Stellic "Plan Report" semester header, e.g. "Fall 2025 - 16 credits attempted" or "Fall '25 - 16 credits attempted"
+  const termHeaderRegex = /\b(Fall|Winter|Spring|Summer)\s+(?:'(\d{2})|(?:20(\d{2})))\s*-\s*\d+(?:\.\d+)?\s+credits\s+attempted/i;
+  // Stellic "Plan Report" row, e.g. "CS 2120 ... 3A+Taken" or compact "... (001)3Planned" or "... 3-"
+  const courseRowRegex = /^([A-Z]{2,4})\s?-?(\d{4}T?)\s+(.+?)\s*(\d+(?:\.\d+)?)([A-Z][A-Z+-]?|CR|NC|P|S|U|W)?(Taken|Planned|-)?$/i;
 
   for (const rawLine of lines) {
     const line = rawLine.replace(/\s+/g, ' ');
@@ -249,7 +250,10 @@ function parseStellicCoursesFromText(text: string): ParsedStellicCourse[] {
             : termValue === 'spring'
               ? 'Spring'
               : 'Summer';
-      currentYear = Number.parseInt(headerMatch[2], 10);
+      // Handle both '25 and 2025 formats
+      const yearStr = headerMatch[2] || headerMatch[3];
+      const yearNum = Number.parseInt(yearStr, 10);
+      currentYear = yearNum < 100 ? 2000 + yearNum : yearNum;
       continue;
     }
 
@@ -261,7 +265,8 @@ function parseStellicCoursesFromText(text: string): ParsedStellicCourse[] {
     const code = `${rowMatch[1]} ${rowMatch[2]}`.toUpperCase();
     if (/\b\d{4}T\b/i.test(code)) continue;
 
-    const status = rowMatch[6].toLowerCase() === 'taken' ? 'taken' : 'planned';
+    const statusRaw = rowMatch[6]?.toLowerCase();
+    const status = statusRaw === 'taken' ? 'taken' : 'planned';
     const parsedCredits = Number.parseFloat(rowMatch[4]);
     const credits = Number.isNaN(parsedCredits) ? null : Math.round(parsedCredits);
 
@@ -498,7 +503,8 @@ export async function createForumPost(title: string, body: string, attachedPlanI
               select: {
                 id: true,
                 courseCode: true,
-                credits: true,
+                creditsMin: true,
+                creditsMax: true,
               },
             },
           },
@@ -1110,7 +1116,8 @@ export async function getPlanBuilderData() {
             select: {
               id: true,
               courseCode: true,
-              credits: true,
+              creditsMin: true,
+              creditsMax: true,
             },
           },
         },
@@ -1118,7 +1125,7 @@ export async function getPlanBuilderData() {
     },
   });
 
-  const allCourses = await getAllPossibleCoursesFromCSV();
+  const allCourses = await getAllPossibleCoursesFromJSON();
 
   // Get completed courses for prerequisite checking
   const completedCourses = await prisma.completedCourse.findMany({
@@ -1187,7 +1194,8 @@ export async function getAttachedPlanViewData(planId: string): Promise<AttachedP
             select: {
               id: true,
               courseCode: true,
-              credits: true,
+              creditsMin: true,
+              creditsMax: true,
             },
           },
         },
@@ -1267,7 +1275,8 @@ export async function generatePreliminaryPlan(userId: string, major: string, goa
         courses: {
           create: chunk.map(c => ({
             courseCode: c.code,
-            credits: c.credits
+            creditsMin: c.credits,
+            creditsMax: c.credits
           }))
         }
       }
@@ -1282,14 +1291,79 @@ export async function generatePreliminaryPlan(userId: string, major: string, goa
 }
 
 export async function addCourseToSemester(semesterId: string, courseCode: string, credits: number) {
-  if (!courseCode || !credits) throw new Error("Course details missing");
+  if (!courseCode || credits == null) throw new Error("Course details missing");
+  const normalizedCourseCode = courseCode.toUpperCase().replace(/\s+/g, ' ').trim();
+
+  const existing = await prisma.plannedCourse.findFirst({
+    where: {
+      semesterId,
+      courseCode: normalizedCourseCode,
+    },
+    select: { id: true },
+  });
+
+  // Do not allow duplicate copies of the same course in one semester.
+  if (existing) {
+    return;
+  }
+
+  // Get the course's actual credit range from JSON
+  const creditsInfo = await getCourseCreditsInfoFromJSON(normalizedCourseCode);
+  const creditsMin = creditsInfo.creditsMin ?? credits;
+  const creditsMax = creditsInfo.creditsMax ?? credits;
+
   await prisma.plannedCourse.create({
     data: {
       semesterId,
-      courseCode,
-      credits
+      courseCode: normalizedCourseCode,
+      creditsMin,
+      creditsMax,
     }
   });
+  revalidatePath('/plan');
+}
+
+export async function updateCourseCreditValue(courseId: string, credits: number) {
+  if (credits == null) throw new Error("Credits value missing");
+  
+  await prisma.plannedCourse.update({
+    where: { id: courseId },
+    data: {
+      creditsMin: credits,
+      creditsMax: credits,
+    }
+  });
+  revalidatePath('/plan');
+}
+
+export async function removeDuplicateCoursesInSemester(semesterId: string, courseCode: string) {
+  const normalizedCourseCode = courseCode.toUpperCase().replace(/\s+/g, ' ').trim();
+  const duplicates = await prisma.plannedCourse.findMany({
+    where: {
+      semesterId,
+      courseCode: normalizedCourseCode,
+    },
+    orderBy: {
+      id: 'asc',
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (duplicates.length <= 1) {
+    return;
+  }
+
+  const idsToRemove = duplicates.slice(1).map((row) => row.id);
+  await prisma.plannedCourse.deleteMany({
+    where: {
+      id: {
+        in: idsToRemove,
+      },
+    },
+  });
+
   revalidatePath('/plan');
 }
 
@@ -1616,6 +1690,21 @@ export async function importPlanFromStellicPdf(input: {
     let termOrderCounter = 1;
 
     for (const sem of orderedSemesters) {
+      const coursesWithCredits = await Promise.all(
+        sem.courses.map(async (course) => {
+          const creditsInfo = await getCourseCreditsInfoFromJSON(course.courseCode);
+          const creditsMin = creditsInfo.creditsMin ?? course.credits;
+          const creditsMax = creditsInfo.creditsMax ?? course.credits;
+          return {
+            courseCode: course.courseCode,
+            creditsMin,
+            creditsMax,
+            locked: course.status === 'taken',
+            notes: course.status === 'taken' ? 'Imported as completed from Stellic PDF' : null,
+          };
+        })
+      );
+
       await prisma.semester.create({
         data: {
           planId: targetPlanId,
@@ -1623,12 +1712,7 @@ export async function importPlanFromStellicPdf(input: {
           termName: sem.termName,
           year: sem.year,
           courses: {
-            create: sem.courses.map((course) => ({
-              courseCode: course.courseCode,
-              credits: course.credits,
-              locked: course.status === 'taken',
-              notes: course.status === 'taken' ? 'Imported as completed from Stellic PDF' : null,
-            })),
+            create: coursesWithCredits,
           },
         },
       });
@@ -1647,6 +1731,21 @@ export async function importPlanFromStellicPdf(input: {
       for (let i = 0; i < totalCoreSemesters; i++) {
         if (buckets[i].length === 0) continue;
 
+        const coursesWithCredits = await Promise.all(
+          buckets[i].map(async (course) => {
+            const creditsInfo = await getCourseCreditsInfoFromJSON(course.courseCode);
+            const creditsMin = creditsInfo.creditsMin ?? course.credits;
+            const creditsMax = creditsInfo.creditsMax ?? course.credits;
+            return {
+              courseCode: course.courseCode,
+              creditsMin,
+              creditsMax,
+              locked: course.status === 'taken',
+              notes: course.status === 'taken' ? 'Imported as completed from Stellic PDF' : null,
+            };
+          })
+        );
+
         await prisma.semester.create({
           data: {
             planId: targetPlanId,
@@ -1654,12 +1753,7 @@ export async function importPlanFromStellicPdf(input: {
             termName: i % 2 === 0 ? 'Fall' : 'Spring',
             year: startYear + Math.floor(i / 2),
             courses: {
-              create: buckets[i].map((course) => ({
-                courseCode: course.courseCode,
-                credits: course.credits,
-                locked: course.status === 'taken',
-                notes: course.status === 'taken' ? 'Imported as completed from Stellic PDF' : null,
-              })),
+              create: coursesWithCredits,
             },
           },
         });
@@ -1756,7 +1850,7 @@ export async function importCompletedCoursesFromAuditPdf(input: {
   }
 }
 
-export async function getAllPossibleCoursesFromCSV(): Promise<{ code: string; title: string | null }[]> {
+export async function getAllPossibleCoursesFromJSON(): Promise<{ code: string; title: string | null }[]> {
   try {
     const { courseDetailsByCode, sortedCourseCodes } = loadCourseDetailsFromJSON();
     return sortedCourseCodes.map((code) => ({
@@ -1769,7 +1863,7 @@ export async function getAllPossibleCoursesFromCSV(): Promise<{ code: string; ti
   }
 }
 
-export async function getCourseInfoFromCSV(courseCode: string) {
+export async function getCourseInfoFromJSON(courseCode: string) {
   try {
     const normalizedCode = normalizeCourseCode(courseCode);
     const { courseDetailsByCode } = loadCourseDetailsFromJSON();
@@ -1803,8 +1897,15 @@ export async function getCourseInfoFromCSV(courseCode: string) {
       structuredOtherRequirements.length > 0;
 
     const filteredFallbackPrerequisites = (details?.prerequisites ?? []).filter(
-      (requirement) => !/\binstructor\s+permission\b/i.test(requirement)
+      (requirement) =>
+        !/\binstructor\s+permission\b/i.test(requirement) &&
+        !/\b(?:students\s+)?(?:may\s+not\s+enroll\s+if|cannot\s+enroll\s+if|can't\s+enroll\s+if|credit\s+not\s+granted\s+for|not\s+open\s+to)\b/i.test(requirement)
     );
+
+    const notRestrictions = extractNotEnrollmentRestrictions([
+      details?.description ?? '',
+      ...(details?.prerequisites ?? []),
+    ]);
 
     return {
       courseCode: normalizedCode,
@@ -1815,23 +1916,43 @@ export async function getCourseInfoFromCSV(courseCode: string) {
         : filteredFallbackPrerequisites,
       corequisites: structuredCorequisites,
       otherRequirements: structuredOtherRequirements,
+      notRestrictions,
+      enrollmentRestrictions: notRestrictions,
       terms: details?.terms ?? [],
     };
 
   } catch (err) {
     console.error('Error reading CSV for course info:', err);
-    return { courseCode, title: null, description: null, prerequisites: [], corequisites: [], otherRequirements: [], terms: [] };
+    return { courseCode, title: null, description: null, prerequisites: [], corequisites: [], otherRequirements: [], notRestrictions: [], enrollmentRestrictions: [], terms: [] };
   }
 }
 
-export async function getCourseCreditsFromCSV(courseCode: string): Promise<string> {
+export async function getCourseCreditsInfoFromJSON(courseCode: string): Promise<{ credits: number; creditsMin?: number; creditsMax?: number }> {
   try {
     const normalizedCode = normalizeCourseCode(courseCode);
     const { courseDetailsByCode } = loadCourseDetailsFromJSON();
-    return courseDetailsByCode.get(normalizedCode)?.credits ?? '3';
+    const creditsStr = courseDetailsByCode.get(normalizedCode)?.credits ?? '3';
+    
+    // Parse the credits string which could be "3" or "1-3"
+    let credits = 3;
+    let creditsMin: number | undefined;
+    let creditsMax: number | undefined;
+    
+    if (creditsStr.includes('-')) {
+      const parts = creditsStr.split('-').map((p) => Number.parseInt(p.trim(), 10));
+      if (parts.length === 2 && !Number.isNaN(parts[0]) && !Number.isNaN(parts[1])) {
+        creditsMin = Math.min(parts[0], parts[1]);
+        creditsMax = Math.max(parts[0], parts[1]);
+        credits = creditsMax; // Default to max
+      }
+    } else {
+      credits = Number.parseInt(creditsStr, 10) || 3;
+    }
+    
+    return { credits, creditsMin, creditsMax };
   } catch (err) {
-    console.error('Error reading course details for credits:', err);
-    return '3';
+    console.error('Error reading course credits info:', err);
+    return { credits: 3 };
   }
 }
 
@@ -1842,6 +1963,7 @@ type CourseDetailsJsonRecord = {
   description?: string;
   enrollment_requirements?: string;
   term?: string;
+  terms?: string;
 };
 
 type AggregatedCourseDetails = {
@@ -1871,6 +1993,54 @@ function normalizeCsvText(value: string): string {
     .trim();
 }
 
+function formatNotRestriction(rawRestriction: string): string {
+  const cleaned = rawRestriction.replace(/^students\s+/i, '').trim();
+  const normalizedCourseCodes = Array.from(
+    cleaned.matchAll(/\b([A-Z]{2,6})\s*(\d{4}[A-Z]?)\b/g),
+    (match) => `${match[1]} ${match[2]}`
+  );
+
+  if (normalizedCourseCodes.length > 0) {
+    const restrictionBody = cleaned
+      .replace(/^(?:may\s+not\s+enroll\s+if|cannot\s+enroll\s+if|can't\s+enroll\s+if|credit\s+not\s+granted\s+for|not\s+open\s+to)\s+/i, '')
+      .replace(/^they\s+have\s+/i, '')
+      .replace(/^previously\s+/i, '')
+      .replace(/^completed\s+/i, '')
+      .replace(/^received\s+credit\s+for\s+/i, '')
+      .replace(/\s+(?:has|have)\s+been\s+completed\.?$/i, '')
+      .replace(/\s+with\s+a\s+grade\s+of\s+[^.;]+$/i, '')
+      .trim();
+
+    const hasAnd = /\band\b/i.test(restrictionBody);
+    const hasOr = /\bor\b/i.test(restrictionBody);
+
+    if (!hasAnd || !hasOr) {
+      const joiner = hasAnd ? ' AND ' : ' OR ';
+      return normalizedCourseCodes.join(joiner);
+    }
+  }
+
+  return `${cleaned.charAt(0).toUpperCase()}${cleaned.slice(1)}`;
+}
+
+function extractNotEnrollmentRestrictions(texts: string[]): string[] {
+  const matches = new Set<string>();
+  const restrictionPattern = /(students\s+)?(?:may\s+not\s+enroll\s+if|cannot\s+enroll\s+if|can't\s+enroll\s+if|credit\s+not\s+granted\s+for|not\s+open\s+to)\s+[^.;]+/gi;
+
+  for (const text of texts) {
+    if (!text) continue;
+    const normalized = normalizeCsvText(text);
+    const found = normalized.match(restrictionPattern) ?? [];
+    for (const raw of found) {
+      const formatted = formatNotRestriction(raw);
+      if (!formatted) continue;
+      matches.add(formatted);
+    }
+  }
+
+  return Array.from(matches);
+}
+
 function isPlaceholderCourse(courseCode: string, description: string): boolean {
   const normalizedCode = normalizeCourseCode(courseCode);
   const normalizedDescription = description.toLowerCase();
@@ -1898,6 +2068,18 @@ function formatTermLabel(term: string): string {
   }[match[2]];
 
   return season ? `${season} ${year}` : cleaned;
+}
+
+function parseTermLabels(rawTerms: string): string[] {
+  const normalized = normalizeCsvText(rawTerms);
+  if (!normalized) {
+    return [];
+  }
+
+  return normalized
+    .split(',')
+    .map((part) => formatTermLabel(part.trim()))
+    .filter(Boolean);
 }
 
 function getTermSortKey(termLabel: string): number {
@@ -1977,8 +2159,8 @@ function loadCourseDetailsFromJSON(): {
       existing.prerequisites.add(prereqText);
     }
 
-    const termLabel = formatTermLabel(record.term ?? '');
-    if (termLabel) {
+    const rawTermField = record.terms ?? record.term ?? '';
+    for (const termLabel of parseTermLabels(rawTermField)) {
       existing.terms.add(termLabel);
     }
 

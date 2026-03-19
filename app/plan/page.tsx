@@ -3,18 +3,21 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import type { RequirementMissing } from '../utils/prerequisiteChecker';
-import ConfirmModal from '../components/ConfirmModal';
+import { default as ConfirmModal } from '../components/ConfirmModal';
+import { CustomDropdown, CustomDropdownContent, CustomDropdownItem } from '../components/CustomDropdown';
 import {
   addSchoolYearToPlan,
   addSemesterToPlan,
   addCourseToSemester,
+  removeDuplicateCoursesInSemester,
+  updateCourseCreditValue,
   createNewPlan,
   deleteSchoolYearFromPlan,
   deleteSemesterFromPlan,
   deletePlan,
   generatePreliminaryPlan,
-  getCourseCreditsFromCSV,
-  getCourseInfoFromCSV,
+  getCourseCreditsInfoFromJSON,
+  getCourseInfoFromJSON,
   getPlanBuilderData,
   importPlanFromStellicPdf,
   removeCourseFromSemester,
@@ -43,7 +46,8 @@ type CourseOption = {
 type PlanCourse = {
   id: string;
   courseCode: string;
-  credits: number | null;
+  creditsMin: number | null;
+  creditsMax: number | null;
 };
 
 type PlanSemester = {
@@ -172,7 +176,16 @@ function storeSelectedPlanId(userId: string, planId: string) {
 
 function formatEnrollmentRequirement(requirement: string): { label: string; value: string } {
   const trimmed = requirement.trim();
-  const prefixMatch = trimmed.match(/^(Major Restriction|Program Restriction|Year Requirement|School Requirement|Credit Requirement):\s*(.+)$/i);
+
+  // Instructor permission is advisory and should render as a simple requirement label/value.
+  if (/^(?:Other Requirement:\s*)?instructor(?:'s)?\s+(?:permission|consent)\b/i.test(trimmed)) {
+    return {
+      label: 'Instructor Permission',
+      value: 'Instructor Permission',
+    };
+  }
+
+  const prefixMatch = trimmed.match(/^(Major Restriction|Program Restriction|Year Requirement|School Requirement|Credit Requirement|Other Requirement):\s*(.+)$/i);
 
   if (prefixMatch) {
     return {
@@ -308,11 +321,157 @@ function isDisplayedRequirementUnsatisfied(requirement: string, unmetRequirement
   });
 }
 
+function AddCourseInline({
+  semesterId,
+  allCourses,
+  onAddCourse,
+  onCancel,
+  onClearWarning,
+}: {
+  semesterId: string;
+  allCourses: CourseOption[];
+  onAddCourse: (semesterId: string, rawCourseCode: string, creditsText: string) => Promise<boolean>;
+  onCancel: () => void;
+  onClearWarning: () => void;
+}) {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const [courseCode, setCourseCode] = useState('');
+  const [credits, setCredits] = useState('3');
+  const [creditsMin, setCreditsMin] = useState<number | undefined>();
+  const [creditsMax, setCreditsMax] = useState<number | undefined>();
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  const filteredCourses = useMemo(() => {
+    if (!courseCode) return [];
+
+    return allCourses
+      .filter((course) =>
+        course.code.toLowerCase().includes(courseCode.toLowerCase()) ||
+        (course.title ?? '').toLowerCase().includes(courseCode.toLowerCase())
+      )
+      .sort((a, b) => {
+        const lowerSearch = courseCode.toLowerCase();
+        const aStartsWith = a.code.toLowerCase().startsWith(lowerSearch);
+        const bStartsWith = b.code.toLowerCase().startsWith(lowerSearch);
+
+        if (aStartsWith && !bStartsWith) return -1;
+        if (!aStartsWith && bStartsWith) return 1;
+
+        return a.code.localeCompare(b.code);
+      });
+  }, [courseCode, allCourses]);
+
+  const submitCourse = async () => {
+    const didAdd = await onAddCourse(semesterId, courseCode, credits);
+    if (didAdd) {
+      setCourseCode('');
+      setCredits('3');
+      setCreditsMin(undefined);
+      setCreditsMax(undefined);
+      setShowDropdown(false);
+    }
+  };
+
+  return (
+    <div className="flex space-x-2 mt-2 relative h-[46px] items-stretch">
+      <div className="flex-1 relative h-full">
+        <div className="h-full px-3 bg-panel-bg-alt border border-panel-border-strong rounded-xl text-sm flex items-center justify-between gap-2">
+          <div className="flex-1 h-full">
+            <input
+              ref={inputRef}
+              type="text"
+              placeholder="Course Code"
+              value={courseCode}
+              onChange={(e) => {
+                const newValue = e.target.value;
+                setCourseCode(newValue);
+                setShowDropdown(true);
+                // Only clear warning if user is actively typing (not on programmatic clear)
+                if (newValue.length > 0) {
+                  onClearWarning();
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  void submitCourse();
+                }
+              }}
+              onFocus={() => setShowDropdown(true)}
+              onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
+              className="w-full h-full bg-transparent text-text-primary focus:outline-none"
+              autoFocus
+            />
+          </div>
+          {creditsMin && creditsMax && creditsMin !== creditsMax ? (
+            <select
+              value={credits}
+              onChange={(e) => setCredits(e.target.value)}
+              className="bg-panel-bg-alt text-text-primary border-none focus:outline-none font-semibold px-1 py-1 rounded text-sm"
+            >
+              {Array.from({ length: creditsMax - creditsMin + 1 }, (_, i) => creditsMin + i).map((val) => (
+                <option key={val} value={val.toString()}>
+                  {val} cr
+                </option>
+              ))}
+            </select>
+          ) : (
+            <span className="text-gray-500 font-semibold whitespace-nowrap">{credits} cr</span>
+          )}
+        </div>
+        {showDropdown && filteredCourses.length > 0 && (
+          <div className="absolute z-10 left-0 top-full w-full mt-1.5 bg-panel-bg border border-panel-border rounded-xl shadow-lg overflow-hidden">
+            <div className="max-h-48 overflow-y-auto p-1.5 space-y-0.5">
+              {filteredCourses.map((course) => (
+                <div
+                  key={course.code}
+                  className="px-3 py-2 rounded-lg hover:bg-hover-bg transition-colors cursor-pointer"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    setCourseCode(course.code);
+                    getCourseCreditsInfoFromJSON(course.code).then((res) => {
+                      setCredits(res.credits.toString());
+                      setCreditsMin(res.creditsMin);
+                      setCreditsMax(res.creditsMax);
+                    });
+                    setShowDropdown(false);
+                    requestAnimationFrame(() => {
+                      inputRef.current?.focus();
+                    });
+                  }}
+                >
+                  <div className="text-sm font-medium text-text-primary">{course.code}</div>
+                  {course.title && (
+                    <div className="text-xs text-text-muted truncate">{course.title}</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+      <div className="ml-auto flex items-center justify-end space-x-1 px-1">
+        <button onClick={() => void submitCourse()} className="text-success-text hover:text-success-text-hover p-2 cursor-pointer disabled:cursor-not-allowed flex items-center justify-center transition-all hover:scale-110">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><polyline points="20 6 9 17 4 12"/></svg>
+        </button>
+        <button
+          onClick={() => {
+            onClearWarning();
+            onCancel();
+          }}
+          className="text-danger-text hover:text-danger-text-hover p-2 cursor-pointer disabled:cursor-not-allowed flex items-center justify-center transition-all hover:scale-110"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function PlanBuilderPage() {
   const router = useRouter();
   const isMountedRef = useRef(true);
   const lastPlanPrereqCheckKeyRef = useRef('');
-  const newCourseInputRef = useRef<HTMLInputElement | null>(null);
   const [userId, setUserId] = useState('');
   const [optimisticPlans, setOptimisticPlans] = useState<PlanItem[]>([]);
   const [allCourses, setAllCourses] = useState<CourseOption[]>([]);
@@ -325,9 +484,6 @@ export default function PlanBuilderPage() {
   const [creatingPlan, setCreatingPlan] = useState(false);
   const [loading, setLoading] = useState(false);
   const [newCourseSem, setNewCourseSem] = useState<string | null>(null);
-  const [courseCode, setCourseCode] = useState('');
-  const [credits, setCredits] = useState('3');
-  const [showDropdown, setShowDropdown] = useState(false);
   const [selectedCourseInfo, setSelectedCourseInfo] = useState<CourseInfo | null>(null);
   const [loadingInfo, setLoadingInfo] = useState(false);
   const [selectedCourseMissingRequirements, setSelectedCourseMissingRequirements] = useState<RequirementMissing[]>([]);
@@ -351,6 +507,8 @@ export default function PlanBuilderPage() {
   const [importError, setImportError] = useState<string | null>(null);
   const [isImportPlanDropdownOpen, setIsImportPlanDropdownOpen] = useState(false);
   const [importingPdf, setImportingPdf] = useState(false);
+  const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
+  const [editingCourseCreditsRange, setEditingCourseCreditsRange] = useState<{ min: number; max: number } | null>(null);
 
   // Prerequisite tracking
   const [completedCourses, setCompletedCourses] = useState<string[]>([]);
@@ -417,7 +575,10 @@ export default function PlanBuilderPage() {
     storeSelectedPlanId(userId, selectedPlanId);
   }, [dataLoaded, selectedPlanId, userId]);
 
-  const activePlan = optimisticPlans.find((p) => p.id === selectedPlanId) || optimisticPlans[0];
+  const activePlan = useMemo(
+    () => optimisticPlans.find((p) => p.id === selectedPlanId) || optimisticPlans[0],
+    [optimisticPlans, selectedPlanId]
+  );
 
   // Check all existing courses in the plan for prerequisite violations
   useEffect(() => {
@@ -463,6 +624,14 @@ export default function PlanBuilderPage() {
     void checkExistingCoursesPrerequisites();
   }, [activePlan, completedCourses]);
 
+  const courseCodeToTitle = useMemo(() => {
+    const map = new Map<string, string | null>();
+    for (const course of allCourses) {
+      map.set(course.code, course.title);
+    }
+    return map;
+  }, [allCourses]);
+
   const schoolYearRows = useMemo<SchoolYearRow[]>(() => {
     if (!activePlan) return [];
 
@@ -481,26 +650,6 @@ export default function PlanBuilderPage() {
 
     return Array.from(rows.values()).sort((a, b) => a.startYear - b.startYear);
   }, [activePlan]);
-
-  const filteredCourses = courseCode
-    ? allCourses
-        .filter((course) =>
-          course.code.toLowerCase().includes(courseCode.toLowerCase()) ||
-          (course.title ?? '').toLowerCase().includes(courseCode.toLowerCase())
-        )
-        .sort((a, b) => {
-          const lowerSearch = courseCode.toLowerCase();
-          const aStartsWith = a.code.toLowerCase().startsWith(lowerSearch);
-          const bStartsWith = b.code.toLowerCase().startsWith(lowerSearch);
-
-          // If one starts with search and the other doesn't, put the one that starts first
-          if (aStartsWith && !bStartsWith) return -1;
-          if (!aStartsWith && bStartsWith) return 1;
-
-          // Both start with search or neither does - sort alphabetically
-          return a.code.localeCompare(b.code);
-        })
-    : [];
 
   const handleGenerate = async () => {
     if (!userId) return;
@@ -542,25 +691,66 @@ export default function PlanBuilderPage() {
     void loadData();
   };
 
-  const handleCourseSearchChange = (value: string) => {
-    setCourseCode(value);
-    setShowDropdown(true);
-    setPrereqWarning(null); // Clear any previous prerequisite warnings
+  const handleAddCourse = async (semesterId: string, rawCourseCode: string, creditsText: string): Promise<boolean> => {
+    if (!rawCourseCode || !activePlan) return false;
 
-    if (allCourses.some((course) => course.code === value)) {
-      getCourseCreditsFromCSV(value).then((res) => setCredits(res));
+    const code = rawCourseCode.toUpperCase().replace(/\s+/g, ' ').trim();
+    const cr = Number.parseInt(creditsText, 10);
+    if (Number.isNaN(cr)) {
+      return false;
     }
-  };
-
-  const handleAddCourse = async (semesterId: string) => {
-    if (!courseCode || !activePlan) return;
-    
-    const code = courseCode.toUpperCase();
-    const cr = Number.parseInt(credits, 10);
 
     // Find the current semester to get termOrder
     const currentSem = activePlan.semesters.find((s) => s.id === semesterId);
-    if (!currentSem) return;
+    if (!currentSem) return false;
+
+    const normalizeCode = (value: string) => value.toUpperCase().replace(/\s+/g, ' ').trim();
+    const sameSemesterMatches = currentSem.courses.filter((courseInSemester) => normalizeCode(courseInSemester.courseCode) === code);
+    if (sameSemesterMatches.length > 0) {
+      // If duplicates are already present, collapse to one and clean up server-side.
+      if (sameSemesterMatches.length > 1) {
+        setOptimisticPlans((prev) =>
+          prev.map((plan) => ({
+            ...plan,
+            semesters: plan.semesters.map((semester) => {
+              if (semester.id !== semesterId) {
+                return semester;
+              }
+
+              let keptOne = false;
+              return {
+                ...semester,
+                courses: semester.courses.filter((courseInSemester) => {
+                  if (normalizeCode(courseInSemester.courseCode) !== code) {
+                    return true;
+                  }
+                  if (!keptOne) {
+                    keptOne = true;
+                    return true;
+                  }
+                  return false;
+                }),
+              };
+            }),
+          }))
+        );
+        void removeDuplicateCoursesInSemester(semesterId, code).then(() => {
+          void loadData();
+        });
+      }
+
+      setPrereqWarning({
+        type: 'info',
+        message: `${code} is already in this semester. Duplicate not added.`,
+      });
+      return false;
+    }
+
+    const existsInAnotherSemester = activePlan.semesters.some(
+      (semester) =>
+        semester.id !== semesterId &&
+        semester.courses.some((courseInSemester) => normalizeCode(courseInSemester.courseCode) === code)
+    );
 
     // Check prerequisites
     const result = await checkCoursePrerequisites({
@@ -571,18 +761,32 @@ export default function PlanBuilderPage() {
       currentSemesterCourseCodes: currentSem.courses.map((courseInSemester) => courseInSemester.courseCode),
     });
 
+    // Get the course's actual credit range from JSON
+    const creditsInfo = await getCourseCreditsInfoFromJSON(code);
+    const creditsMin = creditsInfo.creditsMin ?? cr;
+    const creditsMax = creditsInfo.creditsMax ?? cr;
+
     // Handle the prerequisite result
     if (result.isSatisfied) {
-      // Prerequisites are satisfied, proceed with adding course
-      setPrereqWarning(null);
-      addCourseOptimistically(semesterId, code, cr);
+      // Prerequisites are satisfied, proceed with adding course.
+      if (existsInAnotherSemester) {
+        setPrereqWarning({
+          type: 'warning',
+          message: `${code} is already planned in another semester.`,
+        });
+      } else {
+        setPrereqWarning(null);
+      }
+      addCourseOptimistically(semesterId, code, creditsMin, creditsMax, !existsInAnotherSemester);
+      return true;
     } else if (result.hasNoPrerequisites && result.hasNoCorequisites && result.hasNoOtherRequirements && result.hasUnknownPrerequisites) {
       // No prerequisites found but not 1000-level - show soft warning
       setPrereqWarning({
         type: 'info',
         message: `${code} might have enrollment requirements we don't have in our system (it's not a 1000-level course). It's been added anyway.`,
       });
-      addCourseOptimistically(semesterId, code, cr);
+      addCourseOptimistically(semesterId, code, creditsMin, creditsMax);
+      return true;
     } else {
       setPrereqWarning({
         type: 'error',
@@ -595,11 +799,11 @@ export default function PlanBuilderPage() {
       });
       setShowPrereqConfirm(true);
       setPendingCourseAdd({ semesterId, courseCode: code, credits: cr });
-      return;
+      return false;
     }
   };
 
-  const addCourseOptimistically = (semesterId: string, code: string, cr: number) => {
+  const addCourseOptimistically = (semesterId: string, code: string, creditsMin: number, creditsMax: number, clearWarning: boolean = true) => {
     setOptimisticPlans((prev) =>
       prev.map((p) => ({
         ...p,
@@ -607,7 +811,7 @@ export default function PlanBuilderPage() {
           s.id === semesterId
             ? {
                 ...s,
-                courses: [...s.courses, { id: `temp-${Date.now()}`, courseCode: code, credits: cr }],
+                courses: [...s.courses, { id: `temp-${Date.now()}`, courseCode: code, creditsMin, creditsMax }],
               }
             : s
         ),
@@ -615,19 +819,20 @@ export default function PlanBuilderPage() {
     );
 
     setNewCourseSem(null);
-    setCourseCode('');
-    setCredits('3');
-    setPrereqWarning(null);
+    if (clearWarning) {
+      setPrereqWarning(null);
+    }
 
-    void addCourseToSemesterAsync(semesterId, code, cr);
+    void addCourseToSemesterAsync(semesterId, code, creditsMin, creditsMax);
   };
 
-  const addCourseToSemesterAsync = async (semesterId: string, code: string, cr: number) => {
-    await addCourseToSemester(semesterId, code, cr);
+  const addCourseToSemesterAsync = async (semesterId: string, code: string, creditsMin: number, creditsMax: number) => {
+    // Pass the selected credit value (use creditsMin as the "selected" value)
+    await addCourseToSemester(semesterId, code, creditsMin);
     void loadData();
   };
 
-  const handleProceedWithWarning = () => {
+  const handleProceedWithWarning = async () => {
     if (!pendingCourseAdd || !prereqWarning) return;
     
     // Add the course despite the warning
@@ -641,8 +846,13 @@ export default function PlanBuilderPage() {
       updated.set(pendingCourseAdd.semesterId, current);
       return updated;
     });
+
+    // Get the course's actual credit range
+    const creditsInfo = await getCourseCreditsInfoFromJSON(pendingCourseAdd.courseCode);
+    const creditsMin = creditsInfo.creditsMin ?? pendingCourseAdd.credits;
+    const creditsMax = creditsInfo.creditsMax ?? pendingCourseAdd.credits;
     
-    addCourseOptimistically(pendingCourseAdd.semesterId, pendingCourseAdd.courseCode, pendingCourseAdd.credits);
+    addCourseOptimistically(pendingCourseAdd.semesterId, pendingCourseAdd.courseCode, creditsMin, creditsMax);
     setPendingCourseAdd(null);
   };
 
@@ -695,7 +905,7 @@ export default function PlanBuilderPage() {
   const handleCourseClick = async (code: string, requirementsMissing: RequirementMissing[] = []) => {
     setLoadingInfo(true);
     setSelectedCourseMissingRequirements(requirementsMissing);
-    const info = await getCourseInfoFromCSV(code);
+    const info = await getCourseInfoFromJSON(code);
     setSelectedCourseInfo(info);
     setLoadingInfo(false);
   };
@@ -1013,58 +1223,46 @@ export default function PlanBuilderPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <h1 className="text-3xl font-bold text-heading">Plan Builder</h1>
           <div className="flex w-full sm:w-auto sm:min-w-[320px] items-center gap-2">
-            <div className="relative flex-1">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsPlanDropdownOpen((prev) => !prev);
-                  setHoveredPlanId(null);
-                }}
-                onBlur={() =>
-                  setTimeout(() => {
-                    setIsPlanDropdownOpen(false);
-                    setHoveredPlanId(null);
-                  }, 150)
-                }
-                disabled={optimisticPlans.length === 0}
-                className="w-full px-4 py-2.5 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between transition-all disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none hover:border-panel-border-strong"
-              >
-                <span className="truncate text-sm font-medium">{selectedPlanLabel}</span>
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`w-4 h-4 ml-2 shrink-0 text-text-secondary transition-transform duration-200 ${isPlanDropdownOpen ? 'rotate-180' : ''}`}>
-                  <path d="m6 9 6 6 6-6" />
-                </svg>
-              </button>
-
-              {isPlanDropdownOpen && optimisticPlans.length > 0 && (
-                <div className="absolute z-10 w-full mt-1.5 bg-panel-bg border border-panel-border rounded-xl shadow-lg overflow-hidden">
-                  <div className="max-h-48 overflow-y-auto p-1.5 space-y-0.5">
-                    {optimisticPlans.map((p) => {
-                      const isSelected = selectedPlanId === p.id;
-                      return (
-                        <div
-                          key={p.id}
-                          onMouseEnter={() => setHoveredPlanId(p.id)}
-                          onMouseLeave={() => setHoveredPlanId(null)}
-                          className={`px-3 py-2 text-sm cursor-pointer rounded-lg transition-colors flex items-center justify-between gap-2 ${isSelected ? 'bg-uva-blue/10 text-uva-blue font-semibold' : 'text-text-primary hover:bg-hover-bg'}`}
-                          onClick={() => {
-                            setSelectedPlanId(p.id);
-                            setHoveredPlanId(null);
-                            setIsPlanDropdownOpen(false);
-                          }}
-                        >
-                          <span className="truncate">{p.title}</span>
-                          {isSelected && (
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5 shrink-0 text-uva-blue">
-                              <polyline points="20 6 9 17 4 12" />
-                            </svg>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
+            <CustomDropdown
+              isOpen={isPlanDropdownOpen}
+              onOpenChange={(open) => {
+                setIsPlanDropdownOpen(open);
+                if (!open) setHoveredPlanId(null);
+              }}
+              disabled={optimisticPlans.length === 0}
+              className="flex-1"
+              trigger={
+                <button
+                  type="button"
+                  disabled={optimisticPlans.length === 0}
+                  className="w-full px-4 py-2.5 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between transition-all disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none hover:border-panel-border-strong"
+                >
+                  <span className="truncate text-sm font-medium">{selectedPlanLabel}</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`w-4 h-4 ml-2 shrink-0 text-text-secondary transition-transform duration-200 ${isPlanDropdownOpen ? 'rotate-180' : ''}`}>
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </button>
+              }
+            >
+              <CustomDropdownContent>
+                {optimisticPlans.map((p) => {
+                  const isSelected = selectedPlanId === p.id;
+                  return (
+                    <CustomDropdownItem
+                      key={p.id}
+                      selected={isSelected}
+                      onClick={() => {
+                        setSelectedPlanId(p.id);
+                        setHoveredPlanId(null);
+                        setIsPlanDropdownOpen(false);
+                      }}
+                    >
+                      {p.title}
+                    </CustomDropdownItem>
+                  );
+                })}
+              </CustomDropdownContent>
+            </CustomDropdown>
 
             <div className="relative shrink-0">
               <button
@@ -1176,7 +1374,7 @@ export default function PlanBuilderPage() {
               const isCollapsed = Boolean(collapsedSchoolYears[row.startYear]);
               const totalCourses = orderedTerms.reduce((count, term) => count + (row.terms[term]?.courses.length ?? 0), 0);
               const totalCredits = orderedTerms.reduce(
-                (count, term) => count + (row.terms[term]?.courses.reduce((sum, course) => sum + (course.credits ?? 0), 0) ?? 0),
+                (count, term) => count + (row.terms[term]?.courses.reduce((sum, course) => sum + (course.creditsMin ?? 0), 0) ?? 0),
                 0
               );
 
@@ -1245,7 +1443,7 @@ export default function PlanBuilderPage() {
                             </h3>
                             <div className="flex items-center gap-2">
                               <span className="text-xs font-semibold bg-input-disabled px-2 py-1 rounded-lg text-text-secondary">
-                                {sem.courses.reduce((acc, c) => acc + (c.credits ?? 0), 0)} cr
+                                {sem.courses.reduce((acc, c) => acc + (c.creditsMin ?? 0), 0)} cr
                               </span>
                               <button
                                 type="button"
@@ -1265,22 +1463,66 @@ export default function PlanBuilderPage() {
                               const tooltipMessage = requirementsMissing.length > 0
                                 ? buildRequirementTooltip(requirementsMissing)
                                 : 'Requirements not satisfied';
+                              const courseTitle = courseCodeToTitle.get(course.courseCode);
                               return (
-                                <div key={course.id} onClick={() => handleCourseClick(course.courseCode, requirementsMissing)} className="px-3 bg-panel-bg-alt border border-panel-border-strong rounded-xl text-sm flex justify-between items-center hover:border-uva-blue transition-colors cursor-pointer group h-[46px]">
-                                  <span className="font-medium text-text-primary flex items-center gap-2">
-                                    {course.courseCode}
-                                    {isProblematic && (
-                                      <HoverTooltip message={tooltipMessage}>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-yellow-500 flex-shrink-0 cursor-help hover:text-yellow-600 transition-colors">
-                                          <circle cx="12" cy="12" r="10"/>
-                                          <line x1="12" y1="8" x2="12" y2="12"/>
-                                          <line x1="12" y1="16" x2="12.01" y2="16"/>
-                                        </svg>
-                                      </HoverTooltip>
+                                <div key={course.id} onClick={() => handleCourseClick(course.courseCode, requirementsMissing)} className="px-3 py-2 bg-panel-bg-alt border border-panel-border-strong rounded-xl text-sm flex justify-between items-stretch hover:border-uva-blue transition-colors cursor-pointer group">
+                                  <div className="flex flex-col justify-center flex-1">
+                                    <span className="font-medium text-text-primary flex items-center gap-2">
+                                      {course.courseCode}
+                                      {isProblematic && (
+                                        <HoverTooltip message={tooltipMessage}>
+                                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-yellow-500 flex-shrink-0 cursor-help hover:text-yellow-600 transition-colors">
+                                            <circle cx="12" cy="12" r="10"/>
+                                            <line x1="12" y1="8" x2="12" y2="12"/>
+                                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                                          </svg>
+                                        </HoverTooltip>
+                                      )}
+                                    </span>
+                                    {courseTitle && (
+                                      <p className="text-xs text-text-muted truncate mt-0.5">{courseTitle}</p>
                                     )}
-                                  </span>
-                                  <div className="relative flex items-center justify-end min-w-[84px] h-full pr-1">
-                                    <span className="text-gray-500 font-semibold whitespace-nowrap transition-transform duration-200 group-hover:-translate-x-6">{course.credits ?? 0} cr</span>
+                                  </div>
+                                  <div className="relative flex items-center justify-end min-w-fit gap-2 pl-2">
+                                    {editingCourseId === course.id && editingCourseCreditsRange ? (
+                                      <select
+                                        value={course.creditsMin ?? 3}
+                                        onChange={(e) => {
+                                          const newCredits = Number.parseInt(e.target.value, 10);
+                                          void updateCourseCreditValue(course.id, newCredits).then(() => {
+                                            setEditingCourseId(null);
+                                            setEditingCourseCreditsRange(null);
+                                            void loadData();
+                                          });
+                                        }}
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="bg-panel-bg-alt text-text-primary border-none focus:outline-none font-semibold px-1 py-1 rounded text-sm transition-transform duration-200 group-hover:-translate-x-6"
+                                        autoFocus
+                                      >
+                                        {Array.from({ length: editingCourseCreditsRange.max - editingCourseCreditsRange.min + 1 }, (_, i) => editingCourseCreditsRange.min + i).map((val) => (
+                                          <option key={val} value={val}>
+                                            {val} cr
+                                          </option>
+                                        ))}
+                                      </select>
+                                    ) : ((course.creditsMin ?? 3) !== (course.creditsMax ?? 3)) ? (
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          const creditsMin = course.creditsMin ?? 3;
+                                          const creditsMax = course.creditsMax ?? 3;
+                                          setEditingCourseId(course.id);
+                                          setEditingCourseCreditsRange({ min: creditsMin, max: creditsMax });
+                                        }}
+                                        className="text-gray-500 font-semibold whitespace-nowrap cursor-pointer hover:text-uva-orange transition-transform duration-200 group-hover:-translate-x-6"
+                                      >
+                                        {course.creditsMin ?? 0}-{course.creditsMax ?? 0} cr
+                                      </button>
+                                    ) : (
+                                      <span className="text-gray-500 font-semibold whitespace-nowrap transition-transform duration-200 group-hover:-translate-x-6">
+                                        {course.creditsMin ?? 0} cr
+                                      </span>
+                                    )}
                                     <button onClick={(e) => { e.stopPropagation(); void handleRemoveCourse(course.id); }} className="absolute right-0 text-danger-text hover:text-danger-text-hover opacity-0 translate-x-1 group-hover:opacity-100 p-2 cursor-pointer flex items-center justify-center transition-all duration-200 hover:scale-110">
                                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                                     </button>
@@ -1291,71 +1533,21 @@ export default function PlanBuilderPage() {
 
                             {newCourseSem === sem.id ? (
                               <>
-                              <div className="flex space-x-2 mt-2 relative h-[46px] items-stretch">
-                                <div className="flex-1 relative h-full">
-                                  <div className="h-full px-3 bg-panel-bg-alt border border-panel-border-strong rounded-xl text-sm flex items-center justify-between gap-2">
-                                    <div className="flex-1 h-full">
-                                      <input
-                                        ref={newCourseInputRef}
-                                        type="text"
-                                        placeholder="Course Code"
-                                        value={courseCode}
-                                        onChange={(e) => handleCourseSearchChange(e.target.value)}
-                                        onKeyDown={(e) => {
-                                          if (e.key === 'Enter') {
-                                            e.preventDefault();
-                                            void handleAddCourse(sem.id);
-                                          }
-                                        }}
-                                        onFocus={() => setShowDropdown(true)}
-                                        onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
-                                        className="w-full h-full bg-transparent text-text-primary focus:outline-none"
-                                      />
-                                    </div>
-                                    <span className="text-gray-500 font-semibold whitespace-nowrap">{credits} cr</span>
-                                  </div>
-                                  {showDropdown && filteredCourses.length > 0 && (
-                                    <div className="absolute z-10 left-0 top-full w-full mt-1.5 bg-panel-bg border border-panel-border rounded-xl shadow-lg overflow-hidden">
-                                      <div className="max-h-48 overflow-y-auto p-1.5 space-y-0.5">
-                                        {filteredCourses.map((course) => (
-                                          <div
-                                            key={course.code}
-                                            className="px-3 py-2 rounded-lg hover:bg-hover-bg transition-colors cursor-pointer"
-                                            onMouseDown={(e) => e.preventDefault()}
-                                            onClick={() => {
-                                              setCourseCode(course.code);
-                                              getCourseCreditsFromCSV(course.code).then((res) => setCredits(res));
-                                              setShowDropdown(false);
-                                              requestAnimationFrame(() => {
-                                                newCourseInputRef.current?.focus();
-                                              });
-                                            }}
-                                          >
-                                            <div className="text-sm font-medium text-text-primary">{course.code}</div>
-                                            {course.title && (
-                                              <div className="text-xs text-text-muted truncate">{course.title}</div>
-                                            )}
-                                          </div>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                                <div className="ml-auto flex items-center justify-end space-x-1 px-1">
-                                  <button onClick={() => void handleAddCourse(sem.id)} className="text-success-text hover:text-success-text-hover p-2 cursor-pointer disabled:cursor-not-allowed flex items-center justify-center transition-all hover:scale-110">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><polyline points="20 6 9 17 4 12"/></svg>
-                                  </button>
-                                  <button onClick={() => { setNewCourseSem(null); setPrereqWarning(null); }} className="text-danger-text hover:text-danger-text-hover p-2 cursor-pointer disabled:cursor-not-allowed flex items-center justify-center transition-all hover:scale-110">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                                  </button>
-                                </div>
-                              </div>
+                              <AddCourseInline
+                                semesterId={sem.id}
+                                allCourses={allCourses}
+                                onAddCourse={handleAddCourse}
+                                onCancel={() => setNewCourseSem(null)}
+                                onClearWarning={() => setPrereqWarning(null)}
+                              />
 
                               {prereqWarning && (
                                 <div className={`mt-2 p-3 rounded-lg text-sm ${
                                   prereqWarning.type === 'error'
                                     ? 'bg-red-500/10 border border-red-500/30 text-red-600'
-                                    : 'bg-blue-500/10 border border-blue-500/30 text-blue-600'
+                                    : prereqWarning.type === 'warning'
+                                      ? 'bg-amber-500/10 border border-amber-500/30 text-amber-700'
+                                      : 'bg-blue-500/10 border border-blue-500/30 text-blue-600'
                                 }`}>
                                   {prereqWarning.type === 'error' && (
                                     <div className="flex items-start gap-2">
@@ -1387,6 +1579,12 @@ export default function PlanBuilderPage() {
                                   {prereqWarning.type === 'info' && (
                                     <div className="flex items-start gap-2">
                                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 mt-0.5 flex-shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                                      <p>{prereqWarning.message}</p>
+                                    </div>
+                                  )}
+                                  {prereqWarning.type === 'warning' && (
+                                    <div className="flex items-start gap-2">
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 mt-0.5 flex-shrink-0"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3l-8.47-14.14a2 2 0 0 0-3.42 0Z"/></svg>
                                       <p>{prereqWarning.message}</p>
                                     </div>
                                   )}
@@ -1462,41 +1660,34 @@ export default function PlanBuilderPage() {
               )}
 
               {importMode === 'overwrite' && (
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => setIsImportPlanDropdownOpen((prev) => !prev)}
-                    onBlur={() =>
-                      setTimeout(() => {
-                        setIsImportPlanDropdownOpen(false);
-                      }, 150)
-                    }
-                    className="w-full px-4 py-2.5 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between hover:border-panel-border-strong transition-colors"
-                  >
-                    <span className="truncate text-sm font-medium">{importPlanLabel}</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`w-4 h-4 text-text-secondary transition-transform duration-200 ${isImportPlanDropdownOpen ? 'rotate-180' : ''}`}><path d="m6 9 6 6 6-6" /></svg>
-                  </button>
-
-                  {isImportPlanDropdownOpen && (
-                    <div className="absolute z-10 mt-1.5 w-full rounded-xl border border-panel-border bg-panel-bg shadow-lg overflow-hidden">
-                      <div className="max-h-40 overflow-y-auto p-1.5 space-y-0.5">
-                        {optimisticPlans.map((plan) => (
-                          <button
-                            key={plan.id}
-                            type="button"
-                            onClick={() => {
-                              setImportOverwritePlanId(plan.id);
-                              setIsImportPlanDropdownOpen(false);
-                            }}
-                            className={`w-full px-3 py-2 text-left text-sm rounded-lg cursor-pointer transition-colors ${importOverwritePlanId === plan.id ? 'bg-uva-blue/10 text-uva-blue font-semibold' : 'text-text-primary hover:bg-hover-bg'}`}
-                          >
-                            {plan.title}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
+                <CustomDropdown
+                  isOpen={isImportPlanDropdownOpen}
+                  onOpenChange={setIsImportPlanDropdownOpen}
+                  trigger={
+                    <button
+                      type="button"
+                      className="w-full px-4 py-2.5 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between hover:border-panel-border-strong transition-colors"
+                    >
+                      <span className="truncate text-sm font-medium">{importPlanLabel}</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`w-4 h-4 text-text-secondary transition-transform duration-200 ${isImportPlanDropdownOpen ? 'rotate-180' : ''}`}><path d="m6 9 6 6 6-6" /></svg>
+                    </button>
+                  }
+                >
+                  <CustomDropdownContent maxHeight="max-h-40">
+                    {optimisticPlans.map((plan) => (
+                      <CustomDropdownItem
+                        key={plan.id}
+                        selected={importOverwritePlanId === plan.id}
+                        onClick={() => {
+                          setImportOverwritePlanId(plan.id);
+                          setIsImportPlanDropdownOpen(false);
+                        }}
+                      >
+                        {plan.title}
+                      </CustomDropdownItem>
+                    ))}
+                  </CustomDropdownContent>
+                </CustomDropdown>
               )}
 
               <input
@@ -1680,7 +1871,7 @@ export default function PlanBuilderPage() {
                               >
                                 <div className="mb-1 flex items-center gap-2">
                                   <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${
-                                    isUnsatisfied ? 'bg-red-500/15 text-red-600' : 'bg-uva-blue/10 text-uva-blue'
+                                    isUnsatisfied ? 'bg-red-500/15 text-red-600' : 'bg-text-muted/10 text-text-secondary'
                                   }`}>
                                     {formattedRequirement.label}
                                   </span>
@@ -1714,7 +1905,7 @@ export default function PlanBuilderPage() {
                               >
                                 <div className="mb-1 flex items-center gap-2">
                                   <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${
-                                    isUnsatisfied ? 'bg-red-500/15 text-red-600' : 'bg-uva-orange/10 text-uva-orange'
+                                    isUnsatisfied ? 'bg-red-500/15 text-red-600' : 'bg-text-muted/10 text-text-secondary'
                                   }`}>
                                     {formattedRequirement.label}
                                   </span>
@@ -1784,6 +1975,7 @@ export default function PlanBuilderPage() {
           </div>
         </div>
       )}
+
     </div>
   );
 }

@@ -3,7 +3,8 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { use, useEffect, useState, useTransition } from 'react';
-import ConfirmModal from '../../../components/ConfirmModal';
+import { default as ConfirmModal } from '../../../components/ConfirmModal';
+import { CustomDropdown, CustomDropdownContent, CustomDropdownItem } from '../../../components/CustomDropdown';
 import {
   addForumReply,
   deleteForumReply,
@@ -63,7 +64,8 @@ type AttachedPlanView = {
     courses: Array<{
       id: string;
       courseCode: string;
-      credits: number | null;
+      creditsMin: number | null;
+      creditsMax: number | null;
     }>;
   }>;
 };
@@ -663,69 +665,65 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
           <section className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-semibold text-heading">{post.answers.length} Replies</h2>
-              <div className="relative text-sm">
-                <button
-                  type="button"
-                  onClick={() => setIsSortDropdownOpen((prev) => !prev)}
-                  onBlur={() =>
-                    setTimeout(() => {
-                      setIsSortDropdownOpen(false);
-                    }, 150)
-                  }
-                  className="inline-flex items-center gap-2 px-3 py-2 border border-panel-border rounded-xl bg-input-bg text-text-primary cursor-pointer hover:border-panel-border-strong transition-colors"
-                >
-                  <span>Sort: {replySortLabel}</span>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className={`w-4 h-4 text-text-secondary transition-transform duration-200 ${isSortDropdownOpen ? 'rotate-180' : ''}`}
-                    aria-hidden="true"
-                  >
-                    <path d="m6 9 6 6 6-6" />
-                  </svg>
-                </button>
-
-                {isSortDropdownOpen && (
-                  <div className="absolute right-0 mt-1.5 w-48 rounded-xl border border-panel-border bg-panel-bg shadow-lg z-10 overflow-hidden p-1.5 space-y-0.5">
+              <div className="text-sm">
+                <CustomDropdown
+                  isOpen={isSortDropdownOpen}
+                  onOpenChange={setIsSortDropdownOpen}
+                  align="right"
+                  trigger={
                     <button
                       type="button"
+                      className="inline-flex items-center gap-2 px-3 py-2 border border-panel-border rounded-xl bg-input-bg text-text-primary cursor-pointer hover:border-panel-border-strong transition-colors"
+                    >
+                      <span>Sort: {replySortLabel}</span>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className={`w-4 h-4 text-text-secondary transition-transform duration-200 ${isSortDropdownOpen ? 'rotate-180' : ''}`}
+                        aria-hidden="true"
+                      >
+                        <path d="m6 9 6 6 6-6" />
+                      </svg>
+                    </button>
+                  }
+                >
+                  <CustomDropdownContent className="w-48">
+                    <CustomDropdownItem
+                      selected={replySort === 'newest'}
                       onClick={() => {
                         setReplySort('newest');
                         setIsSortDropdownOpen(false);
                       }}
-                      className={`w-full text-left px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors ${replySort === 'newest' ? 'bg-uva-blue/10 text-uva-blue font-semibold' : 'text-text-primary hover:bg-hover-bg'}`}
                     >
                       Newest first
-                    </button>
-                    <button
-                      type="button"
+                    </CustomDropdownItem>
+                    <CustomDropdownItem
+                      selected={replySort === 'oldest'}
                       onClick={() => {
                         setReplySort('oldest');
                         setIsSortDropdownOpen(false);
                       }}
-                      className={`w-full text-left px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors ${replySort === 'oldest' ? 'bg-uva-blue/10 text-uva-blue font-semibold' : 'text-text-primary hover:bg-hover-bg'}`}
                     >
                       Oldest first
-                    </button>
-                    <button
-                      type="button"
+                    </CustomDropdownItem>
+                    <CustomDropdownItem
+                      selected={replySort === 'popular'}
                       onClick={() => {
                         setReplySort('popular');
                         setIsSortDropdownOpen(false);
                       }}
-                      className={`w-full text-left px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors ${replySort === 'popular' ? 'bg-uva-blue/10 text-uva-blue font-semibold' : 'text-text-primary hover:bg-hover-bg'}`}
                     >
                       Most votes
-                    </button>
-                  </div>
-                )}
+                    </CustomDropdownItem>
+                  </CustomDropdownContent>
+                </CustomDropdown>
               </div>
             </div>
 
@@ -820,7 +818,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                       <div className="flex justify-between items-center border-b border-panel-border pb-2 mb-3">
                         <h5 className="font-bold text-heading">{sem.termName} {sem.year}</h5>
                         <span className="text-xs font-semibold bg-input-disabled px-2 py-1 rounded text-text-secondary">
-                          {sem.courses.reduce((acc, c) => acc + (c.credits ?? 0), 0)} cr
+                          {sem.courses.reduce((acc, c) => acc + (c.creditsMin ?? 0), 0)} cr
                         </span>
                       </div>
 
@@ -831,7 +829,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                         {sem.courses.map((course) => (
                           <div key={course.id} className="px-3 bg-panel-bg border border-panel-border-strong rounded-lg text-sm flex justify-between items-center h-[42px]">
                             <span className="font-medium text-text-primary">{course.courseCode}</span>
-                            <span className="text-text-secondary font-semibold">{course.credits ?? 0} cr</span>
+                            <span className="text-text-secondary font-semibold">{course.creditsMin ?? 0} cr</span>
                           </div>
                         ))}
                       </div>

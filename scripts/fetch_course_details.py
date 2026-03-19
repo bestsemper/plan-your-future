@@ -49,7 +49,9 @@ def serialize_course(course: dict) -> dict:
         "requirement_designation": course.get("requirement_designation", ""),
         "course_attributes": course.get("course_attributes", []),
         "career": course.get("career", ""),
-        "terms": format_open_terms(course.get("open_terms", [])),
+        # During resumed runs, existing rows in JSON have "terms" (serialized)
+        # rather than raw "open_terms". Preserve them to avoid accidental wipes.
+        "terms": format_open_terms(course.get("open_terms", course.get("terms", ""))),
     }
 
 
@@ -261,12 +263,83 @@ def get_sections_for_course_with_career(course_id: str, term: str, x_acad_career
 
 
 def extract_term_data(offerings: object) -> object:
-    """Extract raw open_terms payload from catalog offerings."""
+    """Extract raw open_terms payload from catalog offerings.
+
+    Some courses expose open_terms only on non-first offering entries, so we
+    aggregate across all offerings instead of taking only offerings[0].
+    """
     if not isinstance(offerings, list) or not offerings:
         return []
 
-    first_offering = offerings[0] if isinstance(offerings[0], dict) else {}
-    return first_offering.get("open_terms", []) if isinstance(first_offering, dict) else []
+    combined_terms: list[object] = []
+    seen_codes: set[str] = set()
+    for offering in offerings:
+        if not isinstance(offering, dict):
+            continue
+
+        open_terms = offering.get("open_terms", [])
+        if not isinstance(open_terms, list):
+            continue
+
+        for term in open_terms:
+            code = ""
+            if isinstance(term, dict):
+                code = normalize_text(term.get("strm", ""))
+            else:
+                code = normalize_text(term)
+
+            if not code or code in seen_codes:
+                continue
+
+            seen_codes.add(code)
+            combined_terms.append(term)
+
+    return combined_terms
+
+
+def extract_open_terms_from_course_details(course_details: object) -> object:
+    """Extract open terms from known SIS catalog payload shapes.
+
+    In practice, open terms may appear either:
+    - under course_details.offerings[*].open_terms
+    - directly as course_details.open_terms
+    """
+    if not isinstance(course_details, dict):
+        return []
+
+    offerings_terms = extract_term_data(course_details.get("offerings", []))
+    if isinstance(offerings_terms, list) and offerings_terms:
+        return offerings_terms
+
+    direct_terms = course_details.get("open_terms", [])
+    if isinstance(direct_terms, list) and direct_terms:
+        return direct_terms
+
+    return []
+
+
+def merge_open_terms(primary_open_terms: object, fallback_open_terms: object) -> list[object]:
+    """Merge two open_terms payloads while deduplicating by term code."""
+    merged: list[object] = []
+    seen_codes: set[str] = set()
+
+    for source in (primary_open_terms, fallback_open_terms):
+        if not isinstance(source, list):
+            continue
+        for term in source:
+            code = ""
+            if isinstance(term, dict):
+                code = normalize_text(term.get("strm", ""))
+            else:
+                code = normalize_text(term)
+
+            if not code or code in seen_codes:
+                continue
+
+            seen_codes.add(code)
+            merged.append(term)
+
+    return merged
 
 
 def extract_term_candidates(open_terms: object) -> list[str]:
@@ -334,7 +407,7 @@ def get_catalog_details(course_id: str, subject: str, catalog_nbr: str) -> dict:
 
         if "course_details" in data:
             course_details = data["course_details"]
-            open_terms = extract_term_data(course_details.get("offerings", []))
+            open_terms = extract_open_terms_from_course_details(course_details)
             return {
                 "title": normalize_text(course_details.get("course_title", "")),
                 "description": normalize_text(course_details.get("descrlong", "")),
@@ -386,7 +459,9 @@ def process_course(subject: str, course: dict) -> dict | None:
         components = catalog_details.get("components", "")
         requirement_designation = catalog_details.get("requirement_designation", "")
         course_attributes = catalog_details.get("course_attributes", [])
-        open_terms = catalog_details.get("open_terms", [])
+        catalog_open_terms = catalog_details.get("open_terms", [])
+        subject_open_terms = extract_term_data(course.get("offerings", []))
+        open_terms = merge_open_terms(catalog_open_terms, subject_open_terms)
         acad_career = normalize_text(course.get("acad_career", ""))
 
         selected_term = None
@@ -542,9 +617,12 @@ def save_to_json(courses: list[dict], filename: Path, quiet: bool = False) -> No
         return
     
     try:
-        # Courses are already serialized in process_course, don't serialize again
-        with open(filename, 'w', encoding='utf-8') as f:
+        # Courses are already serialized in process_course, don't serialize again.
+        # Write atomically to avoid partially-written JSON if interrupted.
+        tmp_filename = filename.with_suffix(filename.suffix + '.tmp')
+        with open(tmp_filename, 'w', encoding='utf-8') as f:
             json.dump(courses, f, indent=2, ensure_ascii=False)
+        tmp_filename.replace(filename)
 
         if not quiet:
             print(f"Output: {filename}")
