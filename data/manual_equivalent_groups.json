@@ -7,6 +7,15 @@
     ["APMA 2130", "MATH 3250"],
     ["MATH 3350", "APMA 3080", "MATH 3351"],
     ["MATH 4220", "APMA 3140"],
-    ["MATH 3340", "APMA 3340"] 
+    ["MATH 3340", "APMA 3340"],
+    ["CHIN 116", "CHIN 1016"],
+    ["CHIN 126", "CHIN 1026"],
+    ["CHIN 216", "CHIN 2016"],
+    ["CHIN 226", "CHIN 2026"],
+    ["CHIN 1010", "CHIN 1060"],
+    ["ARAB 116", "ARAB 126", "ARAB 1016", "ARAB 1026"],
+    ["ARAB 216", "ARAB 226", "ARAB 2016", "ARAB 2026"],
+    ["ARAB 1010", "ARAB 1016"],
+    ["CS 1111", "CS 1112", "CS 1110", "CS 1113"]
   ]
 }
