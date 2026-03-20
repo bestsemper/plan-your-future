@@ -9,6 +9,7 @@ interface TreeVisualizationProps {
 interface Course {
   id: string;
   label: string;
+  title?: string;
   prereqs: string[];
 }
 
@@ -21,6 +22,8 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
   const [dagData, setDagData] = useState<DagData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
+  const [hoverPos, setHoverPos] = useState<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     if (!department) return;
@@ -395,6 +398,8 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
     // Create edges with smooth curves around obstacles
     const edgeLines: {
       waypoints: Array<{ x: number; y: number }>;
+      parentId?: string;
+      childId?: string;
     }[] = [];
     edgesMap.forEach((children, parentId) => {
       const parentPos = positionMap.get(parentId);
@@ -414,7 +419,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
           childId
         );
 
-        edgeLines.push({ waypoints });
+        edgeLines.push({ waypoints, parentId, childId });
       });
     });
 
@@ -436,6 +441,8 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
       nodeFontSize,
       strokeWidth,
       arrowMarkerSize,
+      edgesMap,
+      reverseEdgesMap,
     };
   }, [dagData]);
 
@@ -451,7 +458,17 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
     return <div className="text-gray-600 p-4">No courses to display</div>;
   }
 
-  const { nodes, edges, totalWidth, totalHeight, nodeW, nodeH, nodeFontSize, strokeWidth, arrowMarkerSize } = layout;
+  const { nodes, edges, totalWidth, totalHeight, nodeW, nodeH, nodeFontSize, strokeWidth, arrowMarkerSize, edgesMap, reverseEdgesMap } = layout;
+  
+  // Helper function to darken a color
+  const darkenColor = (color: string, factor: number) => {
+    const num = parseInt(color.replace('#', ''), 16);
+    const amt = Math.round(2.55 * factor * 100);
+    const R = Math.max(0, (num >> 16) - amt);
+    const G = Math.max(0, (num >> 8 & 0x00FF) - amt);
+    const B = Math.max(0, (num & 0x0000FF) - amt);
+    return '#' + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
+  };
 
   return (
     <div className="w-full bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
@@ -466,7 +483,10 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
         </defs>
 
         {/* Draw edges */}
-        {edges.map((edge, idx) => {
+        {edges.map((edge: any, idx) => {
+          // Check if this edge is connected to hovered node
+          const isConnectedToHovered = hoveredNodeId && (edge.parentId === hoveredNodeId || edge.childId === hoveredNodeId);
+          
           // Pale color palette - distinguishable pastel colors
           const paleColors = [
             "#a8d5e2", // pale blue
@@ -483,6 +503,8 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
             "#e0f0a8", // pale lime
           ];
           const edgeColor = paleColors[idx % paleColors.length];
+          // Darken color when connected to hovered node
+          const displayColor = isConnectedToHovered ? darkenColor(edgeColor, 0.4) : edgeColor;
 
           // Helper function to create arrowhead polygon string
           const createArrowhead = (x: number, y: number, angle: number, size: number) => {
@@ -507,13 +529,15 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
           };
 
           if (edge.waypoints.length === 2) {
-            // Direct path, use simple Bezier curve
+            // Direct path, use smooth Bezier curve with better control points
             const x1 = edge.waypoints[0].x;
             const y1 = edge.waypoints[0].y;
             const x2 = edge.waypoints[1].x;
             const y2 = edge.waypoints[1].y;
-            const midY = (y1 + y2) / 2;
-            const pathData = `M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}`;
+            // Smoother control points that ease in and out
+            const cp1Y = y1 + (y2 - y1) * 0.3;
+            const cp2Y = y1 + (y2 - y1) * 0.7;
+            const pathData = `M ${x1} ${y1} C ${x1} ${cp1Y}, ${x2} ${cp2Y}, ${x2} ${y2}`;
             // Vertical arrowheads
             const angle = Math.PI / 2;
 
@@ -522,14 +546,14 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
                 <path
                   d={pathData}
                   fill="none"
-                  stroke={edgeColor}
-                  strokeWidth={strokeWidth}
-                  opacity="0.7"
+                  stroke={displayColor}
+                  strokeWidth={isConnectedToHovered ? strokeWidth * 2 : strokeWidth}
+                  opacity={isConnectedToHovered ? 1 : 0.7}
                 />
                 <polygon
                   points={createArrowhead(x2, y2, angle, arrowMarkerSize)}
-                  fill={edgeColor}
-                  opacity="0.7"
+                  fill={displayColor}
+                  opacity={isConnectedToHovered ? 1 : 0.7}
                 />
               </g>
             );
@@ -543,8 +567,8 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
           const x2 = edge.waypoints[2].x;
           const y2 = edge.waypoints[2].y;
 
-          // Use cubic Bezier curve for smooth bulge
-          const pathData = `M ${x1} ${y1} C ${x1} ${cpY}, ${cpX} ${y1}, ${cpX} ${cpY} C ${cpX} ${y2}, ${x2} ${cpY}, ${x2} ${y2}`;
+          // Use cubic Bezier curves with smooth transitions
+          const pathData = `M ${x1} ${y1} C ${x1} ${(y1 + cpY) * 0.5}, ${cpX} ${(y1 + cpY) * 0.5}, ${cpX} ${cpY} C ${cpX} ${(cpY + y2) * 0.5}, ${x2} ${(cpY + y2) * 0.5}, ${x2} ${y2}`;
           // Vertical arrowheads
           const angle = Math.PI / 2;
 
@@ -553,46 +577,121 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
               <path
                 d={pathData}
                 fill="none"
-                stroke={edgeColor}
-                strokeWidth={strokeWidth}
-                opacity="0.7"
+                stroke={displayColor}
+                strokeWidth={isConnectedToHovered ? strokeWidth * 2 : strokeWidth}
+                opacity={isConnectedToHovered ? 1 : 0.7}
               />
               <polygon
                 points={createArrowhead(x2, y2, angle, arrowMarkerSize)}
-                fill={edgeColor}
-                opacity="0.7"
+                fill={displayColor}
+                opacity={isConnectedToHovered ? 1 : 0.7}
               />
             </g>
           );
         })}
 
         {/* Draw nodes */}
-        {nodes.map(({ id, label, x, y }) => (
-          <g key={id}>
-            <rect
-              x={x - nodeW / 2}
-              y={y - nodeH / 2}
-              width={nodeW}
-              height={nodeH}
-              fill="white"
-              stroke="#60a5fa"
-              strokeWidth={strokeWidth}
-              rx={strokeWidth * 2}
-            />
-            <text
-              x={x}
-              y={y + nodeFontSize / 3}
-              textAnchor="middle"
-              fontSize={nodeFontSize}
-              fill="#1e40af"
-              fontWeight="600"
-              className="pointer-events-none select-none"
-            >
-              {label}
-            </text>
-          </g>
-        ))}
+        {nodes.map(({ id, label, x, y }) => {
+          const prereqs = dagData?.nodes.find(n => n.id === id)?.prereqs || [];
+          const postreqs = Array.from(edgesMap?.get(id) || new Set());
+          
+          // Check if this node is directly connected to hovered node
+          const isDirectlyConnected = hoveredNodeId && (postreqs.includes(hoveredNodeId) || reverseEdgesMap?.get(id)?.has(hoveredNodeId));
+          
+          return (
+            <g key={id}>
+              <rect
+                x={x - nodeW / 2}
+                y={y - nodeH / 2}
+                width={nodeW}
+                height={nodeH}
+                fill={hoveredNodeId === id ? "#e0f2fe" : isDirectlyConnected ? "#dbeafe" : "white"}
+                stroke={hoveredNodeId === id ? "#0284c7" : isDirectlyConnected ? "#0284c7" : "#60a5fa"}
+                strokeWidth={hoveredNodeId === id ? 2.5 : isDirectlyConnected ? 2 : strokeWidth}
+                rx={strokeWidth * 2}
+                onMouseEnter={(e) => {
+                  setHoveredNodeId(id);
+                  // Position in bottom right - no need to calculate, fixed positioning will handle it
+                  setHoverPos({ x: 0, y: 0 }); // Dummy values, will use fixed positioning
+                }}
+                onMouseLeave={() => {
+                  setHoveredNodeId(null);
+                  setHoverPos(null);
+                }}
+                style={{ cursor: "pointer" }}
+              />
+              <text
+                x={x}
+                y={y + nodeFontSize / 3}
+                textAnchor="middle"
+                fontSize={nodeFontSize}
+                fill="#1e40af"
+                fontWeight="600"
+                className="pointer-events-none select-none"
+              >
+                {label}
+              </text>
+            </g>
+          );
+        })}
       </svg>
+
+      {hoveredNodeId && hoverPos && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: "20px",
+            right: "20px",
+            background: "white",
+            border: "2px solid #0284c7",
+            borderRadius: "8px",
+            padding: "12px",
+            fontSize: "12px",
+            zIndex: 1000,
+            minWidth: "200px",
+            maxWidth: "250px",
+            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+            pointerEvents: "none",
+          }}
+        >
+          <div style={{ fontWeight: "bold", marginBottom: "8px", color: "#1e40af", fontSize: "14px" }}>
+            {hoveredNodeId}
+          </div>
+          <div style={{ fontSize: "11px", marginBottom: "8px", color: "#0c4a6e", fontStyle: "italic" }}>
+            {dagData?.nodes.find(n => n.id === hoveredNodeId)?.title || dagData?.nodes.find(n => n.id === hoveredNodeId)?.label}
+          </div>
+          
+          <div style={{ marginBottom: "8px" }}>
+            <div style={{ fontWeight: "600", color: "#0c4a6e", marginBottom: "4px" }}>
+              Prerequisites:
+            </div>
+            <div style={{ paddingLeft: "8px", color: "#475569" }}>
+              {(reverseEdgesMap?.get(hoveredNodeId!) as Set<string> | undefined)?.size === 0 ? (
+                <span>None</span>
+              ) : (
+                Array.from(reverseEdgesMap?.get(hoveredNodeId!) as Set<string> | Set<unknown>).map((prereq: string | unknown) => (
+                  <div key={prereq as string}>• {String(prereq)}</div>
+                ))
+              )}
+            </div>
+          </div>
+          
+          <div>
+            <div style={{ fontWeight: "600", color: "#0c4a6e", marginBottom: "4px" }}>
+              Postrequisites:
+            </div>
+            <div style={{ paddingLeft: "8px", color: "#475569" }}>
+              {(edgesMap?.get(hoveredNodeId!) as Set<string> | undefined)?.size === 0 ? (
+                <span>None</span>
+              ) : (
+                Array.from(edgesMap?.get(hoveredNodeId!) as Set<string> | Set<unknown>).map((postreq: string | unknown) => (
+                  <div key={postreq as string}>• {String(postreq)}</div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

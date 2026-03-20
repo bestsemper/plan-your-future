@@ -243,9 +243,11 @@ export function buildCourseDag(department: string): CourseDAG {
   
   groupMembers.forEach((members, groupId) => {
     const label = createGroupLabel(groupId, members, courseToGroup);
+    const title = courseDetails.get(members[0])?.title;
     nodes.set(groupId, {
       id: groupId,
       label,
+      title,
       prereqs: [],
     });
     edges.set(groupId, new Set<string>());
