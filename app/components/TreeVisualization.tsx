@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, useRef } from "react";
 
 interface TreeVisualizationProps {
   department: string;
+  departmentFullName: string;
 }
 
 interface Course {
@@ -18,7 +19,7 @@ interface DagData {
   edges: Array<{ parent: string; children: string[] }>;
 }
 
-export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department }) => {
+export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department, departmentFullName }) => {
   const [dagData, setDagData] = useState<DagData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +27,9 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
   const [hoverPos, setHoverPos] = useState<{ x: number; y: number } | null>(null);
   const [zoom, setZoom] = useState(1);
   const [isPanning, setIsPanning] = useState(false);
-  const [panStart, setPanStart] = useState<{ x: number; y: number } | null>(null);
+  // Use refs for panning state to avoid rebinding event listeners
+  const isPanningRef = useRef(false);
+  const panStartRef = useRef<{ x: number; y: number; scrollX: number; scrollY: number } | null>(null);
   const svgContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -511,8 +514,9 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
       // Always zoom on wheel scroll
       if (e.deltaY !== 0) {
         e.preventDefault();
+        // Keep zoom centered around mouse position? That takes more math, but for now just zoom
         setZoom((prevZoom) => {
-          const delta = e.deltaY > 0 ? 0.9 : 1.1;
+          const delta = e.deltaY > 0 ? 0.9 : 1.1; // down scrolls out, up scrolls in
           const newZoom = Math.max(0.2, Math.min(5, prevZoom * delta));
           return newZoom;
         });
@@ -523,36 +527,40 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
       if (e.button === 0 || e.button === 2) {
         // Left-click or Right-click for pan
         setIsPanning(true);
-        setPanStart({ x: e.clientX - container.scrollLeft, y: e.clientY - container.scrollTop });
+        isPanningRef.current = true;
+        panStartRef.current = { x: e.clientX, y: e.clientY, scrollX: container.scrollLeft, scrollY: container.scrollTop };
       }
     };
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (isPanning && panStart) {
-        const newScrollLeft = e.clientX - panStart.x;
-        const newScrollTop = e.clientY - panStart.y;
-        container.scrollLeft = newScrollLeft;
-        container.scrollTop = newScrollTop;
+      if (isPanningRef.current && panStartRef.current) {
+        const dx = e.clientX - panStartRef.current.x;
+        const dy = e.clientY - panStartRef.current.y;
+        container.scrollLeft = panStartRef.current.scrollX - dx;
+        container.scrollTop = panStartRef.current.scrollY - dy;
       }
     };
 
     const handleMouseUp = () => {
       setIsPanning(false);
-      setPanStart(null);
+      isPanningRef.current = false;
+      panStartRef.current = null;
     };
 
+    // Use passive: false to allow e.preventDefault() for zooming
     container.addEventListener('wheel', handleWheel, { passive: false });
     container.addEventListener('mousedown', handleMouseDown);
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
+    // Bind to window to allow dragging outside of container bounds
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
 
     return () => {
       container.removeEventListener('wheel', handleWheel);
       container.removeEventListener('mousedown', handleMouseDown);
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isPanning, panStart]);
+  }, [layout]); // Important: must re-run when layout is ready so container ref is not null
 
   if (loading) {
     return <div className="text-gray-600 p-4">Loading...</div>;
@@ -587,16 +595,28 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
       {/* Tree Container */}
       <div
         ref={svgContainerRef}
-        className="flex-1 overflow-auto flex items-center justify-center"
+        className="flex-1 overflow-auto"
         style={{ cursor: isPanning ? 'grabbing' : 'grab' }}
       >
-        <svg
-          viewBox={`0 0 ${totalWidth} ${totalHeight}`}
-          width={totalWidth}
-          height={totalHeight}
-          style={{ display: "block", overflow: "visible", transform: `scale(${zoom})`, transformOrigin: '0 0', cursor: 'pointer', margin: 'auto' }}
+        <div
+          style={{
+            minWidth: '100%',
+            minHeight: '100%',
+            width: 'max-content',
+            height: 'max-content',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '2rem'
+          }}
         >
-        <defs>
+          <svg
+            viewBox={`0 0 ${totalWidth} ${totalHeight}`}
+            width={totalWidth * zoom}
+            height={totalHeight * zoom}
+            style={{ display: "block", overflow: "visible", cursor: 'pointer' }}
+          >
+          <defs>
           {/* Arrowheads are now drawn manually for proper rotation along curved edges */}
         </defs>
 
@@ -775,6 +795,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
           );
         })}
       </svg>
+      </div>
       </div>
 
       {hoveredNodeId && hoverPos && (

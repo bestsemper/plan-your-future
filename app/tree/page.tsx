@@ -29,8 +29,9 @@ export default function TreePage() {
       if (user && user.major && user.major !== "Undeclared") {
         // Find department matching the major by mnemonic or full name
         const userMajorLower = user.major.toLowerCase();
+        // First try to find exact mnemonic match, or if the major name includes the full department name
         const matchingDept = depts.find(
-          dept => userMajorLower.includes(dept.mnemonic.toLowerCase()) ||
+          dept => userMajorLower === dept.mnemonic.toLowerCase() ||
                   userMajorLower.includes(dept.fullName.toLowerCase())
         );
         if (matchingDept) {
@@ -156,16 +157,8 @@ export default function TreePage() {
 
       {selectedDepartment ? (
         <div className="bg-panel-bg rounded-xl border border-panel-border overflow-hidden flex flex-col h-[calc(100vh-200px)]">
-          <div className="p-6 border-b border-panel-border flex-shrink-0">
-            <h2 className="text-2xl font-bold text-heading">
-              {selectedDepartment.fullName}
-            </h2>
-            <p className="text-sm text-text-secondary mt-1">
-              {selectedDepartment.mnemonic} course prerequisites
-            </p>
-          </div>
           <div className="flex-1 overflow-auto">
-            <TreeVisualization department={selectedDepartment.mnemonic} />
+            <TreeVisualization department={selectedDepartment.mnemonic} departmentFullName={selectedDepartment.fullName} />
           </div>
         </div>
       ) : (
