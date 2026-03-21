@@ -506,22 +506,42 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
     };
   }, [dagData]);
 
+  const handleZoom = (delta: number) => {
+    setZoom((prevZoom) => {
+      const newZoom = Math.max(0.2, Math.min(5, prevZoom + delta));
+      if (newZoom === prevZoom) return prevZoom;
+
+      const container = svgContainerRef.current;
+      if (container) {
+        // Attempt to keep the center of the viewport fixed
+        const rect = container.getBoundingClientRect();
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        
+        const scrollLeft = container.scrollLeft;
+        const scrollTop = container.scrollTop;
+        
+        const unscaledX = (scrollLeft + centerX) / prevZoom;
+        const unscaledY = (scrollTop + centerY) / prevZoom;
+        
+        const newScrollLeft = unscaledX * newZoom - centerX;
+        const newScrollTop = unscaledY * newZoom - centerY;
+        
+        // Wait for render to update the container size
+        setTimeout(() => {
+          if (svgContainerRef.current) {
+            svgContainerRef.current.scrollLeft = newScrollLeft;
+            svgContainerRef.current.scrollTop = newScrollTop;
+          }
+        }, 0);
+      }
+      return newZoom;
+    });
+  };
+
   useEffect(() => {
     const container = svgContainerRef.current;
     if (!container) return;
-
-    const handleWheel = (e: WheelEvent) => {
-      // Always zoom on wheel scroll
-      if (e.deltaY !== 0) {
-        e.preventDefault();
-        // Keep zoom centered around mouse position? That takes more math, but for now just zoom
-        setZoom((prevZoom) => {
-          const delta = e.deltaY > 0 ? 0.9 : 1.1; // down scrolls out, up scrolls in
-          const newZoom = Math.max(0.2, Math.min(5, prevZoom * delta));
-          return newZoom;
-        });
-      }
-    };
 
     const handleMouseDown = (e: MouseEvent) => {
       if (e.button === 0 || e.button === 2) {
@@ -547,15 +567,12 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
       panStartRef.current = null;
     };
 
-    // Use passive: false to allow e.preventDefault() for zooming
-    container.addEventListener('wheel', handleWheel, { passive: false });
     container.addEventListener('mousedown', handleMouseDown);
     // Bind to window to allow dragging outside of container bounds
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
 
     return () => {
-      container.removeEventListener('wheel', handleWheel);
       container.removeEventListener('mousedown', handleMouseDown);
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
@@ -588,8 +605,24 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
 
   return (
     <div className="w-full h-full flex flex-col bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200 absolute inset-0 overflow-hidden min-w-0 min-h-0">
-      <div className="absolute top-4 right-4 z-10 bg-white/80 backdrop-blur px-3 py-1.5 rounded-full border border-blue-200 shadow-sm pointer-events-none">
-        <p className="text-xs text-blue-800 font-medium">Scroll to zoom • Click & Drag to pan</p>
+      <div className="absolute top-4 right-4 z-10 bg-white/90 backdrop-blur p-0.5 rounded-xl border border-blue-200 shadow-sm flex items-center">
+        <div className="flex bg-white rounded-lg overflow-hidden">
+          <button 
+            onClick={() => handleZoom(0.2)} 
+            className="p-2.5 text-blue-700 cursor-pointer"
+            title="Zoom In"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+          </button>
+          <div className="w-px bg-blue-100"></div>
+          <button 
+            onClick={() => handleZoom(-0.2)} 
+            className="p-2.5 text-blue-700 cursor-pointer"
+            title="Zoom Out"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+          </button>
+        </div>
       </div>
 
       {/* Tree Container */}
