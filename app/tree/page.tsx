@@ -99,7 +99,7 @@ export default function TreePage() {
 
 
   return (
-    <div className="w-full h-full pt-0 pb-6 flex flex-col min-w-0">
+    <div className="w-full h-full pt-0 flex flex-col min-w-0">
       <div className="mb-6 flex items-center justify-between gap-3 border-b border-panel-border pb-4 w-full min-w-0">
         <h1 className="text-3xl font-bold text-heading">Prerequisite Tree</h1>
         <div className="relative flex-1 max-w-xs">
@@ -156,7 +156,7 @@ export default function TreePage() {
       </div>
 
       {selectedDepartment ? (
-        <div className="bg-panel-bg rounded-xl border border-panel-border overflow-hidden flex flex-col h-[calc(100vh-200px)] w-full">
+        <div className="bg-panel-bg rounded-xl border border-panel-border overflow-hidden flex flex-col h-[calc(100vh-100px)] w-full">
           <div className="flex-1 overflow-hidden min-w-0 min-h-0 relative">
             <TreeVisualization department={selectedDepartment.mnemonic} departmentFullName={selectedDepartment.fullName} />
           </div>
