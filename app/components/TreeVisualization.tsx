@@ -28,6 +28,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
   const [clickedNodeId, setClickedNodeId] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
   const [isPanning, setIsPanning] = useState(false);
+  const [isDark, setIsDark] = useState(false);
   // Use refs for panning state to avoid rebinding event listeners
   const isPanningRef = useRef(false);
   const panStartRef = useRef<{ x: number; y: number; scrollX: number; scrollY: number } | null>(null);
@@ -82,6 +83,22 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
       };
     }
   }, [clickedNodeId]);
+
+  // Detect dark mode
+  useEffect(() => {
+    const isDarkMode = document.documentElement.classList.contains('dark');
+    setIsDark(isDarkMode);
+
+    const observer = new MutationObserver(() => {
+      const isDarkNow = document.documentElement.classList.contains('dark');
+      setIsDark(isDarkNow);
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
 
   const layout = useMemo(() => {
     if (!dagData || dagData.nodes.length === 0) return null;
@@ -629,28 +646,28 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
   };
 
   return (
-    <div className="w-full h-full flex flex-col bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200 absolute inset-0 overflow-hidden min-w-0 min-h-0">
-      <div className="absolute top-4 right-4 z-10 bg-white/90 backdrop-blur p-0.5 rounded-xl border border-blue-200 shadow-sm flex items-center">
+    <div className="w-full h-full flex flex-col bg-panel-bg absolute inset-0 overflow-hidden min-w-0 min-h-0">
+      <div className="absolute top-4 right-4 z-10 bg-white/90 backdrop-blur p-0.5 rounded-xl border border-panel-border shadow-sm flex items-center">
         <div className="flex bg-white rounded-lg overflow-hidden">
           <button 
             onClick={() => handleZoom(0.2)} 
-            className="p-2.5 text-blue-700 cursor-pointer"
+            className="p-2.5 text-uva-blue cursor-pointer"
             title="Zoom In"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
           </button>
-          <div className="w-px bg-blue-100"></div>
+          <div className="w-px bg-panel-border"></div>
           <button 
             onClick={() => handleZoom(-0.2)} 
-            className="p-2.5 text-blue-700 cursor-pointer"
+            className="p-2.5 text-uva-blue cursor-pointer"
             title="Zoom Out"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
           </button>
-          <div className="w-px bg-blue-100"></div>
+          <div className="w-px bg-panel-border"></div>
           <button 
             onClick={() => setZoom(1)} 
-            className="p-2.5 text-blue-700 cursor-pointer"
+            className="p-2.5 text-uva-blue cursor-pointer"
             title="Reset Zoom"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -700,7 +717,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
           const activeNodeId = clickedNodeId || hoveredNodeId;
           const isConnectedToActive = activeNodeId && (edge.parentId === activeNodeId || edge.childId === activeNodeId);
           
-          // Pale color palette - distinguishable pastel colors
+          // UVA brand color palette with professional tones (adjusted for dark mode)
           const paleColors = [
             "#a8d5e2", // pale blue
             "#f0a8c3", // pale pink
@@ -843,26 +860,21 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
                 y={y - nodeH / 2}
                 width={nodeW}
                 height={nodeH}
-                fill={activeNodeId === id ? "#e0f2fe" : isDirectlyConnected ? "#dbeafe" : "white"}
-                stroke={activeNodeId === id ? "#0284c7" : isDirectlyConnected ? "#0284c7" : "#60a5fa"}
+                fill={isDark ? (activeNodeId === id ? "#4b5563" : isDirectlyConnected ? "#374151" : "#374151") : (activeNodeId === id ? "#e5e7eb" : isDirectlyConnected ? "#f3f4f6" : "#ffffff")}
+                stroke={isDark ? (activeNodeId === id ? "#6b7280" : isDirectlyConnected ? "#6b7280" : "#6b7280") : (activeNodeId === id ? "#9ca3af" : isDirectlyConnected ? "#d1d5db" : "#d1d5db")}
                 strokeWidth={activeNodeId === id ? 2.5 : isDirectlyConnected ? 2 : strokeWidth}
                 rx={strokeWidth * 2}
                 onMouseEnter={(e) => {
-                  // If there's a clicked node and we're hovering over a different one, close clicked and show hover
-                  if (clickedNodeId && clickedNodeId !== id) {
-                    setClickedNodeId(null);
-                    setHoveredNodeId(id);
-                    setHoverPos({ x: 0, y: 0 });
-                  } else if (!clickedNodeId) {
+                  if (!clickedNodeId) {
                     // Normal hover behavior when no node is clicked
                     setHoveredNodeId(id);
                     setHoverPos({ x: 0, y: 0 });
                   }
                 }}
                 onMouseLeave={() => {
-                  setHoveredNodeId(null);
-                  // Only clear hoverPos if no node is clicked (to keep clicked popup visible)
+                  // Only update hover state if no node is clicked
                   if (!clickedNodeId) {
+                    setHoveredNodeId(null);
                     setHoverPos(null);
                   }
                 }}
@@ -888,7 +900,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
                 y={y + nodeFontSize / 3}
                 textAnchor="middle"
                 fontSize={nodeFontSize}
-                fill="#1e40af"
+                fill={isDark ? "#e5e7eb" : "#111827"}
                 fontWeight="600"
                 className="pointer-events-none select-none"
               >
