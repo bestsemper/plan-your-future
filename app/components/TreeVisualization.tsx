@@ -774,8 +774,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
             const dx = p1.x - p0.x;
             const dy = p1.y - p0.y;
             
-            // Very conservative tension - much smaller than before to prevent overshoot
-            const tension = Math.max(0, Math.min(0.15 * dy, dy * 0.2)); // Reduced from 0.25
+            const tension = dy * 0.5;
             
             // First control point - minimal horizontal offset, mostly vertical
             const cp0x = p0.x; // Reduced from 0.15
