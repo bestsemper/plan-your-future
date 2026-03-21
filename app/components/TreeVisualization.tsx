@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 
 interface TreeVisualizationProps {
   department: string;
@@ -24,6 +24,10 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
   const [error, setError] = useState<string | null>(null);
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [hoverPos, setHoverPos] = useState<{ x: number; y: number } | null>(null);
+  const [zoom, setZoom] = useState(1);
+  const [isPanning, setIsPanning] = useState(false);
+  const [panStart, setPanStart] = useState<{ x: number; y: number } | null>(null);
+  const svgContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!department) return;
@@ -499,6 +503,57 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
     };
   }, [dagData]);
 
+  useEffect(() => {
+    const container = svgContainerRef.current;
+    if (!container) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      // Always zoom on wheel scroll
+      if (e.deltaY !== 0) {
+        e.preventDefault();
+        setZoom((prevZoom) => {
+          const delta = e.deltaY > 0 ? 0.9 : 1.1;
+          const newZoom = Math.max(0.2, Math.min(5, prevZoom * delta));
+          return newZoom;
+        });
+      }
+    };
+
+    const handleMouseDown = (e: MouseEvent) => {
+      if (e.button === 0 || e.button === 2) {
+        // Left-click or Right-click for pan
+        setIsPanning(true);
+        setPanStart({ x: e.clientX - container.scrollLeft, y: e.clientY - container.scrollTop });
+      }
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isPanning && panStart) {
+        const newScrollLeft = e.clientX - panStart.x;
+        const newScrollTop = e.clientY - panStart.y;
+        container.scrollLeft = newScrollLeft;
+        container.scrollTop = newScrollTop;
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsPanning(false);
+      setPanStart(null);
+    };
+
+    container.addEventListener('wheel', handleWheel, { passive: false });
+    container.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      container.removeEventListener('wheel', handleWheel);
+      container.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isPanning, panStart]);
+
   if (loading) {
     return <div className="text-gray-600 p-4">Loading...</div>;
   }
@@ -524,13 +579,23 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
   };
 
   return (
-    <div className="w-full bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-      <svg
-        viewBox={`0 0 ${totalWidth} ${totalHeight}`}
-        width="100%"
-        height={`${totalHeight + 40}px`}
-        style={{ display: "block", overflow: "visible", maxWidth: "100%" }}
+    <div className="w-full h-full flex flex-col bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200 relative">
+      <div className="absolute top-4 right-4 z-10 bg-white/80 backdrop-blur px-3 py-1.5 rounded-full border border-blue-200 shadow-sm pointer-events-none">
+        <p className="text-xs text-blue-800 font-medium">Scroll to zoom • Click & Drag to pan</p>
+      </div>
+
+      {/* Tree Container */}
+      <div
+        ref={svgContainerRef}
+        className="flex-1 overflow-auto"
+        style={{ cursor: isPanning ? 'grabbing' : 'grab' }}
       >
+        <svg
+          viewBox={`0 0 ${totalWidth} ${totalHeight}`}
+          width={totalWidth}
+          height={totalHeight}
+          style={{ display: "block", overflow: "visible", transform: `scale(${zoom})`, transformOrigin: '0 0', cursor: 'pointer' }}
+        >
         <defs>
           {/* Arrowheads are now drawn manually for proper rotation along curved edges */}
         </defs>
@@ -710,6 +775,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
           );
         })}
       </svg>
+      </div>
 
       {hoveredNodeId && hoverPos && (
         <div
