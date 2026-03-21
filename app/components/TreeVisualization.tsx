@@ -25,12 +25,14 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
   const [error, setError] = useState<string | null>(null);
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [hoverPos, setHoverPos] = useState<{ x: number; y: number } | null>(null);
+  const [clickedNodeId, setClickedNodeId] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
   const [isPanning, setIsPanning] = useState(false);
   // Use refs for panning state to avoid rebinding event listeners
   const isPanningRef = useRef(false);
   const panStartRef = useRef<{ x: number; y: number; scrollX: number; scrollY: number } | null>(null);
   const svgContainerRef = useRef<HTMLDivElement>(null);
+  const popupRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!department) return;
@@ -39,6 +41,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
       setLoading(true);
       setError(null);
       setDagData(null); // Reset data while loading new department
+      setClickedNodeId(null); // Clear any clicked node when changing departments
       try {
         const res = await fetch(`/api/tree?department=${department}`);
         if (!res.ok) {
@@ -57,6 +60,28 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
 
     fetchDAG();
   }, [department]);
+
+  // Handle clicking outside the popup to close it
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
+        const target = event.target as HTMLElement;
+        // Don't close if clicking on a node (they have their own click handler)
+        if (!target.closest('rect[data-node-id]')) {
+          setClickedNodeId(null);
+          setHoveredNodeId(null);
+          setHoverPos(null);
+        }
+      }
+    }
+
+    if (clickedNodeId) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [clickedNodeId]);
 
   const layout = useMemo(() => {
     if (!dagData || dagData.nodes.length === 0) return null;
@@ -622,6 +647,14 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
           </button>
+          <div className="w-px bg-blue-100"></div>
+          <button 
+            onClick={() => setZoom(1)} 
+            className="p-2.5 text-blue-700 cursor-pointer"
+            title="Reset Zoom"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          </button>
         </div>
       </div>
 
@@ -654,9 +687,18 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
         </defs>
 
         {/* Draw edges */}
-        {edges.map((edge: any, idx) => {
-          // Check if this edge is connected to hovered node
-          const isConnectedToHovered = hoveredNodeId && (edge.parentId === hoveredNodeId || edge.childId === hoveredNodeId);
+        {edges
+          .sort((edgeA: any, edgeB: any) => {
+            const activeNodeId = clickedNodeId || hoveredNodeId;
+            const aConnected = activeNodeId && (edgeA.parentId === activeNodeId || edgeA.childId === activeNodeId);
+            const bConnected = activeNodeId && (edgeB.parentId === activeNodeId || edgeB.childId === activeNodeId);
+            // Non-highlighted edges first (false = 0, true = 1), highlighted edges last
+            return (aConnected ? 1 : 0) - (bConnected ? 1 : 0);
+          })
+          .map((edge: any, idx) => {
+          // Check if this edge is connected to hovered or clicked node
+          const activeNodeId = clickedNodeId || hoveredNodeId;
+          const isConnectedToActive = activeNodeId && (edge.parentId === activeNodeId || edge.childId === activeNodeId);
           
           // Pale color palette - distinguishable pastel colors
           const paleColors = [
@@ -673,9 +715,11 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
             "#f0c3d4", // pale rose
             "#e0f0a8", // pale lime
           ];
-          const edgeColor = paleColors[idx % paleColors.length];
-          // Darken color when connected to hovered node
-          const displayColor = isConnectedToHovered ? darkenColor(edgeColor, 0.4) : edgeColor;
+          // Use stable color based on edge identity, not position
+          const edgeHash = (edge.parentId + edge.childId).split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
+          const edgeColor = paleColors[edgeHash % paleColors.length];
+          // Darken color when connected to active (hovered or clicked) node
+          const displayColor = isConnectedToActive ? darkenColor(edgeColor, 0.4) : edgeColor;
 
           // Helper function to create arrowhead polygon string
           const createArrowhead = (x: number, y: number, angle: number, size: number) => {
@@ -766,18 +810,18 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
           }
 
           return (
-            <g key={`edge-${idx}`}>
+            <g key={`edge-${edge.parentId}-${edge.childId}`}>
               <path
                 d={pathData}
                 fill="none"
                 stroke={displayColor}
-                strokeWidth={isConnectedToHovered ? strokeWidth * 2 : strokeWidth}
-                opacity={isConnectedToHovered ? 1 : 0.7}
+                strokeWidth={isConnectedToActive ? strokeWidth * 2 : strokeWidth}
+                opacity={isConnectedToActive ? 1 : 0.7}
               />
               <polygon
-                points={createArrowhead(p_end.x, p_end.y, angle, isConnectedToHovered ? arrowMarkerSize * 1.5 : arrowMarkerSize)}
+                points={createArrowhead(p_end.x, p_end.y, angle, isConnectedToActive ? arrowMarkerSize * 1.5 : arrowMarkerSize)}
                 fill={displayColor}
-                opacity={isConnectedToHovered ? 1 : 0.7}
+                opacity={isConnectedToActive ? 1 : 0.7}
               />
             </g>
           );
@@ -788,8 +832,9 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
           const prereqs = dagData?.nodes.find(n => n.id === id)?.prereqs || [];
           const postreqs = Array.from(edgesMap?.get(id) || new Set());
           
-          // Check if this node is directly connected to hovered node
-          const isDirectlyConnected = hoveredNodeId && (postreqs.includes(hoveredNodeId) || reverseEdgesMap?.get(id)?.has(hoveredNodeId));
+          // Check if this node is directly connected to active (hovered or clicked) node
+          const activeNodeId = clickedNodeId || hoveredNodeId;
+          const isDirectlyConnected = activeNodeId && (postreqs.includes(activeNodeId) || reverseEdgesMap?.get(id)?.has(activeNodeId));
           
           return (
             <g key={id}>
@@ -798,19 +843,44 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
                 y={y - nodeH / 2}
                 width={nodeW}
                 height={nodeH}
-                fill={hoveredNodeId === id ? "#e0f2fe" : isDirectlyConnected ? "#dbeafe" : "white"}
-                stroke={hoveredNodeId === id ? "#0284c7" : isDirectlyConnected ? "#0284c7" : "#60a5fa"}
-                strokeWidth={hoveredNodeId === id ? 2.5 : isDirectlyConnected ? 2 : strokeWidth}
+                fill={activeNodeId === id ? "#e0f2fe" : isDirectlyConnected ? "#dbeafe" : "white"}
+                stroke={activeNodeId === id ? "#0284c7" : isDirectlyConnected ? "#0284c7" : "#60a5fa"}
+                strokeWidth={activeNodeId === id ? 2.5 : isDirectlyConnected ? 2 : strokeWidth}
                 rx={strokeWidth * 2}
                 onMouseEnter={(e) => {
-                  setHoveredNodeId(id);
-                  // Position in bottom right - no need to calculate, fixed positioning will handle it
-                  setHoverPos({ x: 0, y: 0 }); // Dummy values, will use fixed positioning
+                  // If there's a clicked node and we're hovering over a different one, close clicked and show hover
+                  if (clickedNodeId && clickedNodeId !== id) {
+                    setClickedNodeId(null);
+                    setHoveredNodeId(id);
+                    setHoverPos({ x: 0, y: 0 });
+                  } else if (!clickedNodeId) {
+                    // Normal hover behavior when no node is clicked
+                    setHoveredNodeId(id);
+                    setHoverPos({ x: 0, y: 0 });
+                  }
                 }}
                 onMouseLeave={() => {
                   setHoveredNodeId(null);
-                  setHoverPos(null);
+                  // Only clear hoverPos if no node is clicked (to keep clicked popup visible)
+                  if (!clickedNodeId) {
+                    setHoverPos(null);
+                  }
                 }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (clickedNodeId === id) {
+                    // Clicking the same node again closes the popup
+                    setClickedNodeId(null);
+                    setHoveredNodeId(null);
+                    setHoverPos(null);
+                  } else {
+                    // Clicking a new node shows its persistent popup
+                    setClickedNodeId(id);
+                    setHoveredNodeId(null);
+                    setHoverPos({ x: 0, y: 0 }); // Keep popup visible
+                  }
+                }}
+                data-node-id={id}
                 style={{ cursor: "pointer" }}
               />
               <text
@@ -831,14 +901,15 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
       </div>
       </div>
 
-      {hoveredNodeId && hoverPos && (
+      {(hoveredNodeId || clickedNodeId) && hoverPos && (
         <div
+          ref={popupRef}
           style={{
             position: "fixed",
             bottom: "20px",
             right: "20px",
             background: "white",
-            border: "2px solid #0284c7",
+            border: `2px solid ${clickedNodeId ? "#1e40af" : "#0284c7"}`,
             borderRadius: "8px",
             padding: "12px",
             fontSize: "12px",
@@ -846,14 +917,14 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
             minWidth: "200px",
             maxWidth: "250px",
             boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-            pointerEvents: "none",
+            pointerEvents: "auto",
           }}
         >
           <div style={{ fontWeight: "bold", marginBottom: "8px", color: "#1e40af", fontSize: "14px" }}>
-            {hoveredNodeId}
+            {clickedNodeId || hoveredNodeId}
           </div>
           <div style={{ fontSize: "11px", marginBottom: "8px", color: "#0c4a6e", fontStyle: "italic" }}>
-            {dagData?.nodes.find(n => n.id === hoveredNodeId)?.title || dagData?.nodes.find(n => n.id === hoveredNodeId)?.label}
+            {dagData?.nodes.find(n => n.id === (clickedNodeId || hoveredNodeId))?.title || dagData?.nodes.find(n => n.id === (clickedNodeId || hoveredNodeId))?.label}
           </div>
           
           <div style={{ marginBottom: "8px" }}>
@@ -861,10 +932,10 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
               Prerequisites:
             </div>
             <div style={{ paddingLeft: "8px", color: "#475569" }}>
-              {(reverseEdgesMap?.get(hoveredNodeId!) as Set<string> | undefined)?.size === 0 ? (
+              {(reverseEdgesMap?.get((clickedNodeId || hoveredNodeId)!) as Set<string> | undefined)?.size === 0 ? (
                 <span>None</span>
               ) : (
-                Array.from(reverseEdgesMap?.get(hoveredNodeId!) as Set<string> | Set<unknown>).map((prereq: string | unknown) => (
+                Array.from(reverseEdgesMap?.get((clickedNodeId || hoveredNodeId)!) as Set<string> | Set<unknown>).map((prereq: string | unknown) => (
                   <div key={prereq as string}>• {String(prereq)}</div>
                 ))
               )}
@@ -876,10 +947,10 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
               Postrequisites:
             </div>
             <div style={{ paddingLeft: "8px", color: "#475569" }}>
-              {(edgesMap?.get(hoveredNodeId!) as Set<string> | undefined)?.size === 0 ? (
+              {(edgesMap?.get((clickedNodeId || hoveredNodeId)!) as Set<string> | undefined)?.size === 0 ? (
                 <span>None</span>
               ) : (
-                Array.from(edgesMap?.get(hoveredNodeId!) as Set<string> | Set<unknown>).map((postreq: string | unknown) => (
+                Array.from(edgesMap?.get((clickedNodeId || hoveredNodeId)!) as Set<string> | Set<unknown>).map((postreq: string | unknown) => (
                   <div key={postreq as string}>• {String(postreq)}</div>
                 ))
               )}
