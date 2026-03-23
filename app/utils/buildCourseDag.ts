@@ -145,14 +145,13 @@ function mapCourseCodeToGroup(courseCode: string, courseToGroup: Map<string, str
 }
 
 function createGroupLabel(groupId: string, courses: string[], courseToGroup: Map<string, string>): string {
-  // Check if this group contains courses that are part of an equivalence group
-  const isPartOfEquivalenceGroup = courses.length === 1 && courseToGroup.has(courses[0]);
-  
-  if (courses.length === 1 && !isPartOfEquivalenceGroup) {
+  // Only use "x" format for actual groups with 2+ courses in the same department
+  // Cross-department equivalences should not trigger "x" suffix for single courses
+  if (courses.length === 1) {
     return courses[0];
   }
   
-  // Extract the pattern (e.g., "CS 111x" from ["CS 1110", "CS 1111", "CS 1112"] or just ["CS 1110"] if it's in a group)
+  // Multiple courses - use abbreviated format
   const match = courses[0].match(/^([A-Z]+)\s+(\d)(\d)(\d)(\d)$/);
   if (match) {
     const [, dept, d1, d2, d3] = match;
