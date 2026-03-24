@@ -5,11 +5,11 @@ import { useRouter } from 'next/navigation';
 import { use, useEffect, useState, useTransition } from 'react';
 import { default as ConfirmModal } from '../../../components/ConfirmModal';
 import { CustomDropdown, CustomDropdownContent, CustomDropdownItem } from '../../../components/CustomDropdown';
+import { useAttachedPlanModal } from '../../AttachedPlanModalProvider';
 import {
   addForumReply,
   deleteForumReply,
   deleteForumPost,
-  getAttachedPlanViewData,
   getForumPostPageData,
   voteOnForumPost,
   voteOnForumReply,
@@ -52,24 +52,6 @@ type ForumPostPageData = {
   canPost: boolean;
 };
 
-type AttachedPlanView = {
-  id: string;
-  title: string;
-  ownerDisplayName: string;
-  semesters: Array<{
-    id: string;
-    termName: string;
-    termOrder: number;
-    year: number;
-    courses: Array<{
-      id: string;
-      courseCode: string;
-      creditsMin: number | null;
-      creditsMax: number | null;
-    }>;
-  }>;
-};
-
 function formatRelativeTime(isoTimestamp: string): string {
   const created = new Date(isoTimestamp).getTime();
   const now = Date.now();
@@ -89,14 +71,12 @@ function formatRelativeTime(isoTimestamp: string): string {
 export default function ForumPostPage({ params }: { params: Promise<{ postNumber: string; slug: string }> }) {
   const { postNumber } = use(params);
   const router = useRouter();
+  const { openPlanModal } = useAttachedPlanModal();
   const [isPending, startTransition] = useTransition();
   const [postData, setPostData] = useState<ForumPostPageData | null>(null);
   const [replyDraft, setReplyDraft] = useState('');
   const [replySort, setReplySort] = useState<'newest' | 'oldest' | 'popular'>('newest');
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
-  const [isAttachedPlanModalOpen, setIsAttachedPlanModalOpen] = useState(false);
-  const [loadingAttachedPlan, setLoadingAttachedPlan] = useState(false);
-  const [attachedPlanPreview, setAttachedPlanPreview] = useState<AttachedPlanView | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [activeReplyEditorId, setActiveReplyEditorId] = useState<string | null>(null);
@@ -382,20 +362,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
     if (!postData?.post.attachedPlan?.id) return;
 
     setError(null);
-    setLoadingAttachedPlan(true);
-    setIsAttachedPlanModalOpen(true);
-
-    startTransition(async () => {
-      const result = await getAttachedPlanViewData(postData.post.attachedPlan!.id);
-      if ('error' in result) {
-        setError('Unable to load attached plan.');
-        setIsAttachedPlanModalOpen(false);
-        setLoadingAttachedPlan(false);
-        return;
-      }
-      setAttachedPlanPreview(result.plan);
-      setLoadingAttachedPlan(false);
-    });
+    openPlanModal(postData.post.attachedPlan.id, (message) => setError(message));
   };
 
   if (!postData) {
@@ -768,79 +735,6 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
         onConfirm={handleDeletePost}
       />
 
-      {isAttachedPlanModalOpen && (
-        <div
-          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
-          onClick={() => {
-            setIsAttachedPlanModalOpen(false);
-            setAttachedPlanPreview(null);
-            setLoadingAttachedPlan(false);
-          }}
-        >
-          <div
-            className="bg-panel-bg border border-panel-border rounded-2xl w-full max-w-3xl max-h-[85vh] overflow-y-auto p-5"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-heading">Attached Plan</h3>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsAttachedPlanModalOpen(false);
-                  setAttachedPlanPreview(null);
-                  setLoadingAttachedPlan(false);
-                }}
-                className="text-text-muted hover:text-text-secondary cursor-pointer"
-                aria-label="Close attached plan"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-              </button>
-            </div>
-
-            {loadingAttachedPlan && (
-              <div className="animate-pulse space-y-3">
-                <div className="h-6 w-2/3 rounded bg-input-disabled" />
-                <div className="h-4 w-1/3 rounded bg-input-disabled" />
-                <div className="h-24 w-full rounded bg-input-disabled" />
-              </div>
-            )}
-
-            {!loadingAttachedPlan && attachedPlanPreview && (
-              <div>
-                <h4 className="text-2xl font-bold text-heading">{attachedPlanPreview.title}</h4>
-                <p className="text-sm text-text-secondary mt-1 mb-4">
-                  Plan by <span className="text-uva-blue font-semibold">{attachedPlanPreview.ownerDisplayName}</span>
-                </p>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {attachedPlanPreview.semesters.map((sem) => (
-                    <div key={sem.id} className="bg-panel-bg-alt border border-panel-border rounded-xl p-4">
-                      <div className="flex justify-between items-center border-b border-panel-border pb-2 mb-3">
-                        <h5 className="font-bold text-heading">{sem.termName} {sem.year}</h5>
-                        <span className="text-xs font-semibold bg-input-disabled px-2 py-1 rounded text-text-secondary">
-                          {sem.courses.reduce((acc, c) => acc + (c.creditsMin ?? 0), 0)} cr
-                        </span>
-                      </div>
-
-                      <div className="space-y-2">
-                        {sem.courses.length === 0 && (
-                          <p className="text-sm text-text-secondary">No courses in this semester.</p>
-                        )}
-                        {sem.courses.map((course) => (
-                          <div key={course.id} className="px-3 bg-panel-bg border border-panel-border-strong rounded-lg text-sm flex justify-between items-center h-[42px]">
-                            <span className="font-medium text-text-primary">{course.courseCode}</span>
-                            <span className="text-text-secondary font-semibold">{course.creditsMin ?? 0} cr</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -1,8 +1,10 @@
 "use client";
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { getForumPageData } from '../actions';
+import { getForumPageData, voteOnForumPost } from '../actions';
+import { useAttachedPlanModal } from './AttachedPlanModalProvider';
 import { getForumPostHref } from './url';
 
 type ForumAnswerItem = {
@@ -18,6 +20,7 @@ type ForumAnswerItem = {
 
 type ForumPostItem = {
   id: string;
+  currentUserPostVote: 1 | -1 | 0;
   postNumber: number;
   title: string;
   body: string;
@@ -49,8 +52,13 @@ function formatRelativeTime(isoTimestamp: string): string {
 }
 
 export default function ForumPage() {
+  const router = useRouter();
+  const { openPlanModal } = useAttachedPlanModal();
   const [posts, setPosts] = useState<ForumPostItem[]>([]);
   const [dataLoaded, setDataLoaded] = useState(false);
+  const [isVoting, setIsVoting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<'recent' | 'upvoted'>('recent');
 
   const [search, setSearch] = useState('');
   const [appliedSearch, setAppliedSearch] = useState('');
@@ -80,6 +88,18 @@ export default function ForumPage() {
     });
   }, [posts, appliedSearch]);
 
+  const sortedPosts = useMemo(() => {
+    const postsToSort = [...filteredPosts];
+
+    if (sortBy === 'upvoted') {
+      return postsToSort.sort(
+        (a, b) => b.voteScore - a.voteScore || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+    }
+
+    return postsToSort.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }, [filteredPosts, sortBy]);
+
   const suggestedPosts = useMemo(() => {
     const term = search.trim().toLowerCase();
     if (!term) return [];
@@ -93,6 +113,61 @@ export default function ForumPage() {
   }, [posts, search]);
 
   const showSuggestions = isSearchFocused && suggestedPosts.length > 0;
+
+  const getOptimisticVoteUpdate = (currentVote: 1 | -1 | 0, clickedValue: 1 | -1) => {
+    const nextVote: 1 | -1 | 0 = currentVote === clickedValue ? 0 : clickedValue;
+    const scoreDelta = nextVote - currentVote;
+    return { nextVote, scoreDelta };
+  };
+
+  const handlePostVote = (postId: string, value: 1 | -1) => {
+    const targetPost = posts.find((post) => post.id === postId);
+    if (!targetPost) return;
+
+    setError(null);
+    const previousVote = targetPost.currentUserPostVote;
+    const { nextVote, scoreDelta } = getOptimisticVoteUpdate(previousVote, value);
+
+    setPosts((prev) =>
+      prev.map((post) =>
+        post.id === postId
+          ? {
+              ...post,
+              currentUserPostVote: nextVote,
+              voteScore: post.voteScore + scoreDelta,
+              voteCount: Math.max(0, post.voteCount + (previousVote === 0 && nextVote !== 0 ? 1 : previousVote !== 0 && nextVote === 0 ? -1 : 0)),
+            }
+          : post
+      )
+    );
+
+    setIsVoting(true);
+    (async () => {
+      const res = await voteOnForumPost(postId, value);
+      setIsVoting(false);
+
+      if (res?.error) {
+        setPosts((prev) =>
+          prev.map((post) =>
+            post.id === postId
+              ? {
+                  ...post,
+                  currentUserPostVote: previousVote,
+                  voteScore: post.voteScore - scoreDelta,
+                  voteCount: Math.max(0, post.voteCount + (previousVote === 0 && nextVote !== 0 ? -1 : previousVote !== 0 && nextVote === 0 ? 1 : 0)),
+                }
+              : post
+          )
+        );
+        setError(res.error);
+      }
+    })();
+  };
+
+  const handleOpenAttachedPlan = (planId: string) => {
+    setError(null);
+    openPlanModal(planId, (message) => setError(message));
+  };
 
   if (!dataLoaded) {
     return (
@@ -196,48 +271,124 @@ export default function ForumPage() {
         </div>
       </div>
 
+      <div className="mb-4 flex items-center justify-end">
+        <label className="inline-flex items-center gap-2 text-sm text-text-secondary">
+          <span>Sort by</span>
+          <select
+            value={sortBy}
+            onChange={(event) => setSortBy(event.target.value as 'recent' | 'upvoted')}
+            className="h-9 px-3 border border-panel-border rounded-lg bg-input-bg text-text-primary outline-none focus:border-uva-blue/40"
+            aria-label="Sort forum posts"
+          >
+            <option value="recent">Most Recent</option>
+            <option value="upvoted">Highest Upvoted</option>
+          </select>
+        </label>
+      </div>
+
+      {error && (
+        <div className="mb-4 bg-red-500/10 border border-red-500/40 text-red-500 px-4 py-2 rounded-xl text-sm font-semibold">
+          {error}
+        </div>
+      )}
+
       <div className="space-y-4">
-        {filteredPosts.map((post) => {
+        {sortedPosts.map((post) => {
+          const postHref = getForumPostHref(post.postNumber, post.title);
+
           return (
-            <article key={post.id} className="bg-panel-bg border border-panel-border p-5 rounded-xl flex gap-4">
-              <div className="text-sm text-text-secondary space-y-2 w-24 shrink-0">
-                <p><span className="font-semibold text-text-primary">{post.voteCount}</span> votes</p>
-                <p><span className="font-semibold text-text-primary">{post.answers.length}</span> replies</p>
-                <p><span className="font-semibold text-text-primary">{post.viewCount}</span> views</p>
-              </div>
-              <div className="flex-1 min-w-0">
-                <Link
-                  href={getForumPostHref(post.postNumber, post.title)}
-                  className="min-w-0 block text-left cursor-pointer"
+            <article
+              key={post.id}
+              role="link"
+              tabIndex={0}
+              onClick={() => router.push(postHref)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  router.push(postHref);
+                }
+              }}
+              className="bg-panel-bg border border-panel-border p-5 rounded-xl cursor-pointer hover:border-panel-border-strong transition-colors"
+            >
+              <div className="grid grid-cols-[40px_minmax(0,1fr)] gap-4 items-start">
+                <div
+                  className="inline-flex flex-col items-center gap-1 pt-0.5"
+                  onClick={(event) => event.stopPropagation()}
+                  onKeyDown={(event) => event.stopPropagation()}
                 >
-                  <h2 className="text-base font-semibold mb-1 text-uva-blue hover:underline break-words">
-                    {post.title}
-                  </h2>
-                  <p className="text-sm text-text-secondary mb-3 break-words line-clamp-2">
-                    {post.body}
-                  </p>
-                </Link>
-                <div className="flex items-center justify-between gap-3">
-                  <div>
+                  <button
+                    type="button"
+                    onClick={() => handlePostVote(post.id, 1)}
+                    disabled={isVoting}
+                    aria-label="Like post"
+                    className={`inline-flex items-center justify-center w-8 h-8 rounded-full border transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                      post.currentUserPostVote === 1
+                        ? 'border-uva-orange text-uva-orange bg-badge-orange-bg'
+                        : 'border-panel-border text-text-secondary hover:bg-hover-bg'
+                    }`}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4" aria-hidden="true">
+                      <path d="m18 15-6-6-6 6" />
+                    </svg>
+                  </button>
+
+                  <span className="min-w-8 text-center text-sm font-bold text-text-primary">{post.voteScore}</span>
+
+                  <button
+                    type="button"
+                    onClick={() => handlePostVote(post.id, -1)}
+                    disabled={isVoting}
+                    aria-label="Unlike post"
+                    className={`inline-flex items-center justify-center w-8 h-8 rounded-full border transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                      post.currentUserPostVote === -1
+                        ? 'border-red-400 text-red-500 bg-red-500/10'
+                        : 'border-panel-border text-text-secondary hover:bg-hover-bg'
+                    }`}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4" aria-hidden="true">
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </button>
+                </div>
+
+                <div className="min-w-0">
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <h2 className="text-base font-semibold text-uva-blue break-words">
+                      {post.title}
+                      <span className="ml-2 font-medium text-text-secondary">by {post.authorDisplayName}</span>
+                    </h2>
+                    <p className="text-xs text-text-tertiary whitespace-nowrap shrink-0">asked {formatRelativeTime(post.createdAt)}</p>
+                  </div>
+
+                  <p className="text-sm text-text-secondary break-words line-clamp-2">{post.body}</p>
+
+                  <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex flex-wrap items-center gap-3 text-sm text-text-secondary">
+                      <span><span className="font-semibold text-text-primary">{post.viewCount}</span> views</span>
+                      <span><span className="font-semibold text-text-primary">{post.answers.length}</span> replies</span>
+                    </div>
+
                     {post.attachedPlan && (
-                      <Link
-                        href={`/plan/${post.attachedPlan.id}`}
-                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-input-disabled text-xs font-semibold text-text-secondary hover:bg-hover-bg transition-colors"
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleOpenAttachedPlan(post.attachedPlan!.id);
+                        }}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-input-disabled text-xs font-semibold text-text-secondary hover:bg-hover-bg transition-colors cursor-pointer"
                       >
                         <span className="uppercase tracking-wide text-[10px]">Attached Plan</span>
                         <span className="text-text-primary">{post.attachedPlan.title}</span>
-                      </Link>
+                      </button>
                     )}
                   </div>
-                  <p className="text-xs text-text-tertiary whitespace-nowrap">
-                    <Link href={`/profile/${post.authorComputingId}`} className="text-uva-blue font-semibold hover:underline">{post.authorDisplayName}</Link> asked {formatRelativeTime(post.createdAt)}
-                  </p>
                 </div>
               </div>
             </article>
           );
         })}
       </div>
+
     </div>
   );
 }
