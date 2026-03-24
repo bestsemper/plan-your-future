@@ -1,6 +1,8 @@
 "use client";
 
 import { createContext, useContext, useMemo, useState } from 'react';
+import { useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import AttachedPlanFloatingModal, { type AttachedPlanView } from '../components/AttachedPlanFloatingModal';
 import { getAttachedPlanViewData } from '../actions';
 
@@ -25,7 +27,15 @@ export function useAttachedPlanModal() {
 }
 
 export default function AttachedPlanModalProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const [planModals, setPlanModals] = useState<PlanModalWindow[]>([]);
+  const shouldShowModals = pathname.startsWith('/forum') || pathname.startsWith('/plan');
+
+  useEffect(() => {
+    if (!shouldShowModals) {
+      setPlanModals([]);
+    }
+  }, [shouldShowModals]);
 
   const openPlanModal = (planId: string, onError?: (message: string) => void) => {
     const modalId = `plan-modal-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -58,19 +68,20 @@ export default function AttachedPlanModalProvider({ children }: { children: Reac
   return (
     <AttachedPlanModalContext.Provider value={contextValue}>
       {children}
-      {planModals.map((modal, index) => (
-        <AttachedPlanFloatingModal
-          key={modal.id}
-          isOpen
-          loading={modal.loading}
-          plan={modal.plan}
-          initialPosition={{ x: 96 + (index % 8) * 28, y: 72 + (index % 8) * 20 }}
-          zIndex={50 + index}
-          onClose={() => {
-            setPlanModals((prev) => prev.filter((item) => item.id !== modal.id));
-          }}
-        />
-      ))}
+      {shouldShowModals &&
+        planModals.map((modal, index) => (
+          <AttachedPlanFloatingModal
+            key={modal.id}
+            isOpen
+            loading={modal.loading}
+            plan={modal.plan}
+            initialPosition={{ x: 96 + (index % 8) * 28, y: 72 + (index % 8) * 20 }}
+            zIndex={50 + index}
+            onClose={() => {
+              setPlanModals((prev) => prev.filter((item) => item.id !== modal.id));
+            }}
+          />
+        ))}
     </AttachedPlanModalContext.Provider>
   );
 }
