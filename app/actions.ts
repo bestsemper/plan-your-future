@@ -793,6 +793,10 @@ export async function getForumPageData() {
   });
 
   const normalizedPosts = posts.map((post) => ({
+    currentUserPostVote: (() => {
+      const userVote = post.votes.find((vote) => vote.userId === currentUser?.id)?.value;
+      return userVote === 1 ? 1 : userVote === -1 ? -1 : 0;
+    })() as 1 | -1 | 0,
     id: post.id,
     postNumber: post.postNumber,
     title: post.title,
