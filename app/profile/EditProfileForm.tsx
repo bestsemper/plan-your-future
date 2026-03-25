@@ -164,7 +164,7 @@ export default function EditProfileForm({
       <button
         type="button"
         onClick={() => setIsEditing(true)}
-        className="w-full sm:w-auto bg-uva-blue/90 text-white px-5 py-2.5 rounded-xl hover:bg-uva-blue font-bold transition-colors cursor-pointer dark:bg-uva-blue dark:hover:bg-uva-blue/90 dark:border dark:border-white/45"
+        className="w-full sm:w-auto bg-uva-blue/90 border border-panel-border-strong text-white px-5 py-2.5 rounded-xl hover:bg-uva-blue font-bold transition-colors cursor-pointer"
       >
         Edit Profile
       </button>
