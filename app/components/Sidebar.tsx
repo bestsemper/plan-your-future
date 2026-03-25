@@ -163,7 +163,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
                 onClick={() => setMobileNavOpen(false)}
                 className={`flex items-center gap-3 px-4 py-2.5 transition-colors font-medium rounded-xl border ${
                   isActive(link.href)
-                    ? "bg-white text-uva-blue border-black/15"
+                    ? "bg-white text-uva-blue border-black/15 dark:bg-black/35 dark:text-white dark:border-white/15"
                     : "text-white/75 hover:text-white hover:bg-black/20 border-transparent hover:border-white/10"
                 }`}
               >
@@ -241,7 +241,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
                 href={link.href}
                 className={`flex items-center gap-3 px-4 py-2.5 transition-colors font-medium rounded-xl border ${
                   isActive(link.href)
-                    ? "bg-white text-uva-blue border-black/15"
+                    ? "bg-white text-uva-blue border-black/15 dark:bg-black/35 dark:text-white dark:border-white/15"
                     : "text-white/75 hover:text-white hover:bg-black/20 border-transparent hover:border-white/10"
                 }`}
               >

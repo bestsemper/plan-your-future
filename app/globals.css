@@ -197,3 +197,14 @@ body {
   background: rgba(35, 45, 75, 0.38);
   background-clip: padding-box;
 }
+
+/* Improve readability for title/link accent text in dark mode without changing blue backgrounds. */
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) .text-uva-blue {
+    color: #93c5fd;
+  }
+}
+
+:root.dark .text-uva-blue {
+  color: #93c5fd;
+}
