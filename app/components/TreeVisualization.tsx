@@ -110,6 +110,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
       if (!courseSearchContainerRef.current) return;
       if (!courseSearchContainerRef.current.contains(event.target as Node)) {
         setShowCourseSearchDropdown(false);
+        setCourseSearchText("");
       }
     };
 
@@ -757,7 +758,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
           />
 
           {showSearchPanel && (
-            <div className="absolute left-0 right-0 mt-2 z-30 rounded-xl border border-panel-border bg-panel-bg shadow-lg overflow-hidden">
+            <div className="absolute -inset-x-0.75 mt-2 z-30 rounded-xl border border-panel-border bg-panel-bg shadow-lg overflow-hidden">
               <div className="max-h-64 overflow-y-auto">
                 {visibleSearchMatches.length > 0 ? (
                   visibleSearchMatches.map((course) => (
