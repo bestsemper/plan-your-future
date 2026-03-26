@@ -83,7 +83,7 @@ export default function ForumQuestionsPage() {
           href="/forum"
           className="inline-flex items-center gap-1.5 text-sm font-semibold text-uva-blue hover:text-uva-orange transition-colors"
         >
-          <Icon name="arrow-left" color="currentColor" width={16} height={16} className="w-4 h-4 rotate-180" aria-hidden="true" />
+          <Icon name="arrow-right" color="currentColor" width={16} height={16} className="w-4 h-4 rotate-180" aria-hidden="true" />
           Back to Forum
         </Link>
       </div>
