@@ -6,7 +6,6 @@ import { use, useEffect, useState, useTransition } from 'react';
 import { Icon } from '@/app/components/Icon';
 import { default as ConfirmModal } from '../../../components/ConfirmModal';
 import { CustomDropdown, CustomDropdownContent, CustomDropdownItem } from '../../../components/CustomDropdown';
-import { useAttachedPlanModal } from '../../AttachedPlanModalProvider';
 import {
   addForumReply,
   deleteForumReply,
@@ -73,7 +72,6 @@ function formatRelativeTime(isoTimestamp: string): string {
 export default function ForumPostPage({ params }: { params: Promise<{ postNumber: string; slug: string }> }) {
   const { postNumber } = use(params);
   const router = useRouter();
-  const { openPlanModal } = useAttachedPlanModal();
   const [isPending, startTransition] = useTransition();
   const [postData, setPostData] = useState<ForumPostPageData | null>(null);
   const [replyDraft, setReplyDraft] = useState('');
@@ -371,12 +369,12 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
     if (!postData?.post.attachedPlan?.id) return;
 
     setError(null);
-    openPlanModal(postData.post.attachedPlan.id, (message) => setError(message));
+    router.push(`/plan/${postData.post.attachedPlan.id}`);
   };
 
   const handleOpenReplyAttachedPlan = (planId: string) => {
     setError(null);
-    openPlanModal(planId, (message) => setError(message));
+    router.push(`/plan/${planId}`);
   };
 
   if (!postData) {
@@ -483,7 +481,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                         }
                       }}
                       disabled={isPending}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-panel-border-strong text-xs font-semibold text-text-secondary bg-panel-bg-alt hover:bg-hover-bg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl border border-panel-border-strong text-xs font-semibold text-text-secondary bg-panel-bg-alt hover:bg-hover-bg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <span className="uppercase tracking-wide text-[10px]">Attached Plan</span>
                       <span className="text-text-primary">{answer.attachedPlan.title}</span>
@@ -672,7 +670,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
 
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2 mb-4">
-                    <span className="inline-flex items-center px-2 py-1 rounded border border-panel-border-strong text-xs font-semibold text-text-secondary bg-panel-bg-alt">
+                    <span className="inline-flex items-center px-2 py-1 rounded-lg border border-panel-border-strong text-xs font-semibold text-text-secondary bg-panel-bg-alt">
                       Advice
                     </span>
                     {post.attachedPlan && (
@@ -680,7 +678,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                         type="button"
                         onClick={handleOpenAttachedPlan}
                         disabled={isPending}
-                        className="inline-flex items-center gap-1 px-2 py-1 rounded border border-panel-border-strong text-xs font-semibold text-text-secondary bg-panel-bg-alt hover:bg-hover-bg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded-lg border border-panel-border-strong text-xs font-semibold text-text-secondary bg-panel-bg-alt hover:bg-hover-bg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                           <span className="uppercase tracking-wide text-[10px]">Attached Plan</span>
                           <span className="text-text-primary">{post.attachedPlan.title}</span>
