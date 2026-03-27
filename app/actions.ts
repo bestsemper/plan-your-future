@@ -95,6 +95,11 @@ type AttachedPlanViewData = {
   };
 };
 
+type AttachedPlanSnapshot = {
+  title: string;
+  semesters: AttachedPlanViewData['plan']['semesters'];
+};
+
 function hasTransferEquivalentGrade(line: string): boolean {
   // In Stellic audit exports, TE/PT indicate transfer or test/placement-equivalent credit.
   return /(?:Fall|Winter|Spring|Summer)\s*'?(\d{2})\s*(?:TE|PT)\b/i.test(line) || /\b(?:TE|PT)\b/i.test(line);
@@ -1209,7 +1214,7 @@ export async function getPlanBuilderData() {
 export async function getAttachedPlanViewData(planId: string): Promise<AttachedPlanViewData | { error: 'not_found' | 'forbidden' }> {
   const currentUser = await getCurrentUser();
 
-  // Check if this plan is attached to a forum post with a snapshot
+  // Check if this plan is attached to a forum post with a snapshot.
   const attachedPost = await prisma.forumPost.findFirst({
     where: { attachedPlanId: planId },
     select: { 
@@ -1223,14 +1228,40 @@ export async function getAttachedPlanViewData(planId: string): Promise<AttachedP
     },
   });
 
+  // Replies can also carry attached plans and snapshots.
+  const attachedAnswer = await prisma.forumAnswer.findFirst({
+    where: { attachedPlanId: planId },
+    select: {
+      id: true,
+      planSnapshot: true,
+      author: {
+        select: {
+          displayName: true,
+        },
+      },
+    },
+  });
+
   // If there's a snapshot, use that instead of the live plan
   if (attachedPost?.planSnapshot) {
-    const snapshot = attachedPost.planSnapshot as any;
+    const snapshot = attachedPost.planSnapshot as AttachedPlanSnapshot;
     return {
       plan: {
         id: planId,
         title: snapshot.title,
         ownerDisplayName: attachedPost.author.displayName,
+        semesters: snapshot.semesters,
+      },
+    };
+  }
+
+  if (attachedAnswer?.planSnapshot) {
+    const snapshot = attachedAnswer.planSnapshot as AttachedPlanSnapshot;
+    return {
+      plan: {
+        id: planId,
+        title: snapshot.title,
+        ownerDisplayName: attachedAnswer.author.displayName,
         semesters: snapshot.semesters,
       },
     };
@@ -1273,13 +1304,13 @@ export async function getAttachedPlanViewData(planId: string): Promise<AttachedP
   }
 
   const ownedByCurrentUser = currentUser?.id === plan.userId;
-  let attachedToForumPost = false;
+  let attachedToForumContent = false;
 
   if (!ownedByCurrentUser) {
-    attachedToForumPost = Boolean(attachedPost?.id);
+    attachedToForumContent = Boolean(attachedPost?.id || attachedAnswer?.id);
   }
 
-  if (!ownedByCurrentUser && !attachedToForumPost) {
+  if (!ownedByCurrentUser && !attachedToForumContent) {
     return { error: 'forbidden' as const };
   }
 
