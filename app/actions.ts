@@ -1131,6 +1131,74 @@ export async function renamePlan(planId: string, title: string) {
   return { success: true };
 }
 
+export async function importAttachedPlan(attachedPlanData: {
+  title: string;
+  ownerDisplayName: string;
+  semesters: Array<{
+    id: string;
+    termName: string;
+    termOrder: number;
+    year: number;
+    courses: Array<{
+      id: string;
+      courseCode: string;
+      creditsMin: number | null;
+      creditsMax: number | null;
+    }>;
+  }>;
+}) {
+  const user = await getCurrentUser();
+  if (!user) {
+    return { error: 'You must be logged in to import a plan.' };
+  }
+
+  try {
+    const importedTitle = `${attachedPlanData.title} (from ${attachedPlanData.ownerDisplayName})`;
+    
+    const newPlan = await prisma.plan.create({
+      data: {
+        userId: user.id,
+        title: importedTitle,
+        isPublished: false,
+      },
+    });
+
+    // Add all semesters with their courses
+    for (const semesterData of attachedPlanData.semesters) {
+      const semester = await prisma.semester.create({
+        data: {
+          planId: newPlan.id,
+          termName: semesterData.termName,
+          termOrder: semesterData.termOrder,
+          year: semesterData.year,
+        },
+      });
+
+      // Add all courses to this semester
+      for (const course of semesterData.courses) {
+        const normalizedCourseCode = course.courseCode.toUpperCase().replace(/\s+/g, ' ').trim();
+        const creditsInfo = await getCourseCreditsInfoFromJSON(normalizedCourseCode);
+        
+        await prisma.plannedCourse.create({
+          data: {
+            semesterId: semester.id,
+            courseCode: normalizedCourseCode,
+            creditsMin: creditsInfo.creditsMin ?? course.creditsMin ?? 0,
+            creditsMax: creditsInfo.creditsMax ?? course.creditsMax ?? 0,
+          },
+        });
+      }
+    }
+
+    revalidatePath('/plan');
+    revalidatePath('/forum');
+    return { success: true, planId: newPlan.id };
+  } catch (error) {
+    console.error('Error importing plan:', error);
+    return { error: 'Failed to import plan. Please try again.' };
+  }
+}
+
 export async function deletePlan(planId: string) {
   const user = await getCurrentUser();
   if (!user) {

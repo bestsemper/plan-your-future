@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import type { RequirementMissing } from '../utils/prerequisiteChecker';
 import { Icon } from '../components/Icon';
 import { default as ConfirmModal } from '../components/ConfirmModal';
@@ -471,6 +471,7 @@ function AddCourseInline({
 
 export default function PlanBuilderPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const isMountedRef = useRef(true);
   const lastPlanPrereqCheckKeyRef = useRef('');
   const [userId, setUserId] = useState('');
@@ -518,6 +519,25 @@ export default function PlanBuilderPage() {
   const [pendingCourseAdd, setPendingCourseAdd] = useState<{ semesterId: string; courseCode: string; credits: number } | null>(null);
   // Map of semesterId -> Map of courseCode -> missing prerequisite codes
   const [semestersProblematicCourses, setSemestersProblematicCourses] = useState<Map<string, Map<string, RequirementMissing[]>>>(new Map());
+  
+  // Comparison plan display
+  const [comparisonPlan, setComparisonPlan] = useState<any | null>(null);
+
+  // Load comparison plan from sessionStorage if in compare mode
+  useEffect(() => {
+    if (searchParams && searchParams.get('compare') === 'true' && typeof window !== 'undefined') {
+      const stored = sessionStorage.getItem('comparisonPlan');
+      if (stored) {
+        try {
+          setComparisonPlan(JSON.parse(stored));
+          // Clear it after reading so it doesn't persist
+          sessionStorage.removeItem('comparisonPlan');
+        } catch (error) {
+          console.error('Error loading comparison plan:', error);
+        }
+      }
+    }
+  }, [searchParams]);
 
   const loadData = async (preferredPlanId?: string) => {
     const res = await getPlanBuilderData();
@@ -1351,21 +1371,25 @@ export default function PlanBuilderPage() {
         </div>
       </div>
 
-      <div>
-        {semesterActionError && (
-          <div className="mb-4 bg-red-500/10 border border-red-500/40 text-red-500 px-4 py-2 rounded-xl text-sm font-semibold">
-            {semesterActionError}
-          </div>
-        )}
+      <div className={`w-full grid gap-6 ${comparisonPlan ? 'grid-cols-1 lg:grid-cols-2' : ''}`}>
+        {/* User's Plan */}
+        <div className="min-w-0">
+          {semesterActionError && (
+            <div className="mb-4 bg-red-500/10 border border-red-500/40 text-red-500 px-4 py-2 rounded-xl text-sm font-semibold">
+              {semesterActionError}
+            </div>
+          )}
 
-        {!activePlan ? (
-          <div className="p-8 text-center text-gray-500">No plan found. Click New Plan to get started.</div>
-        ) : (
-          <div className="space-y-6">
-            {schoolYearRows.map((row) => {
+          {!activePlan ? (
+            <div className="p-8 text-center text-gray-500">No plan found. Click New Plan to get started.</div>
+          ) : (
+            <div className="space-y-6">
+              {schoolYearRows.map((row) => {
               const orderedTerms = (['Fall', 'Winter', 'Spring', 'Summer'] as const).filter((term) => Boolean(row.terms[term]));
               const missingTerms = (['Fall', 'Winter', 'Spring', 'Summer'] as const).filter((term) => !row.terms[term]);
-              const columnCount = Math.max(2, Math.min(4, orderedTerms.length));
+              // Reduce column count when in comparison mode since the container is narrower
+              const baseColumnCount = Math.max(2, Math.min(4, orderedTerms.length));
+              const columnCount = comparisonPlan ? 2 : baseColumnCount;
               const gridColsClass =
                 columnCount <= 2 ? 'grid-cols-1 md:grid-cols-2' :
                 columnCount === 3 ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' :
@@ -1428,9 +1452,9 @@ export default function PlanBuilderPage() {
                       if (!sem) return null;
 
                       return (
-                        <div key={sem.id} className="bg-panel-bg border border-panel-border rounded-xl p-5">
-                          <div className="flex justify-between items-center border-b border-panel-border pb-2 mb-3">
-                            <h3 className="font-bold text-lg text-heading flex items-center gap-2">
+                        <div key={sem.id} className="bg-panel-bg border border-panel-border rounded-xl p-5 min-w-0">
+                          <div className="flex justify-between items-center border-b border-panel-border pb-2 mb-3 gap-2">
+                            <h3 className="font-bold text-lg text-heading flex items-center gap-1 flex-shrink-0">
                               {sem.termName} {sem.year}
                               {semestersProblematicCourses.has(sem.id) && (
                                 <HoverTooltip message={`Courses with unsatisfied requirements\n${Array.from(semestersProblematicCourses.get(sem.id)?.keys() || []).map((courseCode) => `- ${courseCode}`).join('\n')}`}>
@@ -1439,7 +1463,7 @@ export default function PlanBuilderPage() {
                               )}
                             </h3>
                             <div className="flex items-center gap-2">
-                              <span className="text-xs font-semibold bg-input-disabled px-2 py-1 rounded-lg text-text-secondary">
+                              <span className="text-xs font-semibold bg-input-disabled px-2 py-1 rounded-lg text-text-secondary whitespace-nowrap">
                                 {sem.courses.reduce((acc, c) => acc + (c.creditsMin ?? 0), 0)} cr
                               </span>
                               <button
@@ -1462,9 +1486,9 @@ export default function PlanBuilderPage() {
                                 : 'Requirements not satisfied';
                               const courseTitle = courseCodeToTitle.get(course.courseCode);
                               return (
-                                <div key={course.id} onClick={() => handleCourseClick(course.courseCode, requirementsMissing)} className="px-3 py-2 bg-panel-bg-alt border border-panel-border-strong rounded-xl text-sm flex justify-between items-stretch hover:border-uva-blue transition-colors cursor-pointer group">
-                                  <div className="flex flex-col justify-center flex-1">
-                                    <span className="font-medium text-text-primary flex items-center gap-2">
+                                <div key={course.id} onClick={() => handleCourseClick(course.courseCode, requirementsMissing)} className="px-3 py-2 bg-panel-bg-alt border border-panel-border-strong rounded-xl text-sm flex justify-between items-stretch hover:border-uva-blue transition-colors cursor-pointer group min-w-0">
+                                  <div className="flex flex-col justify-center flex-1 min-w-0">
+                                    <span className="font-medium text-text-primary flex items-center gap-2 max-w-[100px] truncate">
                                       {course.courseCode}
                                       {isProblematic && (
                                         <HoverTooltip message={tooltipMessage}>
@@ -1473,7 +1497,7 @@ export default function PlanBuilderPage() {
                                       )}
                                     </span>
                                     {courseTitle && (
-                                      <p className="text-xs text-text-muted truncate mt-0.5">{courseTitle}</p>
+                                      <p className="text-xs text-text-muted truncate mt-0.5 min-w-0">{courseTitle}</p>
                                     )}
                                   </div>
                                   <div className="relative flex items-center justify-end min-w-fit gap-2 pl-2">
@@ -1598,6 +1622,103 @@ export default function PlanBuilderPage() {
                 </section>
               );
             })}
+            </div>
+          )}
+        </div>
+
+        {/* Comparison Plan - Read Only Display */}
+        {comparisonPlan && (
+          <div className="min-w-0">
+            <div className="mb-6 bg-panel-bg-alt border border-panel-border rounded-xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-lg font-bold text-heading">Comparing with: {comparisonPlan.title}</h2>
+                <button
+                  type="button"
+                  onClick={() => setComparisonPlan(null)}
+                  className="text-text-secondary hover:text-text-primary cursor-pointer"
+                  aria-label="Close comparison"
+                >
+                  <Icon name="x" color="currentColor" width={20} height={20} className="w-5 h-5" />
+                </button>
+              </div>
+              <p className="text-sm text-text-secondary">Plan by {comparisonPlan.ownerDisplayName}</p>
+            </div>
+
+            <div className="space-y-6 opacity-90">
+              {comparisonPlan.semesters && comparisonPlan.semesters.length > 0 ? (
+                (() => {
+                  // Group comparison plan semesters by school year
+                  const comparisonSchoolYearRows: SchoolYearRow[] = [];
+                  const yearMap = new Map<number, Partial<Record<'Fall' | 'Winter' | 'Spring' | 'Summer', PlanSemester>>>();
+                  
+                  comparisonPlan.semesters.forEach((sem: any) => {
+                    const year = sem.year;
+                    const startYear = sem.termName === 'Fall' ? year : year - 1;
+                    if (!yearMap.has(startYear)) {
+                      yearMap.set(startYear, {});
+                    }
+                    yearMap.get(startYear)![sem.termName as 'Fall' | 'Winter' | 'Spring' | 'Summer'] = sem;
+                  });
+                  
+                  Array.from(yearMap.entries())
+                    .sort((a, b) => a[0] - b[0])
+                    .forEach(([startYear, terms]) => {
+                      comparisonSchoolYearRows.push({ startYear, terms });
+                    });
+
+                  return comparisonSchoolYearRows.map((row) => {
+                    const orderedTerms = (['Fall', 'Winter', 'Spring', 'Summer'] as const).filter((term) => Boolean(row.terms[term]));
+                    const columnCount = 2; // Comparison plan always uses 2 columns max for narrower container
+                    const gridColsClass = 'grid-cols-1 md:grid-cols-2';
+
+                    return (
+                      <section key={row.startYear} className="space-y-3">
+                        <div className="flex items-center gap-3">
+                          <div className="inline-flex items-center justify-center w-8 h-8 rounded-full border border-panel-border-strong text-text-secondary">
+                            <Icon name="lock" color="currentColor" width={16} height={16} className="w-4 h-4" />
+                          </div>
+                          <div className="leading-tight">
+                            <p className="text-[11px] uppercase tracking-[0.08em] text-text-tertiary">School Year</p>
+                            <h2 className="text-xl font-semibold text-heading tracking-tight">{row.startYear}-{row.startYear + 1}</h2>
+                          </div>
+                        </div>
+
+                        <div className={`grid gap-4 ${gridColsClass}`}>
+                          {orderedTerms.map((term) => {
+                            const sem = row.terms[term];
+                            if (!sem) return null;
+
+                            return (
+                              <div key={sem.id} className="bg-panel-bg border border-panel-border rounded-xl p-5 opacity-75">
+                                <div className="flex justify-between items-center border-b border-panel-border pb-2 mb-3 gap-2">
+                                  <h3 className="font-bold text-lg text-heading flex-shrink-0">{sem.termName} {sem.year}</h3>
+                                  <span className="text-xs font-semibold bg-input-disabled px-2 py-1 rounded-lg text-text-secondary whitespace-nowrap">
+                                    {sem.courses.reduce((acc: number, c: any) => acc + (c.creditsMin ?? 0), 0)} cr
+                                  </span>
+                                </div>
+                                <div className="space-y-2">
+                                  {sem.courses.map((course: any, idx: number) => (
+                                    <div key={idx} className="px-3 py-2.5 rounded-xl bg-panel-bg-alt border border-panel-border text-sm text-text-primary">
+                                      <p className="font-semibold max-w-[80px] truncate">{course.courseCode}</p>
+                                      <p className="text-xs text-text-secondary">{course.creditsMin ?? 0} cr</p>
+                                    </div>
+                                  ))}
+                                  {sem.courses.length === 0 && (
+                                    <p className="text-xs text-text-tertiary italic text-center py-4">No courses</p>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </section>
+                    );
+                  });
+                })()
+              ) : (
+                <div className="p-8 text-center text-gray-500">Comparison plan has no semesters</div>
+              )}
+            </div>
           </div>
         )}
       </div>

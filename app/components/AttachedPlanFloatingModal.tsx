@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Icon } from './Icon';
+import { importAttachedPlan } from '../actions';
 
 export type AttachedPlanView = {
   id: string;
@@ -55,6 +57,7 @@ export default function AttachedPlanFloatingModal({
   initialPosition,
   zIndex = 50,
 }: AttachedPlanFloatingModalProps) {
+  const router = useRouter();
   const [size, setSize] = useState(() => {
     if (typeof window === 'undefined') {
       return { width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT };
@@ -64,20 +67,24 @@ export default function AttachedPlanFloatingModal({
       height: Math.min(DEFAULT_HEIGHT, window.innerHeight - 32),
     };
   });
-  const [position, setPosition] = useState(initialPosition ?? { x: 120, y: 80 });
+  const [position, setPosition] = useState(initialPosition ?? { x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [resizeState, setResizeState] = useState<ResizeState | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
 
   useEffect(() => {
     if (!isOpen || typeof window === 'undefined' || initialPosition) return;
 
     const width = Math.min(DEFAULT_WIDTH, window.innerWidth - 32);
     const height = Math.min(DEFAULT_HEIGHT, window.innerHeight - 32);
+    const padding = 24;
+    
     setSize({ width, height });
+    // Position in bottom right
     setPosition({
-      x: Math.max(16, Math.round((window.innerWidth - width) / 2)),
-      y: Math.max(16, Math.round((window.innerHeight - height) / 2)),
+      x: window.innerWidth - width - padding,
+      y: window.innerHeight - height - padding,
     });
   }, [isOpen, initialPosition]);
 
@@ -180,6 +187,32 @@ export default function AttachedPlanFloatingModal({
     });
   };
 
+  const handleImportPlan = async () => {
+    if (!plan) return;
+    setIsImporting(true);
+    try {
+      const result = await importAttachedPlan(plan);
+      if (result.success) {
+        onClose();
+        // Navigate to plan builder with the newly imported plan
+        router.push(`/plan`);
+      }
+    } catch (error) {
+      console.error('Error importing plan:', error);
+    } finally {
+      setIsImporting(false);
+    }
+  };
+const handleCompareInPlanBuilder = () => {
+    if (!plan) return;
+    // Store the plan data in sessionStorage temporarily
+    sessionStorage.setItem('comparisonPlan', JSON.stringify(plan));
+    onClose();
+    // Navigate to plan builder
+    router.push('/plan?compare=true');
+  };
+
+  
   if (!isOpen) return null;
 
   return (
@@ -235,14 +268,34 @@ export default function AttachedPlanFloatingModal({
               </div>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center text-text-secondary hover:text-text-primary cursor-pointer"
-            aria-label="Close attached plan"
-          >
-            <Icon name="x" color="currentColor" width={20} height={20} className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleCompareInPlanBuilder}
+              disabled={loading}
+              className="px-3 py-1.5 border border-panel-border bg-input-bg text-text-primary rounded-xl hover:border-panel-border-strong text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Compare this plan side-by-side in plan builder"
+            >
+              Compare
+            </button>
+            <button
+              type="button"
+              onClick={handleImportPlan}
+              disabled={isImporting || loading}
+              className="px-3 py-1.5 bg-uva-blue/90 text-white rounded-xl hover:bg-uva-blue text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Add this plan to plan builder"
+            >
+              {isImporting ? 'Adding...' : 'Add to Plan Builder'}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-8 h-8 flex items-center justify-center text-text-secondary hover:text-text-primary cursor-pointer"
+              aria-label="Close attached plan"
+            >
+              <Icon name="x" color="currentColor" width={20} height={20} className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         <div className="p-5 overflow-y-auto flex-1">
