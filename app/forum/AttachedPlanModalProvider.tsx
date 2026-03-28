@@ -122,7 +122,7 @@ type AttachedPlanFloatingModalProps = {
 
 const DEFAULT_WIDTH = 900;
 const DEFAULT_HEIGHT = 640;
-const MIN_WIDTH = 360;
+const MIN_WIDTH = 520;
 const MIN_HEIGHT = 280;
 
 type ResizeDirection = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw';
@@ -148,11 +148,14 @@ export function AttachedPlanFloatingModal({
   const router = useRouter();
   const [size, setSize] = useState(() => {
     if (typeof window === 'undefined') {
-      return { width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT };
+      return { width: MIN_WIDTH, height: MIN_HEIGHT };
     }
+    const isMobile = window.innerWidth < 768;
+    const initialWidth = isMobile ? window.innerWidth - 32 : Math.max(MIN_WIDTH, window.innerWidth * 0.4);
+    const initialHeight = isMobile ? window.innerHeight * 0.8 : window.innerHeight - 48;
     return {
-      width: Math.min(DEFAULT_WIDTH, window.innerWidth - 32),
-      height: Math.min(DEFAULT_HEIGHT, window.innerHeight - 32),
+      width: Math.min(initialWidth, window.innerWidth - 32),
+      height: Math.min(initialHeight, window.innerHeight - 32),
     };
   });
   const [isRendered, setIsRendered] = useState(false);
@@ -165,21 +168,53 @@ export function AttachedPlanFloatingModal({
   useEffect(() => {
     if (!isOpen || typeof window === 'undefined') return;
 
-    const width = Math.min(DEFAULT_WIDTH, window.innerWidth - 32);
-    const height = Math.min(DEFAULT_HEIGHT, window.innerHeight - 32);
+    const isMobile = window.innerWidth < 768;
+    const initialWidth = isMobile ? window.innerWidth - 32 : Math.max(MIN_WIDTH, window.innerWidth * 0.4);
+    const initialHeight = isMobile ? window.innerHeight * 0.8 : window.innerHeight - 48;
+    
+    const width = Math.min(initialWidth, window.innerWidth - 32);
+    const height = Math.min(initialHeight, window.innerHeight - 32);
     
     setSize({ width, height });
     
-    // Position in the center
+    // Position differently based on screen size
     if (!initialPosition) {
-      setPosition({
-        x: (window.innerWidth - width) / 2,
-        y: (window.innerHeight - height) / 2,
-      });
+      if (isMobile) {
+        setPosition({
+          x: (window.innerWidth - width) / 2,
+          y: (window.innerHeight - height) / 2,
+        });
+      } else {
+        setPosition({
+          x: window.innerWidth - width - 24,
+          y: (window.innerHeight - height) / 2, // perfectly centered vertically
+        });
+      }
     }
 
     setTimeout(() => setIsRendered(true), 10);
   }, [isOpen, initialPosition]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleResize = () => {
+      setSize((prevSize) => {
+        const newWidth = Math.max(MIN_WIDTH, Math.min(prevSize.width, window.innerWidth - 32));
+        const newHeight = Math.max(MIN_HEIGHT, Math.min(prevSize.height, window.innerHeight - 32));
+
+        setPosition((prevPos) => ({
+          x: Math.min(window.innerWidth - newWidth - 8, Math.max(8, prevPos.x)),
+          y: Math.min(window.innerHeight - newHeight - 8, Math.max(8, prevPos.y)),
+        }));
+
+        return { width: newWidth, height: newHeight };
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     if (!isDragging) return;
@@ -313,7 +348,7 @@ const handleCompareInPlanBuilder = () => {
       <div
         role="dialog"
         aria-modal="false"
-        className={`pointer-events-auto fixed rounded-2xl border border-panel-border bg-panel-bg shadow-2xl overflow-hidden min-w-[360px] min-h-[280px] max-w-[95vw] max-h-[90vh] flex flex-col transition-opacity duration-200 ${isDragging ? 'select-none' : ''} ${isRendered ? 'opacity-100' : 'opacity-0'}`}
+        className={`pointer-events-auto fixed rounded-2xl border border-panel-border bg-panel-bg shadow-2xl overflow-hidden min-w-[360px] md:min-w-[520px] min-h-[280px] max-w-[95vw] max-h-[calc(100vh-48px)] flex flex-col transition-opacity duration-200 ${isDragging ? 'select-none' : ''} ${isRendered ? 'opacity-100' : 'opacity-0'}`}
         style={{
           left: position.x,
           top: position.y,
