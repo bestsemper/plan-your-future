@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Icon } from '@/app/components/Icon';
 import { CustomDropdown, CustomDropdownContent, CustomDropdownItem } from '@/app/components/CustomDropdown';
 import { getForumPageData, voteOnForumPost } from '../actions';
+import { useAttachedPlanModal } from './AttachedPlanModalProvider';
 import { getForumPostHref } from './url';
 
 type ForumAnswerItem = {
@@ -54,6 +55,7 @@ function formatRelativeTime(isoTimestamp: string): string {
 
 export default function ForumPage() {
   const router = useRouter();
+  const { openPlanModal } = useAttachedPlanModal();
   const [posts, setPosts] = useState<ForumPostItem[]>([]);
   const [dataLoaded, setDataLoaded] = useState(false);
   const [isVoting, setIsVoting] = useState(false);
@@ -167,7 +169,7 @@ export default function ForumPage() {
 
   const handleOpenAttachedPlan = (planId: string) => {
     setError(null);
-    router.push(`/plan/${planId}`);
+    openPlanModal(planId, (message) => setError(message));
   };
 
   if (!dataLoaded) {

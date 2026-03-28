@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Sidebar from "./components/Sidebar";
 import { ThemeProvider } from "./components/ThemeProvider";
+import AttachedPlanModalProvider from "./forum/AttachedPlanModalProvider";
 import { getCurrentUser } from "./actions";
 
 const geistSans = Geist({
@@ -34,14 +35,16 @@ export default async function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} antialiased flex bg-uva-blue text-text-primary`}>
         <ThemeProvider>
-          <Sidebar user={user} />
-          <main id="app-main-content" className="relative z-10 flex-1 bg-uva-blue overflow-visible flex flex-col h-[100svh] p-3 pt-[4.25rem] lg:h-screen lg:pt-3">
-            <div className="h-full w-full rounded-3xl bg-background border border-black/15 overflow-visible">
-              <div id="app-scroll-container" className="h-full overflow-y-auto overflow-x-visible p-8">
-                {children}
+          <AttachedPlanModalProvider>
+            <Sidebar user={user} />
+            <main id="app-main-content" className="relative z-10 flex-1 bg-uva-blue overflow-visible flex flex-col h-[100svh] p-3 pt-[4.25rem] lg:h-screen lg:pt-3">
+              <div className="h-full w-full rounded-3xl bg-background border border-black/15 overflow-visible">
+                <div id="app-scroll-container" className="h-full overflow-y-auto overflow-x-visible p-8">
+                  {children}
+                </div>
               </div>
-            </div>
-          </main>
+            </main>
+          </AttachedPlanModalProvider>
         </ThemeProvider>
       </body>
     </html>

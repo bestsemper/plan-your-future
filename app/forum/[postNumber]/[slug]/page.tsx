@@ -6,6 +6,7 @@ import { use, useEffect, useState, useTransition } from 'react';
 import { Icon } from '@/app/components/Icon';
 import { default as ConfirmModal } from '../../../components/ConfirmModal';
 import { CustomDropdown, CustomDropdownContent, CustomDropdownItem } from '../../../components/CustomDropdown';
+import { useAttachedPlanModal } from '../../AttachedPlanModalProvider';
 import {
   addForumReply,
   deleteForumReply,
@@ -72,6 +73,7 @@ function formatRelativeTime(isoTimestamp: string): string {
 export default function ForumPostPage({ params }: { params: Promise<{ postNumber: string; slug: string }> }) {
   const { postNumber } = use(params);
   const router = useRouter();
+  const { openPlanModal } = useAttachedPlanModal();
   const [isPending, startTransition] = useTransition();
   const [postData, setPostData] = useState<ForumPostPageData | null>(null);
   const [replyDraft, setReplyDraft] = useState('');
@@ -369,12 +371,12 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
     if (!postData?.post.attachedPlan?.id) return;
 
     setError(null);
-    router.push(`/plan/${postData.post.attachedPlan.id}`);
+    openPlanModal(postData.post.attachedPlan.id, (message) => setError(message));
   };
 
   const handleOpenReplyAttachedPlan = (planId: string) => {
     setError(null);
-    router.push(`/plan/${planId}`);
+    openPlanModal(planId, (message) => setError(message));
   };
 
   if (!postData) {
@@ -481,7 +483,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                         }
                       }}
                       disabled={isPending}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl border border-panel-border-strong text-xs font-semibold text-text-secondary bg-panel-bg-alt hover:bg-hover-bg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-panel-border-strong text-xs font-semibold text-text-secondary bg-panel-bg-alt hover:bg-hover-bg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <span className="uppercase tracking-wide text-[10px]">Attached Plan</span>
                       <span className="text-text-primary">{answer.attachedPlan.title}</span>
@@ -530,13 +532,11 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                         trigger={
                           <button
                             type="button"
-                            className="inline-flex items-center gap-2 px-2 py-1 border border-panel-border rounded-lg bg-input-bg text-text-primary cursor-pointer hover:border-panel-border-strong transition-colors text-xs font-semibold"
+                            className="w-full sm:w-56 px-3 py-2 border border-panel-border rounded-lg bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between focus:outline-none hover:border-panel-border-strong transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                             disabled={!canPost || isPending}
                           >
-                            <span>{inlineAttachedPlanId ? postData.plans.find(p => p.id === inlineAttachedPlanId)?.title || 'Plan' : 'Attach plan'}</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3">
-                              <path d="m6 9 6 6 6-6" />
-                            </svg>
+                            <span className="truncate text-xs font-semibold min-w-0">{inlineAttachedPlanId ? postData.plans.find(p => p.id === inlineAttachedPlanId)?.title || 'Plan attached' : 'Attach plan'}</span>
+                            <Icon name="chevron-down" color="currentColor" width={14} height={14} className={`w-3.5 h-3.5 shrink-0 text-text-secondary transition-transform duration-200 ${isInlinePlanDropdownOpen ? 'rotate-180' : ''}`} />
                           </button>
                         }
                       >
@@ -670,7 +670,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
 
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2 mb-4">
-                    <span className="inline-flex items-center px-2 py-1 rounded-lg border border-panel-border-strong text-xs font-semibold text-text-secondary bg-panel-bg-alt">
+                    <span className="inline-flex items-center px-2 py-1 rounded border border-panel-border-strong text-xs font-semibold text-text-secondary bg-panel-bg-alt">
                       Advice
                     </span>
                     {post.attachedPlan && (
@@ -678,7 +678,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                         type="button"
                         onClick={handleOpenAttachedPlan}
                         disabled={isPending}
-                        className="inline-flex items-center gap-1 px-2 py-1 rounded-lg border border-panel-border-strong text-xs font-semibold text-text-secondary bg-panel-bg-alt hover:bg-hover-bg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded border border-panel-border-strong text-xs font-semibold text-text-secondary bg-panel-bg-alt hover:bg-hover-bg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                           <span className="uppercase tracking-wide text-[10px]">Attached Plan</span>
                           <span className="text-text-primary">{post.attachedPlan.title}</span>
@@ -759,14 +759,11 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                   trigger={
                     <button
                       type="button"
-                      className="inline-flex items-center gap-2.5 px-3.5 py-2 border border-panel-border-strong rounded-xl bg-panel-bg-alt text-text-primary cursor-pointer hover:bg-hover-bg hover:border-panel-border-strong transition-colors text-sm font-semibold"
+                      className="w-full sm:w-64 px-4 py-2 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between focus:outline-none hover:border-panel-border-strong transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                       disabled={!canPost || isPending}
                     >
-                      <span className="text-xs uppercase tracking-wide text-text-tertiary">Plan</span>
-                      <span>{attachedPlanId ? postData.plans.find((p) => p.id === attachedPlanId)?.title || 'Attach plan' : 'Attach plan snapshot'}</span>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-                        <path d="m6 9 6 6 6-6" />
-                      </svg>
+                      <span className="truncate text-sm font-medium min-w-0">{attachedPlanId ? postData.plans.find((p) => p.id === attachedPlanId)?.title || 'Attach plan' : 'No plan attached'}</span>
+                      <Icon name="chevron-down" color="currentColor" width={16} height={16} className={`w-4 h-4 shrink-0 text-text-secondary transition-transform duration-200 ${isPlanDropdownOpen ? 'rotate-180' : ''}`} />
                     </button>
                   }
                 >
