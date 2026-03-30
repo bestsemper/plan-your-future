@@ -394,7 +394,7 @@ export default function ForumPage() {
                           event.stopPropagation();
                           handleOpenAttachedPlan(post.attachedPlan!.id);
                         }}
-                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-input-disabled text-xs font-semibold text-text-secondary hover:bg-hover-bg transition-colors cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-input-disabled text-xs font-semibold text-text-secondary hover:bg-hover-bg transition-colors cursor-pointer"
                       >
                         <span className="uppercase tracking-wide text-[10px]">Attached Plan</span>
                         <span className="text-text-primary">{post.attachedPlan.title}</span>

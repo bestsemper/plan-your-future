@@ -785,7 +785,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
         <div className="flex bg-panel-bg rounded-lg overflow-hidden">
           <button 
             onClick={() => handleZoom(0.2)} 
-            className="flex items-center justify-center p-2.5 text-text-tertiary hover:bg-hover-bg cursor-pointer transition-colors"
+            className="flex items-center justify-center p-2.5 text-text-tertiary cursor-pointer transition-colors"
             title="Zoom In"
           >
             <Icon 
@@ -798,7 +798,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
           <div className="w-px bg-panel-border"></div>
           <button 
             onClick={() => handleZoom(-0.2)} 
-            className="flex items-center justify-center p-2.5 text-text-tertiary hover:bg-hover-bg cursor-pointer transition-colors"
+            className="flex items-center justify-center p-2.5 text-text-tertiary cursor-pointer transition-colors"
             title="Zoom Out"
           >
             <Icon 
@@ -811,7 +811,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
           <div className="w-px bg-panel-border"></div>
           <button 
             onClick={() => setZoom(1)} 
-            className="flex items-center justify-center p-2.5 text-text-tertiary hover:bg-hover-bg cursor-pointer transition-colors"
+            className="flex items-center justify-center p-2.5 text-text-tertiary cursor-pointer transition-colors"
             title="Reset Zoom"
           >
             <Icon 

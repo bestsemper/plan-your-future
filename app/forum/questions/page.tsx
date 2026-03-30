@@ -83,7 +83,7 @@ export default function ForumQuestionsPage() {
           href="/forum"
           className="inline-flex items-center gap-1.5 text-sm font-semibold text-uva-blue hover:text-uva-orange transition-colors"
         >
-          <Icon name="arrow-left" color="currentColor" width={16} height={16} className="w-4 h-4 rotate-180" aria-hidden="true" />
+          <Icon name="arrow-right" color="currentColor" width={16} height={16} className="w-4 h-4 rotate-180" aria-hidden="true" />
           Back to Forum
         </Link>
       </div>
@@ -129,7 +129,7 @@ export default function ForumQuestionsPage() {
                 disabled={!canPost || isPending}
                 className="w-full px-4 py-2.5 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between focus:outline-none hover:border-panel-border-strong transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <span className="truncate text-sm font-medium">{selectedPlanLabel}</span>
+                <span className="truncate text-sm font-medium min-w-0">{selectedPlanLabel}</span>
                 <Icon name="chevron-down" color="currentColor" width={16} height={16} className={`w-4 h-4 ml-2 shrink-0 text-text-secondary transition-transform duration-200 ${isPlanDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
             }

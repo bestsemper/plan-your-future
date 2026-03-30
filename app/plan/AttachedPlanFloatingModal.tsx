@@ -1,97 +1,9 @@
 "use client";
 
-import { createContext, useContext, useMemo, useState, useEffect } from "react";
-import { usePathname, useRouter } from "next/navigation";
-import { getAttachedPlanViewData, importAttachedPlan } from "../actions";
-import { Icon } from "../components/Icon";
-
-
-
-
-
-
-
-type PlanModalWindow = {
-  id: string;
-  loading: boolean;
-  plan: AttachedPlanView | null;
-};
-
-type AttachedPlanModalContextValue = {
-  openPlanModal: (planId: string, onError?: (message: string) => void) => void;
-};
-
-const AttachedPlanModalContext = createContext<AttachedPlanModalContextValue | null>(null);
-
-export function useAttachedPlanModal() {
-  const value = useContext(AttachedPlanModalContext);
-  if (!value) {
-    throw new Error('useAttachedPlanModal must be used within AttachedPlanModalProvider');
-  }
-  return value;
-}
-
-export default function AttachedPlanModalProvider({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const [planModals, setPlanModals] = useState<PlanModalWindow[]>([]);
-  const shouldShowModals = pathname.startsWith('/forum') || pathname.startsWith('/plan');
-
-  useEffect(() => {
-    if (!shouldShowModals) {
-      setPlanModals([]);
-    }
-  }, [shouldShowModals]);
-
-  const openPlanModal = (planId: string, onError?: (message: string) => void) => {
-    const modalId = `plan-modal-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    setPlanModals((prev) => [...prev, { id: modalId, loading: true, plan: null }]);
-
-    (async () => {
-      const result = await getAttachedPlanViewData(planId);
-      if ('error' in result) {
-        setPlanModals((prev) => prev.filter((modal) => modal.id !== modalId));
-        onError?.('Unable to load attached plan.');
-        return;
-      }
-
-      setPlanModals((prev) =>
-        prev.map((modal) =>
-          modal.id === modalId
-            ? {
-                ...modal,
-                loading: false,
-                plan: result.plan,
-              }
-            : modal
-        )
-      );
-    })();
-  };
-
-  const contextValue = useMemo(() => ({ openPlanModal }), []);
-
-  return (
-    <AttachedPlanModalContext.Provider value={contextValue}>
-      {children}
-      {shouldShowModals &&
-        planModals.map((modal, index) => (
-          <AttachedPlanFloatingModal
-            key={modal.id}
-            isOpen
-            loading={modal.loading}
-            plan={modal.plan}
-            zIndex={50 + index}
-            onClose={() => {
-              setPlanModals((prev) => prev.filter((item) => item.id !== modal.id));
-            }}
-          />
-        ))}
-    </AttachedPlanModalContext.Provider>
-  );
-}
-
-
-
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Icon } from '../components/Icon';
+import { importAttachedPlan } from '../actions';
 
 export type AttachedPlanView = {
   id: string;
@@ -122,7 +34,7 @@ type AttachedPlanFloatingModalProps = {
 
 const DEFAULT_WIDTH = 900;
 const DEFAULT_HEIGHT = 640;
-const MIN_WIDTH = 520;
+const MIN_WIDTH = 360;
 const MIN_HEIGHT = 280;
 
 type ResizeDirection = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw';
@@ -137,7 +49,7 @@ type ResizeState = {
   startTop: number;
 };
 
-export function AttachedPlanFloatingModal({
+export default function AttachedPlanFloatingModal({
   isOpen,
   loading,
   plan,
@@ -148,18 +60,14 @@ export function AttachedPlanFloatingModal({
   const router = useRouter();
   const [size, setSize] = useState(() => {
     if (typeof window === 'undefined') {
-      return { width: MIN_WIDTH, height: MIN_HEIGHT };
+      return { width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT };
     }
-    const isMobile = window.innerWidth < 768;
-    const initialWidth = isMobile ? window.innerWidth - 32 : Math.max(MIN_WIDTH, window.innerWidth * 0.4);
-    const initialHeight = isMobile ? window.innerHeight * 0.8 : window.innerHeight - 48;
     return {
-      width: Math.min(initialWidth, window.innerWidth - 32),
-      height: Math.min(initialHeight, window.innerHeight - 32),
+      width: Math.min(DEFAULT_WIDTH, window.innerWidth - 32),
+      height: Math.min(DEFAULT_HEIGHT, window.innerHeight - 32),
     };
   });
-  const [isRendered, setIsRendered] = useState(false);
-  const [position, setPosition] = useState(initialPosition ?? { x: -9999, y: -9999 });
+  const [position, setPosition] = useState(initialPosition ?? { x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [resizeState, setResizeState] = useState<ResizeState | null>(null);
@@ -168,53 +76,19 @@ export function AttachedPlanFloatingModal({
   useEffect(() => {
     if (!isOpen || typeof window === 'undefined') return;
 
-    const isMobile = window.innerWidth < 768;
-    const initialWidth = isMobile ? window.innerWidth - 32 : Math.max(MIN_WIDTH, window.innerWidth * 0.4);
-    const initialHeight = isMobile ? window.innerHeight * 0.8 : window.innerHeight - 48;
-    
-    const width = Math.min(initialWidth, window.innerWidth - 32);
-    const height = Math.min(initialHeight, window.innerHeight - 32);
+    const width = Math.min(DEFAULT_WIDTH, window.innerWidth - 32);
+    const height = Math.min(DEFAULT_HEIGHT, window.innerHeight - 32);
     
     setSize({ width, height });
     
-    // Position differently based on screen size
+    // Position in the center
     if (!initialPosition) {
-      if (isMobile) {
-        setPosition({
-          x: (window.innerWidth - width) / 2,
-          y: (window.innerHeight - height) / 2,
-        });
-      } else {
-        setPosition({
-          x: window.innerWidth - width - 24,
-          y: (window.innerHeight - height) / 2, // perfectly centered vertically
-        });
-      }
-    }
-
-    setTimeout(() => setIsRendered(true), 10);
-  }, [isOpen, initialPosition]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const handleResize = () => {
-      setSize((prevSize) => {
-        const newWidth = Math.max(MIN_WIDTH, Math.min(prevSize.width, window.innerWidth - 32));
-        const newHeight = Math.max(MIN_HEIGHT, Math.min(prevSize.height, window.innerHeight - 32));
-
-        setPosition((prevPos) => ({
-          x: Math.min(window.innerWidth - newWidth - 8, Math.max(8, prevPos.x)),
-          y: Math.min(window.innerHeight - newHeight - 8, Math.max(8, prevPos.y)),
-        }));
-
-        return { width: newWidth, height: newHeight };
+      setPosition({
+        x: (window.innerWidth - width) / 2,
+        y: (window.innerHeight - height) / 2,
       });
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+    }
+  }, [isOpen, initialPosition]);
 
   useEffect(() => {
     if (!isDragging) return;
@@ -348,7 +222,7 @@ const handleCompareInPlanBuilder = () => {
       <div
         role="dialog"
         aria-modal="false"
-        className={`pointer-events-auto fixed rounded-2xl border border-panel-border bg-panel-bg shadow-2xl overflow-hidden min-w-[360px] md:min-w-[520px] min-h-[280px] max-w-[95vw] max-h-[calc(100vh-48px)] flex flex-col transition-opacity duration-200 ${isDragging ? 'select-none' : ''} ${isRendered ? 'opacity-100' : 'opacity-0'}`}
+        className={`pointer-events-auto fixed rounded-2xl border border-panel-border bg-panel-bg shadow-2xl overflow-hidden min-w-[360px] min-h-[280px] max-w-[95vw] max-h-[90vh] flex flex-col ${isDragging ? 'select-none' : ''}`}
         style={{
           left: position.x,
           top: position.y,
@@ -384,7 +258,7 @@ const handleCompareInPlanBuilder = () => {
               type="button"
               onClick={handleCompareInPlanBuilder}
               disabled={loading}
-              className="px-3 py-1.5 border border-panel-border bg-input-bg text-text-primary rounded-full hover:border-panel-border-strong text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 py-1.5 border border-panel-border bg-input-bg text-text-primary rounded-xl hover:border-panel-border-strong text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label="Compare this plan side-by-side in plan builder"
             >
               Compare
@@ -393,7 +267,7 @@ const handleCompareInPlanBuilder = () => {
               type="button"
               onClick={handleImportPlan}
               disabled={isImporting || loading}
-              className="px-3 py-1.5 bg-uva-blue/90 text-white rounded-full hover:bg-uva-blue text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 py-1.5 bg-uva-blue/90 text-white rounded-xl hover:bg-uva-blue text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label="Add this plan to plan builder"
             >
               {isImporting ? 'Adding...' : 'Add to Plan Builder'}

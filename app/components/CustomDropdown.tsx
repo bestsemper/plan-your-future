@@ -70,8 +70,8 @@ export function CustomDropdown({
       </div>
 
       {isOpen && !disabled && (
-        <div className={`absolute z-20 mt-1.5 bg-panel-bg border border-panel-border rounded-xl shadow-lg overflow-hidden ${
-          align === 'right' ? 'right-0' : 'left-0 w-full'
+        <div className={`absolute z-20 w-full mt-1.5 bg-panel-bg border border-panel-border rounded-xl shadow-lg overflow-hidden max-w-full ${
+          align === 'right' ? 'right-0' : 'left-0'
         }`}>
           {children}
         </div>
@@ -89,7 +89,7 @@ export function CustomDropdownContent({
   className = '',
 }: CustomDropdownContentProps) {
   return (
-    <div className={`${maxHeight} overflow-y-auto p-1.5 space-y-0.5 ${className}`}>
+    <div className={`${maxHeight} overflow-y-auto overflow-x-hidden px-2 py-1.5 space-y-0.5 max-w-full ${className}`}>
       {children}
     </div>
   );
@@ -112,7 +112,7 @@ export function CustomDropdownItem({
         selected ? 'bg-uva-blue/10 text-uva-blue font-semibold' : 'text-text-primary hover:bg-hover-bg'
       }`}
     >
-      <span className="truncate">{children}</span>
+      <span className="truncate min-w-0">{children}</span>
       {selected && icon ? (
         icon
       ) : selected ? (
