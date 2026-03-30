@@ -80,6 +80,7 @@ type AttachedPlanViewData = {
     id: string;
     title: string;
     ownerDisplayName: string;
+    ownerComputingId: string;
     semesters: Array<{
       id: string;
       termName: string;
@@ -1291,6 +1292,7 @@ export async function getAttachedPlanViewData(planId: string): Promise<AttachedP
       author: {
         select: {
           displayName: true,
+          computingId: true,
         },
       },
     },
@@ -1305,6 +1307,7 @@ export async function getAttachedPlanViewData(planId: string): Promise<AttachedP
       author: {
         select: {
           displayName: true,
+          computingId: true,
         },
       },
     },
@@ -1318,6 +1321,7 @@ export async function getAttachedPlanViewData(planId: string): Promise<AttachedP
         id: planId,
         title: snapshot.title,
         ownerDisplayName: attachedPost.author.displayName,
+        ownerComputingId: attachedPost.author.computingId,
         semesters: snapshot.semesters,
       },
     };
@@ -1330,6 +1334,7 @@ export async function getAttachedPlanViewData(planId: string): Promise<AttachedP
         id: planId,
         title: snapshot.title,
         ownerDisplayName: attachedAnswer.author.displayName,
+        ownerComputingId: attachedAnswer.author.computingId,
         semesters: snapshot.semesters,
       },
     };
@@ -1344,6 +1349,7 @@ export async function getAttachedPlanViewData(planId: string): Promise<AttachedP
       user: {
         select: {
           displayName: true,
+          computingId: true,
         },
       },
       semesters: {
@@ -1387,6 +1393,7 @@ export async function getAttachedPlanViewData(planId: string): Promise<AttachedP
       id: plan.id,
       title: plan.title,
       ownerDisplayName: plan.user.displayName,
+      ownerComputingId: plan.user.computingId,
       semesters: plan.semesters,
     },
   };
