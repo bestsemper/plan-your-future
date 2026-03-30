@@ -151,14 +151,14 @@ export default function Sidebar({ user }: { user: { computingId: string, display
               </button>
 
               {menuOpen && (
-                <div className="absolute left-0 right-0 bottom-full mb-2 rounded-xl border border-panel-border bg-panel-bg shadow-lg p-1.5 z-20">
+                <div className="absolute left-0 right-0 bottom-full mb-2 rounded-xl border border-white/10 bg-[#1c243c] shadow-lg p-1.5 z-20">
                   <Link
                     href="/profile"
                     onClick={() => {
                       setMenuOpen(false);
                       setMobileNavOpen(false);
                     }}
-                    className="block rounded-lg px-3 py-2 text-sm font-medium text-text-primary hover:bg-hover-bg"
+                    className="block rounded-lg px-3 py-2 text-sm font-medium text-white/75 hover:text-white hover:bg-white/10"
                   >
                     Profile
                   </Link>
@@ -169,7 +169,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
                         setMenuOpen(false);
                         setMobileNavOpen(false);
                       }}
-                      className="w-full text-left rounded-lg px-3 py-2 text-sm font-medium text-text-primary hover:bg-hover-bg cursor-pointer"
+                      className="w-full text-left rounded-lg px-3 py-2 text-sm font-medium text-white/75 hover:text-white hover:bg-white/10 cursor-pointer"
                     >
                       Sign Out
                     </button>
@@ -229,18 +229,18 @@ export default function Sidebar({ user }: { user: { computingId: string, display
               </button>
 
               {menuOpen && (
-                <div className="absolute left-0 right-0 bottom-full mb-2 rounded-xl border border-panel-border bg-panel-bg shadow-lg p-1.5 z-20">
+                <div className="absolute left-0 right-0 bottom-full mb-2 rounded-xl border border-white/10 bg-[#1c243c] shadow-lg p-1.5 z-20">
                   <Link
                     href="/profile"
                     onClick={() => setMenuOpen(false)}
-                    className="block rounded-lg px-3 py-2 text-sm font-medium text-text-primary hover:bg-hover-bg"
+                    className="block rounded-lg px-3 py-2 text-sm font-medium text-white/75 hover:text-white hover:bg-white/10"
                   >
                     Profile
                   </Link>
                   <form action={logout} suppressHydrationWarning>
                     <button
                       type="submit"
-                      className="w-full text-left rounded-lg px-3 py-2 text-sm font-medium text-text-primary hover:bg-hover-bg cursor-pointer"
+                      className="w-full text-left rounded-lg px-3 py-2 text-sm font-medium text-white/75 hover:text-white hover:bg-white/10 cursor-pointer"
                     >
                       Sign Out
                     </button>
