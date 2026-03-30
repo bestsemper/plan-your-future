@@ -1,6 +1,6 @@
 'use server';
 
-import { Prisma, PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import fs from 'fs';
@@ -316,27 +316,15 @@ function verifyPassword(password: string, hash: string): boolean {
   }
 }
 
-function isPrismaInitError(error: unknown): boolean {
-  return error instanceof Prisma.PrismaClientInitializationError;
-}
-
 // MOCK AUTH: In a real app, this would integrate with NetBadge/SSO
 // For MVP, we'll just find or create a user by computingId
 export async function mockLogin(computingId: string, password: string) {
   if (!computingId) return { error: "Computing ID is required" };
   if (!password) return { error: "Password is required" };
 
-  let user;
-  try {
-    user = await prisma.user.findUnique({
-      where: { computingId }
-    });
-  } catch (error) {
-    if (isPrismaInitError(error)) {
-      return { error: 'Login is temporarily unavailable. Please try again shortly.' };
-    }
-    throw error;
-  }
+  let user = await prisma.user.findUnique({
+    where: { computingId }
+  });
 
   if (!user || !user.password) {
     return { error: "Incorrect login info." };
@@ -362,17 +350,9 @@ export async function mockSignUp(computingId: string, password: string, displayN
   if (!computingId) return { error: "Computing ID is required" };
   if (!password) return { error: "Password is required" };
 
-  let user;
-  try {
-    user = await prisma.user.findUnique({
-      where: { computingId }
-    });
-  } catch (error) {
-    if (isPrismaInitError(error)) {
-      return { error: 'Sign up is temporarily unavailable. Please try again shortly.' };
-    }
-    throw error;
-  }
+  let user = await prisma.user.findUnique({
+    where: { computingId }
+  });
 
   if (user) {
     return { error: "Account already exists. Please log in." };
@@ -380,33 +360,19 @@ export async function mockSignUp(computingId: string, password: string, displayN
 
   const hashedPassword = hashPassword(password);
 
-  try {
-    user = await prisma.user.create({
-      data: {
-        computingId,
-        displayName: displayName || computingId,
-        password: hashedPassword,
-        major: 'Undeclared'
-      }
-    });
-  } catch (error) {
-    if (isPrismaInitError(error)) {
-      return { error: 'Sign up is temporarily unavailable. Please try again shortly.' };
+  user = await prisma.user.create({
+    data: {
+      computingId,
+      displayName: displayName || computingId,
+      password: hashedPassword,
+      major: 'Undeclared'
     }
-    throw error;
-  }
+  });
 
   // Create an empty goal profile
-  try {
-    await prisma.goalProfile.create({
-      data: { userId: user.id }
-    });
-  } catch (error) {
-    if (isPrismaInitError(error)) {
-      return { error: 'Sign up is temporarily unavailable. Please try again shortly.' };
-    }
-    throw error;
-  }
+  await prisma.goalProfile.create({
+    data: { userId: user.id }
+  });
 
   // Set session cookie mock here if needed
   const cookieStore = await cookies();
@@ -424,19 +390,10 @@ export async function getCurrentUser() {
   const computingId = cookieStore.get('computingId')?.value;
   
   if (!computingId) return null;
-
-  let user = null;
-  try {
-    user = await prisma.user.findUnique({
-      where: { computingId }
-    });
-  } catch (error) {
-    // Gracefully degrade to unauthenticated state when DB is unreachable.
-    if (error instanceof Prisma.PrismaClientInitializationError) {
-      return null;
-    }
-    throw error;
-  }
+  
+  const user = await prisma.user.findUnique({
+    where: { computingId }
+  });
 
   if (user && !user.additionalPrograms) {
     user.additionalPrograms = [];

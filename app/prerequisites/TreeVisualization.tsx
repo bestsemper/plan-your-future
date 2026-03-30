@@ -1097,20 +1097,20 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
       {(hoveredNodeId || clickedNodeId) && hoverPos && (
         <div
           ref={popupRef}
-          className="fixed bottom-5 right-5 z-[1000] min-w-[220px] max-w-[280px] rounded-xl border border-panel-border bg-panel-bg/95 backdrop-blur-sm p-3 text-xs shadow-2xl pointer-events-auto"
+          className="fixed bottom-5 right-5 z-[1000] min-w-[200px] max-w-[250px] bg-white border-2 border-uva-blue rounded-lg p-3 text-xs shadow-lg pointer-events-auto"
         >
-          <div className="font-bold mb-2 text-sm text-heading">
+          <div className="font-bold mb-2 text-sm text-uva-blue">
             {clickedNodeId || hoveredNodeId}
           </div>
-          <div className="text-xs mb-3 text-text-secondary italic max-h-20 overflow-y-auto pr-1">
+          <div className="text-xs mb-3 text-text-secondary italic max-h-20 overflow-y-auto">
             {dagData?.nodes.find(n => n.id === (clickedNodeId || hoveredNodeId))?.title || dagData?.nodes.find(n => n.id === (clickedNodeId || hoveredNodeId))?.label}
           </div>
           
-          <div className="mb-3 border-t border-panel-border pt-2">
-            <div className="font-semibold text-badge-blue-text mb-1">
+          <div className="mb-2">
+            <div className="font-semibold text-uva-blue mb-1">
               Prerequisites:
             </div>
-            <div className="pl-2 text-text-secondary">
+            <div className="pl-2 text-text-muted">
               {(reverseEdgesMap?.get((clickedNodeId || hoveredNodeId)!) as Set<string> | undefined)?.size === 0 ? (
                 <span>None</span>
               ) : (
@@ -1121,11 +1121,11 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
             </div>
           </div>
           
-          <div className="border-t border-panel-border pt-2">
-            <div className="font-semibold text-badge-blue-text mb-1">
+          <div>
+            <div className="font-semibold text-uva-blue mb-1">
               Required for:
             </div>
-            <div className="pl-2 text-text-secondary">
+            <div className="pl-2 text-text-muted">
               {(edgesMap?.get((clickedNodeId || hoveredNodeId)!) as Set<string> | undefined)?.size === 0 ? (
                 <span>None</span>
               ) : (
