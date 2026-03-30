@@ -1,13 +1,12 @@
 'use server';
 
-import { PrismaClient } from '@prisma/client';
+import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import fs from 'fs';
 import path from 'path';
 import { scryptSync, randomBytes, timingSafeEqual } from 'crypto';
 
-const prisma = new PrismaClient();
 const DEFAULT_PLAN_START_YEAR = 2025;
 const FORUM_VIEW_WINDOW_MS = 15 * 60 * 1000;
 const FORUM_VIEWER_COOKIE = 'forumViewerId';

@@ -3,10 +3,8 @@ import { redirect } from 'next/navigation';
 import ThemeToggle from './ThemeToggle';
 import EditProfileForm from './EditProfileForm';
 import EditCompletedCourses from './EditCompletedCourses';
-import { PrismaClient } from '@prisma/client';
+import prisma from '@/lib/prisma';
 import { Icon } from '../components/Icon';
-
-const prisma = new PrismaClient();
 
 export default async function Profile() {
   const user = await getCurrentUser();
