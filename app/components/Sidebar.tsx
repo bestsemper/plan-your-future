@@ -80,7 +80,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
             type="button"
             onClick={() => setMobileNavOpen((prev) => !prev)}
             aria-label="Toggle navigation"
-            className="p-2 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+            className="w-10 h-10 flex items-center justify-center rounded-xl text-white/75 hover:text-white hover:bg-black/20 border border-transparent hover:border-white/10 transition-colors cursor-pointer"
           >
             <Icon 
               name={mobileNavOpen ? "x" : "menu"}
