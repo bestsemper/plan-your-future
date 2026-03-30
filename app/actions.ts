@@ -1,6 +1,6 @@
 'use server';
 
-import { Prisma, PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import fs from 'fs';
@@ -390,19 +390,10 @@ export async function getCurrentUser() {
   const computingId = cookieStore.get('computingId')?.value;
   
   if (!computingId) return null;
-
-  let user = null;
-  try {
-    user = await prisma.user.findUnique({
-      where: { computingId }
-    });
-  } catch (error) {
-    // If the database is down, fail closed to an unauthenticated state instead of crashing the request.
-    if (error instanceof Prisma.PrismaClientInitializationError) {
-      return null;
-    }
-    throw error;
-  }
+  
+  const user = await prisma.user.findUnique({
+    where: { computingId }
+  });
 
   if (user && !user.additionalPrograms) {
     user.additionalPrograms = [];
