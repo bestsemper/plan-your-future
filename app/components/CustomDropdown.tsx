@@ -108,8 +108,8 @@ export function CustomDropdownItem({
     <button
       type="button"
       onClick={onClick}
-      className={`w-full text-left px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors flex items-center justify-between gap-2 ${
-        selected ? 'bg-uva-blue/10 text-uva-blue font-semibold' : 'text-text-primary hover:bg-hover-bg'
+      className={`w-full text-left px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors flex items-center justify-between ${
+        selected ? 'bg-hover-bg text-primary font-semibold' : 'text-text-primary hover:bg-hover-bg'
       }`}
     >
       <span className="truncate min-w-0">{children}</span>
@@ -121,7 +121,7 @@ export function CustomDropdownItem({
           color="currentColor"
           width={14}
           height={14}
-          className="w-3.5 h-3.5 shrink-0 text-uva-blue"
+          className="w-3.5 h-3.5 shrink-0 text-primary"
           aria-hidden="true"
         />
       ) : null}
