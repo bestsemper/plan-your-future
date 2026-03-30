@@ -478,15 +478,29 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
         gaps.push(nodePositions[nodePositions.length - 1] + minNodeSpacing / 2);
         
         // Find closest gap to current gap position (for consistency across rows)
-        let bestGapX = gaps[0];
+        // If multiple gaps are equidistant, prefer the one in direction of target node
+        const endNodeX = positionMap.get(endNodeId)?.x || x2;
         let bestDistance = Math.abs(gaps[0] - currentGapX);
+        const closestGaps: number[] = [gaps[0]];
         
-        for (const gapX of gaps) {
+        for (const gapX of gaps.slice(1)) {
           const distance = Math.abs(gapX - currentGapX);
           if (distance < bestDistance) {
             bestDistance = distance;
-            bestGapX = gapX;
+            closestGaps.length = 0;
+            closestGaps.push(gapX);
+          } else if (distance === bestDistance) {
+            closestGaps.push(gapX);
           }
+        }
+        
+        // If there are ties, pick the one in direction of target node
+        let bestGapX: number;
+        if (closestGaps.length > 1) {
+          // If target is to the right, pick the rightmost gap; if left, pick leftmost
+          bestGapX = endNodeX > currentGapX ? Math.max(...closestGaps) : Math.min(...closestGaps);
+        } else {
+          bestGapX = closestGaps[0];
         }
         
         // Update current gap position for next row
