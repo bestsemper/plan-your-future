@@ -35,7 +35,7 @@ export default async function Home() {
               </p>
             )}
           </div>
-          <Link href={user ? "/plan" : "/login"} className="inline-flex items-center gap-1.5 text-sm font-semibold text-uva-blue hover:text-uva-orange transition-colors w-fit">
+          <Link href={user ? "/plan" : "/login"} className="inline-flex items-center gap-1.5 text-sm font-semibold text-badge-blue-text hover:text-uva-orange transition-colors w-fit">
             {user ? (plans.length > 0 ? 'View Your Plans' : 'Build Your Plan') : 'Sign In to Build'}
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -62,7 +62,7 @@ export default async function Home() {
               See what other students are planning and get feedback on your schedule.
             </p>
           </div>
-          <Link href="/forum" className="inline-flex items-center gap-1.5 text-sm font-semibold text-uva-blue hover:text-uva-orange transition-colors">
+          <Link href="/forum" className="inline-flex items-center gap-1.5 text-sm font-semibold text-badge-blue-text hover:text-uva-orange transition-colors">
             Browse the Forum
             <svg
               xmlns="http://www.w3.org/2000/svg"

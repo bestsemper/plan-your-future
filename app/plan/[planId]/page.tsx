@@ -148,7 +148,7 @@ export default function AttachedPlanPage({ params }: { params: Promise<PageParam
       <article className="bg-panel-bg border border-panel-border rounded-2xl p-5 mb-5">
         <h1 className="text-3xl font-bold text-heading leading-tight">{plan.title}</h1>
         <p className="mt-2 text-sm text-text-secondary">
-          Plan by <span className="text-uva-blue font-semibold">{plan.ownerDisplayName}</span>
+          Plan by <span className="text-text-primary font-semibold">{plan.ownerDisplayName}</span>
         </p>
       </article>
 

@@ -722,6 +722,16 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
     return '#' + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
   };
 
+  // Helper function to lighten a color
+  const lightenColor = (color: string, factor: number) => {
+    const num = parseInt(color.replace('#', ''), 16);
+    const amt = Math.round(2.55 * factor * 100);
+    const R = Math.min(255, (num >> 16) + amt);
+    const G = Math.min(255, (num >> 8 & 0x00FF) + amt);
+    const B = Math.min(255, (num & 0x0000FF) + amt);
+    return '#' + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
+  };
+
   const visibleSearchMatches = filteredCourseMatches.slice(0, 25);
   const showSearchPanel = showCourseSearchDropdown && courseSearchText.trim().length > 0;
 
@@ -884,8 +894,8 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
           // Use stable color based on edge identity, not position
           const edgeHash = (edge.parentId + edge.childId).split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
           const edgeColor = paleColors[edgeHash % paleColors.length];
-          // Darken color when connected to active (hovered or clicked) node
-          const displayColor = isConnectedToActive ? darkenColor(edgeColor, 0.4) : edgeColor;
+          // Darken color in light mode, lighten in dark mode when connected to active (hovered or clicked) node
+          const displayColor = isConnectedToActive ? (isDark ? lightenColor(edgeColor, 0.15) : darkenColor(edgeColor, 0.4)) : edgeColor;
 
           // Helper function to create arrowhead polygon string
           const createArrowhead = (x: number, y: number, angle: number, size: number) => {

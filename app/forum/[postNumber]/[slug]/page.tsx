@@ -463,9 +463,9 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                   {answer.isDeleted ? (
                     <>deleted {formatRelativeTime(answer.createdAt)}</>
                   ) : answer.authorComputingId ? (
-                    <><Link href={`/profile/${answer.authorComputingId}`} className="text-uva-blue font-semibold hover:underline">{answer.authorDisplayName}</Link> replied {formatRelativeTime(answer.createdAt)}</>
+                    <><Link href={`/profile/${answer.authorComputingId}`} className="text-text-primary font-semibold hover:underline">{answer.authorDisplayName}</Link> replied {formatRelativeTime(answer.createdAt)}</>
                   ) : (
-                    <><span className="text-uva-blue font-semibold">{answer.authorDisplayName}</span> replied {formatRelativeTime(answer.createdAt)}</>
+                    <><span className="text-text-primary font-semibold">{answer.authorDisplayName}</span> replied {formatRelativeTime(answer.createdAt)}</>
                   )}
                 </p>
                 {answer.isDeleted ? (
@@ -629,7 +629,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
             </div>
 
             <p className="text-xs text-text-tertiary mb-4">
-              <Link href={`/profile/${post.authorComputingId}`} className="text-uva-blue font-semibold hover:underline">{post.authorDisplayName}</Link> asked {formatRelativeTime(post.createdAt)} | {post.viewCount} views
+              <Link href={`/profile/${post.authorComputingId}`} className="text-text-primary font-semibold hover:underline">{post.authorDisplayName}</Link> asked {formatRelativeTime(post.createdAt)} | {post.viewCount} views
             </p>
 
             <div className="border-t border-panel-border pt-5">

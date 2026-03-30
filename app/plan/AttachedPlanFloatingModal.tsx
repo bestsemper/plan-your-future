@@ -1,5 +1,6 @@
 "use client";
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Icon } from '../components/Icon';
@@ -9,6 +10,7 @@ export type AttachedPlanView = {
   id: string;
   title: string;
   ownerDisplayName: string;
+  ownerComputingId: string;
   semesters: Array<{
     id: string;
     termName: string;
@@ -296,7 +298,10 @@ const handleCompareInPlanBuilder = () => {
             <div>
               <h4 className="text-2xl font-bold text-heading">{plan.title}</h4>
               <p className="text-sm text-text-secondary mt-1 mb-4">
-                Plan by <span className="text-uva-blue font-semibold">{plan.ownerDisplayName}</span>
+                Plan by{' '}
+                <Link href={`/profile/${plan.ownerComputingId}`} className="text-text-primary font-semibold hover:underline">
+                  {plan.ownerDisplayName}
+                </Link>
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
