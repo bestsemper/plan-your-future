@@ -6,7 +6,7 @@ import { use, useEffect, useState, useTransition } from 'react';
 import { Icon } from '@/app/components/Icon';
 import { default as ConfirmModal } from '../../../components/ConfirmModal';
 import { CustomDropdown, CustomDropdownContent, CustomDropdownItem } from '../../../components/CustomDropdown';
-import { useAttachedPlanModal } from '../../AttachedPlanModalProvider';
+import { useAttachedPlanModal } from '../../../components/AttachedPlan';
 import {
   addForumReply,
   deleteForumReply,
@@ -601,7 +601,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
 
   return (
     <div className="max-w-5xl mx-auto py-8">
-      <Link href="/forum" className="inline-flex items-center gap-1.5 text-sm font-semibold text-uva-blue hover:text-uva-orange transition-colors mb-6">
+      <Link href="/forum" className="inline-flex items-center gap-1.5 text-sm font-semibold text-white hover:text-uva-orange transition-colors mb-6">
         <Icon name="arrow-left" color="currentColor" width={16} height={16} className="w-4 h-4" aria-hidden="true" />
         <span>Back to Forum</span>
       </Link>

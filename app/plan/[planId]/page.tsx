@@ -73,7 +73,7 @@ export default function AttachedPlanPage({ params }: { params: Promise<PageParam
       <div className="max-w-5xl mx-auto py-8">
         <button
           onClick={() => router.back()}
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-uva-blue hover:text-uva-orange transition-colors cursor-pointer mb-6"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-white hover:text-uva-orange transition-colors cursor-pointer mb-6"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -106,7 +106,7 @@ export default function AttachedPlanPage({ params }: { params: Promise<PageParam
       <div className="flex items-center justify-between gap-4 mb-6">
         <button
           onClick={() => router.back()}
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-uva-blue hover:text-uva-orange transition-colors cursor-pointer"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-white hover:text-uva-orange transition-colors cursor-pointer"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"

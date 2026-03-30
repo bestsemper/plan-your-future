@@ -6,12 +6,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { getAttachedPlanViewData, importAttachedPlan } from "../actions";
 import { Icon } from "../components/Icon";
 
-
-
-
-
-
-
 type PlanModalWindow = {
   id: string;
   loading: boolean;
@@ -76,7 +70,7 @@ export default function AttachedPlanModalProvider({ children }: { children: Reac
       {children}
       {shouldShowModals &&
         planModals.map((modal, index) => (
-          <AttachedPlanFloatingModal
+          <AttachedPlan
             key={modal.id}
             isOpen
             loading={modal.loading}
@@ -91,9 +85,6 @@ export default function AttachedPlanModalProvider({ children }: { children: Reac
   );
 }
 
-
-
-
 export type AttachedPlanView = {
   id: string;
   title: string;
@@ -107,13 +98,14 @@ export type AttachedPlanView = {
     courses: Array<{
       id: string;
       courseCode: string;
+      title: string | null;
       creditsMin: number | null;
       creditsMax: number | null;
     }>;
   }>;
 };
 
-type AttachedPlanFloatingModalProps = {
+type AttachedPlanProps = {
   isOpen: boolean;
   loading: boolean;
   plan: AttachedPlanView | null;
@@ -139,15 +131,16 @@ type ResizeState = {
   startTop: number;
 };
 
-export function AttachedPlanFloatingModal({
+function AttachedPlan({
   isOpen,
   loading,
   plan,
   onClose,
   initialPosition,
   zIndex = 50,
-}: AttachedPlanFloatingModalProps) {
+}: AttachedPlanProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const [size, setSize] = useState(() => {
     if (typeof window === 'undefined') {
       return { width: MIN_WIDTH, height: MIN_HEIGHT };
@@ -189,7 +182,7 @@ export function AttachedPlanFloatingModal({
       } else {
         setPosition({
           x: window.innerWidth - width - 24,
-          y: (window.innerHeight - height) / 2, // perfectly centered vertically
+          y: (window.innerHeight - height) / 2,
         });
       }
     }
@@ -246,8 +239,6 @@ export function AttachedPlanFloatingModal({
     const handleMouseMove = (event: MouseEvent) => {
       const dx = event.clientX - resizeState.startX;
       const dy = event.clientY - resizeState.startY;
-      const maxWidth = window.innerWidth - 16;
-      const maxHeight = window.innerHeight - 16;
 
       let nextWidth = resizeState.startWidth;
       let nextHeight = resizeState.startHeight;
@@ -324,7 +315,6 @@ export function AttachedPlanFloatingModal({
       const result = await importAttachedPlan(plan);
       if (result.success) {
         onClose();
-        // Navigate to plan builder with the newly imported plan
         router.push(`/plan`);
       }
     } catch (error) {
@@ -333,16 +323,14 @@ export function AttachedPlanFloatingModal({
       setIsImporting(false);
     }
   };
-const handleCompareInPlanBuilder = () => {
+
+  const handleCompareInPlanBuilder = () => {
     if (!plan) return;
-    // Store the plan data in sessionStorage temporarily
     sessionStorage.setItem('comparisonPlan', JSON.stringify(plan));
     onClose();
-    // Navigate to plan builder
     router.push('/plan?compare=true');
   };
 
-  
   if (!isOpen) return null;
 
   return (
@@ -395,7 +383,7 @@ const handleCompareInPlanBuilder = () => {
               type="button"
               onClick={handleImportPlan}
               disabled={isImporting || loading}
-              className="px-3 py-1.5 bg-uva-blue/90 text-white rounded-full hover:bg-uva-blue text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 py-1.5 bg-button-bg text-button-text rounded-full hover:bg-button-hover text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label="Add this plan to plan builder"
             >
               {isImporting ? 'Adding...' : 'Add to Plan Builder'}
@@ -425,7 +413,7 @@ const handleCompareInPlanBuilder = () => {
               <h4 className="text-2xl font-bold text-heading">{plan.title}</h4>
               <p className="text-sm text-text-secondary mt-1 mb-4">
                 Plan by{' '}
-                <Link href={`/profile/${plan.ownerComputingId}`} className="text-text-primary font-semibold hover:underline">
+                <Link href={`/profile/${plan.ownerComputingId}?from=${encodeURIComponent(pathname)}`} className="text-text-primary font-semibold hover:underline">
                   {plan.ownerDisplayName}
                 </Link>
               </p>
@@ -445,9 +433,21 @@ const handleCompareInPlanBuilder = () => {
                         <p className="text-sm text-text-secondary">No courses in this semester.</p>
                       )}
                       {sem.courses.map((course) => (
-                        <div key={course.id} className="px-3 bg-panel-bg border border-panel-border-strong rounded-lg text-sm flex justify-between items-center h-[42px]">
-                          <span className="font-medium text-text-primary">{course.courseCode}</span>
-                          <span className="text-text-secondary font-semibold">{course.creditsMin ?? 0} cr</span>
+                        <div
+                          key={course.id}
+                          className="px-3 py-2 bg-panel-bg border border-panel-border-strong rounded-lg text-sm flex justify-between items-stretch hover:border-panel-border transition-colors"
+                        >
+                          <div className="flex flex-col justify-center flex-1 min-w-0">
+                            <span className="font-medium text-text-primary truncate">{course.courseCode}</span>
+                            {course.title && (
+                              <p className="text-xs text-text-muted truncate mt-0.5 min-w-0">{course.title}</p>
+                            )}
+                          </div>
+                          <div className="flex items-center justify-end min-w-fit pl-2">
+                            <span className="text-text-secondary font-semibold whitespace-nowrap">
+                              {course.creditsMin ?? 0} cr
+                            </span>
+                          </div>
                         </div>
                       ))}
                     </div>

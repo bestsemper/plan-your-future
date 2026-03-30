@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Icon } from '@/app/components/Icon';
 import { CustomDropdown, CustomDropdownContent, CustomDropdownItem } from '@/app/components/CustomDropdown';
 import { getForumPageData, voteOnForumPost } from '../actions';
-import { useAttachedPlanModal } from './AttachedPlanModalProvider';
+import { useAttachedPlanModal } from '../components/AttachedPlan';
 import { getForumPostHref } from './url';
 
 type ForumAnswerItem = {
@@ -262,7 +262,7 @@ export default function ForumPage() {
 
           <Link
             href="/forum/questions"
-            className="h-[42px] px-5 inline-flex items-center justify-center bg-uva-blue text-white rounded-full hover:bg-uva-blue-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-uva-blue/30 font-semibold transition-colors cursor-pointer whitespace-nowrap"
+            className="h-[42px] px-5 inline-flex items-center justify-center bg-button-bg text-button-text rounded-full hover:bg-button-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-button-bg/20 font-semibold transition-colors cursor-pointer whitespace-nowrap"
           >
             Ask Question
           </Link>

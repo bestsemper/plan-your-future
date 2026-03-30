@@ -299,7 +299,7 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
                 type="button"
                 onClick={() => void handleImportFromAuditPdf()}
                 disabled={isImporting}
-                className="w-full px-6 py-3 bg-uva-blue/90 text-white rounded-xl font-semibold hover:bg-uva-blue transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-6 py-3 bg-button-bg text-button-text rounded-xl font-semibold hover:bg-button-hover transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isImporting ? 'Importing...' : 'Import Audit Report'}
               </button>
@@ -323,7 +323,7 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
                       onChange={(e) => handleCourseSearchChange(e.target.value)}
                       onFocus={() => setShowDropdown(true)}
                       onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
-                      className="w-full px-4 py-3 bg-input-bg border border-panel-border rounded-xl text-text-primary outline-none focus:border-uva-blue focus:ring-2 focus:ring-uva-blue/20 transition-all"
+                      className="w-full px-4 py-3 bg-input-bg border border-panel-border rounded-xl text-text-primary outline-none focus:border-white focus:ring-2 focus:ring-white/20 transition-all"
                       disabled={isSaving}
                     />
                     {showDropdown && filteredCourseOptions.length > 0 && (
@@ -349,7 +349,7 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="w-full px-6 py-3 bg-uva-blue/90 text-white rounded-xl font-semibold hover:bg-uva-blue transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full px-6 py-3 bg-button-bg text-button-text rounded-xl font-semibold hover:bg-button-hover transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSaving ? 'Adding...' : 'Add Course'}
                 </button>
@@ -363,21 +363,21 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
                 <button
                   type="button"
                   onClick={() => setShowTransfer((prev) => !prev)}
-                  className={`px-3 py-1.5 text-xs font-semibold rounded-xl border transition-colors cursor-pointer ${showTransfer ? 'bg-uva-blue/10 text-uva-blue border-uva-blue/40' : 'border-panel-border-strong text-text-secondary hover:bg-hover-bg'}`}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-xl border transition-colors cursor-pointer ${showTransfer ? 'bg-badge-blue-bg text-badge-blue-text border-white/40' : 'border-panel-border-strong text-text-secondary hover:bg-hover-bg'}`}
                 >
                   Transfer
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowExtra((prev) => !prev)}
-                  className={`px-3 py-1.5 text-xs font-semibold rounded-xl border transition-colors cursor-pointer ${showExtra ? 'bg-uva-blue/10 text-uva-blue border-uva-blue/40' : 'border-panel-border-strong text-text-secondary hover:bg-hover-bg'}`}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-xl border transition-colors cursor-pointer ${showExtra ? 'bg-badge-blue-bg text-badge-blue-text border-white/40' : 'border-panel-border-strong text-text-secondary hover:bg-hover-bg'}`}
                 >
                   Extra
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowTaken((prev) => !prev)}
-                  className={`px-3 py-1.5 text-xs font-semibold rounded-xl border transition-colors cursor-pointer ${showTaken ? 'bg-uva-blue/10 text-uva-blue border-uva-blue/40' : 'border-panel-border-strong text-text-secondary hover:bg-hover-bg'}`}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-xl border transition-colors cursor-pointer ${showTaken ? 'bg-badge-blue-bg text-badge-blue-text border-white/40' : 'border-panel-border-strong text-text-secondary hover:bg-hover-bg'}`}
                 >
                   Taken
                 </button>
@@ -399,7 +399,7 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
                         <div className="flex items-baseline gap-2 mb-1">
                           <div className="font-semibold text-text-primary">{course.courseCode}</div>
                           {course.semesterTaken && (
-                            <div className="text-xs font-medium bg-uva-blue/10 text-uva-blue px-2 py-0.5 rounded-lg whitespace-nowrap">
+                            <div className="text-xs font-medium bg-badge-blue-bg text-badge-blue-text px-2 py-0.5 rounded-lg whitespace-nowrap">
                               {course.semesterTaken}
                             </div>
                           )}

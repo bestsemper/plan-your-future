@@ -89,6 +89,7 @@ type AttachedPlanViewData = {
       courses: Array<{
         id: string;
         courseCode: string;
+        title: string | null;
         creditsMin: number | null;
         creditsMax: number | null;
       }>;
@@ -1282,6 +1283,7 @@ export async function getPlanBuilderData() {
 
 export async function getAttachedPlanViewData(planId: string): Promise<AttachedPlanViewData | { error: 'not_found' | 'forbidden' }> {
   const currentUser = await getCurrentUser();
+  const { courseDetailsByCode } = loadCourseDetailsFromJSON();
 
   // Check if this plan is attached to a forum post with a snapshot.
   const attachedPost = await prisma.forumPost.findFirst({
@@ -1316,26 +1318,40 @@ export async function getAttachedPlanViewData(planId: string): Promise<AttachedP
   // If there's a snapshot, use that instead of the live plan
   if (attachedPost?.planSnapshot) {
     const snapshot = attachedPost.planSnapshot as AttachedPlanSnapshot;
+    const semestersWithTitles = snapshot.semesters.map(sem => ({
+      ...sem,
+      courses: sem.courses.map(course => ({
+        ...course,
+        title: courseDetailsByCode.get(normalizeCourseCode(course.courseCode))?.title ?? null,
+      })),
+    }));
     return {
       plan: {
         id: planId,
         title: snapshot.title,
         ownerDisplayName: attachedPost.author.displayName,
         ownerComputingId: attachedPost.author.computingId,
-        semesters: snapshot.semesters,
+        semesters: semestersWithTitles,
       },
     };
   }
 
   if (attachedAnswer?.planSnapshot) {
     const snapshot = attachedAnswer.planSnapshot as AttachedPlanSnapshot;
+    const semestersWithTitles = snapshot.semesters.map(sem => ({
+      ...sem,
+      courses: sem.courses.map(course => ({
+        ...course,
+        title: courseDetailsByCode.get(normalizeCourseCode(course.courseCode))?.title ?? null,
+      })),
+    }));
     return {
       plan: {
         id: planId,
         title: snapshot.title,
         ownerDisplayName: attachedAnswer.author.displayName,
         ownerComputingId: attachedAnswer.author.computingId,
-        semesters: snapshot.semesters,
+        semesters: semestersWithTitles,
       },
     };
   }
@@ -1388,13 +1404,21 @@ export async function getAttachedPlanViewData(planId: string): Promise<AttachedP
     return { error: 'forbidden' as const };
   }
 
+  const semestersWithTitles = plan.semesters.map(sem => ({
+    ...sem,
+    courses: sem.courses.map(course => ({
+      ...course,
+      title: courseDetailsByCode.get(normalizeCourseCode(course.courseCode))?.title ?? null,
+    })),
+  }));
+
   return {
     plan: {
       id: plan.id,
       title: plan.title,
       ownerDisplayName: plan.user.displayName,
       ownerComputingId: plan.user.computingId,
-      semesters: plan.semesters,
+      semesters: semestersWithTitles,
     },
   };
 }

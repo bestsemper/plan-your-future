@@ -45,11 +45,11 @@ export default function ConfirmModal({
 
         {/* Centered icon */}
         <div className="flex justify-center mb-4">
-          <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${isDanger ? 'bg-red-500/10' : 'bg-uva-blue/10'}`}>
+          <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${isDanger ? 'bg-red-500/10' : 'bg-badge-blue-bg'}`}>
             {isDanger ? (
-              <Icon name="trash" color="currentColor" width={22} height={22} className="text-red-500" />
+              <Icon name="alert-circle" color="currentColor" width={22} height={22} className="text-red-500" />
             ) : (
-              <Icon name="help-circle" color="currentColor" width={22} height={22} className="text-uva-blue" />
+              <Icon name="help-circle" color="currentColor" width={22} height={22} className="text-badge-blue-text" />
             )}
           </div>
         </div>
@@ -72,7 +72,7 @@ export default function ConfirmModal({
             type="button"
             onClick={onConfirm}
             disabled={isConfirming}
-            className={`flex-1 px-4 py-2.5 rounded-xl font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed text-white ${isDanger ? 'bg-red-500/85 hover:bg-red-500' : 'bg-uva-blue/90 hover:bg-uva-blue'}`}
+            className={`flex-1 px-4 py-2.5 rounded-xl font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${isDanger ? 'text-white bg-red-500/85 hover:bg-red-500' : 'text-button-text bg-button-bg hover:bg-button-hover'}`}
           >
             {isConfirming ? 'Working...' : confirmLabel}
           </button>

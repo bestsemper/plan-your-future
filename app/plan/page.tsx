@@ -256,7 +256,7 @@ function RequirementGroupBlock({
   }
 
   const toneClasses = {
-    blue: 'bg-uva-blue/10 text-uva-blue',
+    blue: 'bg-badge-blue-bg text-badge-blue-text',
     orange: 'bg-uva-orange/10 text-uva-orange',
     slate: 'bg-text-muted/10 text-text-secondary',
   } as const;
@@ -1931,7 +1931,7 @@ export default function PlanBuilderPage() {
       {loadingInfo && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-panel-bg p-6 rounded-2xl flex items-center space-x-3">
-            <Icon name="loader" color="currentColor" width={20} height={20} className="animate-spin h-5 w-5 text-uva-blue" />
+            <Icon name="loader" color="currentColor" width={20} height={20} className="animate-spin h-5 w-5 text-white" />
             <span className="font-medium text-text-primary">Loading course info...</span>
           </div>
         </div>
