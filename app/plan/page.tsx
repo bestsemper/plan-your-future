@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import type { RequirementMissing } from '../utils/prerequisiteChecker';
 import { Icon } from '../components/Icon';
 import { default as ConfirmModal } from '../components/ConfirmModal';
-import { CustomDropdown, CustomDropdownContent, CustomDropdownItem } from '../components/CustomDropdown';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from '../components/DropdownMenu';
 import {
   addSchoolYearToPlan,
   addSemesterToPlan,
@@ -1244,7 +1244,7 @@ export default function PlanBuilderPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <h1 className="text-3xl font-bold text-heading">Plan Builder</h1>
           <div className="flex w-full sm:w-auto sm:min-w-[320px] items-center gap-2">
-            <CustomDropdown
+            <DropdownMenu
               isOpen={isPlanDropdownOpen}
               onOpenChange={(open) => {
                 setIsPlanDropdownOpen(open);
@@ -1263,11 +1263,11 @@ export default function PlanBuilderPage() {
                 </button>
               }
             >
-              <CustomDropdownContent>
+              <DropdownMenuContent>
                 {optimisticPlans.map((p) => {
                   const isSelected = selectedPlanId === p.id;
                   return (
-                    <CustomDropdownItem
+                    <DropdownMenuItem
                       key={p.id}
                       selected={isSelected}
                       onClick={() => {
@@ -1277,11 +1277,11 @@ export default function PlanBuilderPage() {
                       }}
                     >
                       {p.title}
-                    </CustomDropdownItem>
+                    </DropdownMenuItem>
                   );
                 })}
-              </CustomDropdownContent>
-            </CustomDropdown>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             <div className="relative shrink-0">
               <button
@@ -1774,7 +1774,7 @@ export default function PlanBuilderPage() {
               )}
 
               {importMode === 'overwrite' && (
-                <CustomDropdown
+                <DropdownMenu
                   isOpen={isImportPlanDropdownOpen}
                   onOpenChange={setIsImportPlanDropdownOpen}
                   trigger={
@@ -1787,9 +1787,9 @@ export default function PlanBuilderPage() {
                     </button>
                   }
                 >
-                  <CustomDropdownContent maxHeight="max-h-40">
+                  <DropdownMenuContent maxHeight="max-h-40">
                     {optimisticPlans.map((plan) => (
-                      <CustomDropdownItem
+                      <DropdownMenuItem
                         key={plan.id}
                         selected={importOverwritePlanId === plan.id}
                         onClick={() => {
@@ -1798,10 +1798,10 @@ export default function PlanBuilderPage() {
                         }}
                       >
                         {plan.title}
-                      </CustomDropdownItem>
+                      </DropdownMenuItem>
                     ))}
-                  </CustomDropdownContent>
-                </CustomDropdown>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
 
               <input

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useTransition } from 'react';
 import { Icon } from '../../components/Icon';
-import { CustomDropdown, CustomDropdownContent, CustomDropdownItem } from '../../components/CustomDropdown';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from '../../components/DropdownMenu';
 import { createForumPost, getForumPageData } from '../../actions';
 import { getForumPostHref } from '../url';
 
@@ -116,7 +116,7 @@ export default function ForumQuestionsPage() {
             className="w-full p-3 border border-panel-border rounded-xl bg-input-bg text-text-primary outline-none"
             disabled={!canPost || isPending}
           />
-          <CustomDropdown
+          <DropdownMenu
             isOpen={isPlanDropdownOpen}
             onOpenChange={(open) => {
               setIsPlanDropdownOpen(open);
@@ -134,8 +134,8 @@ export default function ForumQuestionsPage() {
               </button>
             }
           >
-            <CustomDropdownContent>
-              <CustomDropdownItem
+            <DropdownMenuContent>
+              <DropdownMenuItem
                 selected={attachedPlanId === ''}
                 onClick={() => {
                   setAttachedPlanId('');
@@ -144,9 +144,9 @@ export default function ForumQuestionsPage() {
                 }}
               >
                 No plan attached
-              </CustomDropdownItem>
+              </DropdownMenuItem>
               {plans.map((plan) => (
-                <CustomDropdownItem
+                <DropdownMenuItem
                   key={plan.id}
                   selected={attachedPlanId === plan.id}
                   onClick={() => {
@@ -156,10 +156,10 @@ export default function ForumQuestionsPage() {
                   }}
                 >
                   Attach: {plan.title}
-                </CustomDropdownItem>
+                </DropdownMenuItem>
               ))}
-            </CustomDropdownContent>
-          </CustomDropdown>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <button
             type="button"
             onClick={handleCreateQuestion}

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Icon } from '../components/Icon';
-import { CustomDropdown, CustomDropdownContent, CustomDropdownItem } from '../components/CustomDropdown';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from '../components/DropdownMenu';
 import { getCourseInfoFromJSON } from '../actions';
 
 interface CourseInfo {

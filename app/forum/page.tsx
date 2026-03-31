@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Icon } from '@/app/components/Icon';
-import { CustomDropdown, CustomDropdownContent, CustomDropdownItem } from '@/app/components/CustomDropdown';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from '@/app/components/DropdownMenu';
 import { getForumPageData, voteOnForumPost } from '../actions';
 import { useAttachedPlanModal } from '../components/AttachedPlan';
 import { getForumPostHref } from './url';
@@ -242,7 +242,7 @@ export default function ForumPage() {
                 }
               }}
               placeholder="Search the forum"
-              className="w-full h-[42px] pl-10 pr-4 border border-panel-border rounded-full bg-input-bg text-text-primary outline-none focus:border-uva-blue/40 focus:ring-2 focus:ring-uva-blue/15"
+              className="w-full h-[42px] pl-10 pr-4 border border-panel-border rounded-full bg-input-bg text-text-primary outline-none"
             />
 
             {showSuggestions && (
@@ -274,7 +274,7 @@ export default function ForumPage() {
 
       <div className="mb-4 flex items-center justify-end">
         <div className="text-sm">
-          <CustomDropdown
+          <DropdownMenu
             isOpen={isSortDropdownOpen}
             onOpenChange={setIsSortDropdownOpen}
             align="right"
@@ -288,8 +288,8 @@ export default function ForumPage() {
               </button>
             }
           >
-            <CustomDropdownContent className="w-48">
-              <CustomDropdownItem
+            <DropdownMenuContent className="w-48">
+              <DropdownMenuItem
                 selected={sortBy === 'recent'}
                 onClick={() => {
                   setSortBy('recent');
@@ -297,8 +297,8 @@ export default function ForumPage() {
                 }}
               >
                 Most Recent
-              </CustomDropdownItem>
-              <CustomDropdownItem
+              </DropdownMenuItem>
+              <DropdownMenuItem
                 selected={sortBy === 'upvoted'}
                 onClick={() => {
                   setSortBy('upvoted');
@@ -306,9 +306,9 @@ export default function ForumPage() {
                 }}
               >
                 Highest Upvoted
-              </CustomDropdownItem>
-            </CustomDropdownContent>
-          </CustomDropdown>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 

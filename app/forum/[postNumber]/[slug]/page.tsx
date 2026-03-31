@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { use, useEffect, useState, useTransition } from 'react';
 import { Icon } from '@/app/components/Icon';
 import { default as ConfirmModal } from '../../../components/ConfirmModal';
-import { CustomDropdown, CustomDropdownContent, CustomDropdownItem } from '../../../components/CustomDropdown';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from '../../../components/DropdownMenu';
 import { useAttachedPlanModal } from '../../../components/AttachedPlan';
 import {
   addForumReply,
@@ -526,7 +526,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                       disabled={!canPost || isPending}
                     />
                     <div className="flex items-center gap-2 flex-wrap">
-                      <CustomDropdown
+                      <DropdownMenu
                         isOpen={isInlinePlanDropdownOpen}
                         onOpenChange={setIsInlinePlanDropdownOpen}
                         trigger={
@@ -540,8 +540,8 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                           </button>
                         }
                       >
-                        <CustomDropdownContent className="w-48 max-h-64 overflow-y-auto">
-                          <CustomDropdownItem
+                        <DropdownMenuContent className="w-48 max-h-64 overflow-y-auto">
+                          <DropdownMenuItem
                             selected={!inlineAttachedPlanId}
                             onClick={() => {
                               setInlineAttachedPlanId('');
@@ -549,9 +549,9 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                             }}
                           >
                             No plan attached
-                          </CustomDropdownItem>
+                          </DropdownMenuItem>
                           {postData.plans.map((plan) => (
-                            <CustomDropdownItem
+                            <DropdownMenuItem
                               key={plan.id}
                               selected={inlineAttachedPlanId === plan.id}
                               onClick={() => {
@@ -560,10 +560,10 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                               }}
                             >
                               {plan.title}
-                            </CustomDropdownItem>
+                            </DropdownMenuItem>
                           ))}
-                        </CustomDropdownContent>
-                      </CustomDropdown>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                     <div className="flex justify-end gap-2">
                       <button
@@ -693,7 +693,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-semibold text-heading">{post.answers.length} Replies</h2>
               <div className="text-sm">
-                <CustomDropdown
+                <DropdownMenu
                   isOpen={isSortDropdownOpen}
                   onOpenChange={setIsSortDropdownOpen}
                   align="right"
@@ -707,8 +707,8 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                     </button>
                   }
                 >
-                  <CustomDropdownContent className="w-48">
-                    <CustomDropdownItem
+                  <DropdownMenuContent className="w-48">
+                    <DropdownMenuItem
                       selected={replySort === 'newest'}
                       onClick={() => {
                         setReplySort('newest');
@@ -716,8 +716,8 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                       }}
                     >
                       Newest first
-                    </CustomDropdownItem>
-                    <CustomDropdownItem
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
                       selected={replySort === 'oldest'}
                       onClick={() => {
                         setReplySort('oldest');
@@ -725,8 +725,8 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                       }}
                     >
                       Oldest first
-                    </CustomDropdownItem>
-                    <CustomDropdownItem
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
                       selected={replySort === 'popular'}
                       onClick={() => {
                         setReplySort('popular');
@@ -734,9 +734,9 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                       }}
                     >
                       Most votes
-                    </CustomDropdownItem>
-                  </CustomDropdownContent>
-                </CustomDropdown>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
 
@@ -750,7 +750,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                 disabled={!canPost || isPending}
               />
               <div className="mt-3 flex items-center justify-between gap-3 flex-wrap">
-                <CustomDropdown
+                <DropdownMenu
                   isOpen={isPlanDropdownOpen}
                   onOpenChange={setIsPlanDropdownOpen}
                   trigger={
@@ -764,8 +764,8 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                     </button>
                   }
                 >
-                  <CustomDropdownContent className="w-64 max-h-64 overflow-y-auto">
-                    <CustomDropdownItem
+                  <DropdownMenuContent className="w-64 max-h-64 overflow-y-auto">
+                    <DropdownMenuItem
                       selected={!attachedPlanId}
                       onClick={() => {
                         setAttachedPlanId('');
@@ -773,9 +773,9 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                       }}
                     >
                       No plan attached
-                    </CustomDropdownItem>
+                    </DropdownMenuItem>
                     {postData.plans.map((plan) => (
-                      <CustomDropdownItem
+                      <DropdownMenuItem
                         key={plan.id}
                         selected={attachedPlanId === plan.id}
                         onClick={() => {
@@ -784,10 +784,10 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                         }}
                       >
                         Attach: {plan.title}
-                      </CustomDropdownItem>
+                      </DropdownMenuItem>
                     ))}
-                  </CustomDropdownContent>
-                </CustomDropdown>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <button
                   type="button"
                   onClick={handleReply}

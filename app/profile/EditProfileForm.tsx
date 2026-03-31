@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { updateCurrentUserProfile } from '../actions';
-import CustomSelect from '../components/CustomSelect';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from '../components/DropdownMenu';
 import { Icon } from '../components/Icon';
 import { getDefaultGraduationYearForStanding, getDefaultStandingForGraduationYear } from '../utils/academicYear';
 import { PROFILE_SCHOOL_OPTIONS, PROFILE_MAJOR_OPTIONS, PROFILE_ADDITIONAL_PROGRAMS, MAJOR_TO_SCHOOL_MAP } from './profileOptions';
@@ -29,6 +29,16 @@ export default function EditProfileForm({
   const [isEditing, setIsEditing] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  
+  const [isMajorOpen, setIsMajorOpen] = useState(false);
+  const [isSchoolOpen, setIsSchoolOpen] = useState(false);
+  const [isAdditionalProgramsOpen, setIsAdditionalProgramsOpen] = useState(false);
+  const [isAcademicYearOpen, setIsAcademicYearOpen] = useState(false);
+  const [isGradYearOpen, setIsGradYearOpen] = useState(false);
+  
+  const [majorSearch, setMajorSearch] = useState('');
+  const [additionalProgramsSearch, setAdditionalProgramsSearch] = useState('');
+  const [gradYearSearch, setGradYearSearch] = useState('');
 
   const [formDisplayName, setFormDisplayName] = useState(displayName);
   const [formMajor, setFormMajor] = useState(major ?? '');
@@ -91,6 +101,24 @@ export default function EditProfileForm({
       return { value: String(year), label: String(year) };
     });
   }, []);
+
+  const filteredMajorOptions = useMemo(() => {
+    if (!majorSearch.trim()) return majorOptions;
+    const query = majorSearch.toLowerCase();
+    return majorOptions.filter(opt => opt.label.toLowerCase().includes(query));
+  }, [majorOptions, majorSearch]);
+
+  const filteredAdditionalPrograms = useMemo(() => {
+    if (!additionalProgramsSearch.trim()) return PROFILE_ADDITIONAL_PROGRAMS;
+    const query = additionalProgramsSearch.toLowerCase();
+    return PROFILE_ADDITIONAL_PROGRAMS.filter(prog => prog.toLowerCase().includes(query));
+  }, [additionalProgramsSearch]);
+
+  const filteredGradYearOptions = useMemo(() => {
+    if (!gradYearSearch.trim()) return gradYearOptions;
+    const query = gradYearSearch.toLowerCase();
+    return gradYearOptions.filter(opt => opt.label.toLowerCase().includes(query));
+  }, [gradYearOptions, gradYearSearch]);
 
   const handleCancel = () => {
     setFormDisplayName(displayName);
@@ -217,15 +245,59 @@ export default function EditProfileForm({
 
             <div>
               <label className="block text-sm font-semibold text-text-secondary mb-2">Major</label>
-              <CustomSelect
-                value={formMajor}
-                onChange={handleMajorChange}
-                options={majorOptions}
-                placeholder="Select your major"
-                emptyLabel="Select your major"
-                searchable
-                searchPlaceholder="Search majors"
-              />
+              <DropdownMenu
+                isOpen={isMajorOpen}
+                onOpenChange={(open) => {
+                  setIsMajorOpen(open);
+                  if (!open) setMajorSearch('');
+                }}
+                trigger={
+                  <button className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none focus:border-uva-blue focus:ring-2 focus:ring-uva-blue/20 hover:border-panel-border-strong transition-all">
+                    <span className={formMajor ? 'truncate' : 'truncate text-text-tertiary'}>
+                      {majorOptions.find(o => o.value === formMajor)?.label ?? 'Select your major'}
+                    </span>
+                    <Icon name="chevron-down" color="currentColor" width={16} height={16} className="w-4 h-4 shrink-0 text-text-secondary" />
+                  </button>
+                }
+              >
+                <div className="p-2 border-b border-panel-border bg-panel-bg">
+                  <input
+                    type="text"
+                    value={majorSearch}
+                    onChange={(e) => setMajorSearch(e.target.value)}
+                    placeholder="Search majors"
+                    className="w-full px-3 py-2 border border-panel-border rounded-lg bg-input-bg text-text-primary text-sm outline-none focus:border-uva-blue focus:ring-2 focus:ring-uva-blue/20 transition-all"
+                  />
+                </div>
+                <DropdownMenuContent maxHeight="max-h-64">
+                  <DropdownMenuItem
+                    selected={formMajor === ''}
+                    onClick={() => {
+                      setFormMajor('');
+                      setIsMajorOpen(false);
+                      setMajorSearch('');
+                    }}
+                  >
+                    Select your major
+                  </DropdownMenuItem>
+                  {filteredMajorOptions.map((option) => (
+                    <DropdownMenuItem
+                      key={option.value}
+                      selected={formMajor === option.value}
+                      onClick={() => {
+                        handleMajorChange(option.value);
+                        setIsMajorOpen(false);
+                        setMajorSearch('');
+                      }}
+                    >
+                      {option.label}
+                    </DropdownMenuItem>
+                  ))}
+                  {filteredMajorOptions.length === 0 && (
+                    <div className="px-3 py-2 text-sm text-text-secondary">No majors found.</div>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
 
             <div>
@@ -238,45 +310,156 @@ export default function EditProfileForm({
             <div>
               <label className="block text-sm font-semibold text-text-secondary mb-2">Additional Programs</label>
               <p className="text-xs text-text-tertiary mb-3">Select certificates, ROTC, honors programs, and other academic opportunities</p>
-              <CustomSelect
-                value={formAdditionalPrograms[0] ?? ''}
-                onChange={(value) => {
-                  if (value) {
-                    setFormAdditionalPrograms([value]);
-                  } else {
-                    setFormAdditionalPrograms([]);
-                  }
+              <DropdownMenu
+                isOpen={isAdditionalProgramsOpen}
+                onOpenChange={(open) => {
+                  setIsAdditionalProgramsOpen(open);
+                  if (!open) setAdditionalProgramsSearch('');
                 }}
-                options={PROFILE_ADDITIONAL_PROGRAMS.map((program) => ({ value: program, label: program }))}
-                placeholder="Select additional programs"
-                emptyLabel="No programs selected"
-                searchable
-                searchPlaceholder="Search programs"
-              />
+                trigger={
+                  <button className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none focus:border-uva-blue focus:ring-2 focus:ring-uva-blue/20 hover:border-panel-border-strong transition-all">
+                    <span className={formAdditionalPrograms.length > 0 ? 'truncate' : 'truncate text-text-tertiary'}>
+                      {formAdditionalPrograms.length > 0 ? formAdditionalPrograms[0] : 'Select additional programs'}
+                    </span>
+                    <Icon name="chevron-down" color="currentColor" width={16} height={16} className="w-4 h-4 shrink-0 text-text-secondary" />
+                  </button>
+                }
+              >
+                <div className="p-2 border-b border-panel-border bg-panel-bg">
+                  <input
+                    type="text"
+                    value={additionalProgramsSearch}
+                    onChange={(e) => setAdditionalProgramsSearch(e.target.value)}
+                    placeholder="Search programs"
+                    className="w-full px-3 py-2 border border-panel-border rounded-lg bg-input-bg text-text-primary text-sm outline-none focus:border-uva-blue focus:ring-2 focus:ring-uva-blue/20 transition-all"
+                  />
+                </div>
+                <DropdownMenuContent maxHeight="max-h-64">
+                  <DropdownMenuItem
+                    selected={formAdditionalPrograms.length === 0}
+                    onClick={() => {
+                      setFormAdditionalPrograms([]);
+                      setIsAdditionalProgramsOpen(false);
+                      setAdditionalProgramsSearch('');
+                    }}
+                  >
+                    No programs selected
+                  </DropdownMenuItem>
+                  {filteredAdditionalPrograms.map((program) => (
+                    <DropdownMenuItem
+                      key={program}
+                      selected={formAdditionalPrograms[0] === program}
+                      onClick={() => {
+                        setFormAdditionalPrograms([program]);
+                        setIsAdditionalProgramsOpen(false);
+                        setAdditionalProgramsSearch('');
+                      }}
+                    >
+                      {program}
+                    </DropdownMenuItem>
+                  ))}
+                  {filteredAdditionalPrograms.length === 0 && (
+                    <div className="px-3 py-2 text-sm text-text-secondary">No programs found.</div>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
 
             <div>
               <label className="block text-sm font-semibold text-text-secondary mb-2">Current Academic Year</label>
-              <CustomSelect
-                value={formCurrentAcademicYear}
-                onChange={handleAcademicYearChange}
-                options={academicYearOptions}
-                placeholder="Select current academic year"
-                emptyLabel="No year selected"
-              />
+              <DropdownMenu
+                isOpen={isAcademicYearOpen}
+                onOpenChange={setIsAcademicYearOpen}
+                trigger={
+                  <button className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none focus:border-uva-blue focus:ring-2 focus:ring-uva-blue/20 hover:border-panel-border-strong transition-all">
+                    <span className={formCurrentAcademicYear ? 'truncate' : 'truncate text-text-tertiary'}>
+                      {academicYearOptions.find(o => o.value === formCurrentAcademicYear)?.label ?? 'Select current academic year'}
+                    </span>
+                    <Icon name="chevron-down" color="currentColor" width={16} height={16} className="w-4 h-4 shrink-0 text-text-secondary" />
+                  </button>
+                }
+              >
+                <DropdownMenuContent maxHeight="max-h-64">
+                  <DropdownMenuItem
+                    selected={formCurrentAcademicYear === ''}
+                    onClick={() => {
+                      setFormCurrentAcademicYear('');
+                      setIsAcademicYearOpen(false);
+                    }}
+                  >
+                    No year selected
+                  </DropdownMenuItem>
+                  {academicYearOptions.map((option) => (
+                    <DropdownMenuItem
+                      key={option.value}
+                      selected={formCurrentAcademicYear === option.value}
+                      onClick={() => {
+                        handleAcademicYearChange(option.value);
+                        setIsAcademicYearOpen(false);
+                      }}
+                    >
+                      {option.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
 
             <div>
               <label className="block text-sm font-semibold text-text-secondary mb-2">Graduation Year</label>
-              <CustomSelect
-                value={formGradYear}
-                onChange={handleGradYearChange}
-                options={gradYearOptions}
-                placeholder="Select graduation year"
-                emptyLabel="No graduation year selected"
-                searchable
-                searchPlaceholder="Search years"
-              />
+              <DropdownMenu
+                isOpen={isGradYearOpen}
+                onOpenChange={(open) => {
+                  setIsGradYearOpen(open);
+                  if (!open) setGradYearSearch('');
+                }}
+                trigger={
+                  <button className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none focus:border-uva-blue focus:ring-2 focus:ring-uva-blue/20 hover:border-panel-border-strong transition-all">
+                    <span className={formGradYear ? 'truncate' : 'truncate text-text-tertiary'}>
+                      {gradYearOptions.find(o => o.value === formGradYear)?.label ?? 'Select graduation year'}
+                    </span>
+                    <Icon name="chevron-down" color="currentColor" width={16} height={16} className="w-4 h-4 shrink-0 text-text-secondary" />
+                  </button>
+                }
+              >
+                <div className="p-2 border-b border-panel-border bg-panel-bg">
+                  <input
+                    type="text"
+                    value={gradYearSearch}
+                    onChange={(e) => setGradYearSearch(e.target.value)}
+                    placeholder="Search years"
+                    className="w-full px-3 py-2 border border-panel-border rounded-lg bg-input-bg text-text-primary text-sm outline-none focus:border-uva-blue focus:ring-2 focus:ring-uva-blue/20 transition-all"
+                  />
+                </div>
+                <DropdownMenuContent maxHeight="max-h-64">
+                  <DropdownMenuItem
+                    selected={formGradYear === ''}
+                    onClick={() => {
+                      setFormGradYear('');
+                      setIsGradYearOpen(false);
+                      setGradYearSearch('');
+                    }}
+                  >
+                    No graduation year selected
+                  </DropdownMenuItem>
+                  {filteredGradYearOptions.map((option) => (
+                    <DropdownMenuItem
+                      key={option.value}
+                      selected={formGradYear === option.value}
+                      onClick={() => {
+                        handleGradYearChange(option.value);
+                        setIsGradYearOpen(false);
+                        setGradYearSearch('');
+                      }}
+                    >
+                      {option.label}
+                    </DropdownMenuItem>
+                  ))}
+                  {filteredGradYearOptions.length === 0 && (
+                    <div className="px-3 py-2 text-sm text-text-secondary">No years found.</div>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
 
             <div>

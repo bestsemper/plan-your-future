@@ -3,8 +3,8 @@
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import { Icon } from './Icon';
 
-// CustomDropdown Props
-type CustomDropdownProps = {
+// DropdownMenu Props
+type DropdownMenuProps = {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   trigger: ReactNode;
@@ -14,15 +14,15 @@ type CustomDropdownProps = {
   className?: string;
 };
 
-// CustomDropdownContent Props
-type CustomDropdownContentProps = {
+// DropdownMenuContent Props
+type DropdownMenuContentProps = {
   children: ReactNode;
   maxHeight?: string;
   className?: string;
 };
 
-// CustomDropdownItem Props
-type CustomDropdownItemProps = {
+// DropdownMenuItem Props
+type DropdownMenuItemProps = {
   onClick: () => void;
   selected?: boolean;
   children: ReactNode;
@@ -32,7 +32,7 @@ type CustomDropdownItemProps = {
 /**
  * Main dropdown wrapper component that handles opening/closing and positioning
  */
-export function CustomDropdown({
+export function DropdownMenu({
   isOpen,
   onOpenChange,
   trigger,
@@ -40,7 +40,7 @@ export function CustomDropdown({
   disabled = false,
   align = 'left',
   className = '',
-}: CustomDropdownProps) {
+}: DropdownMenuProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -83,11 +83,11 @@ export function CustomDropdown({
 /**
  * Content container for dropdown items with scrolling support
  */
-export function CustomDropdownContent({
+export function DropdownMenuContent({
   children,
   maxHeight = 'max-h-48',
   className = '',
-}: CustomDropdownContentProps) {
+}: DropdownMenuContentProps) {
   return (
     <div className={`${maxHeight} overflow-y-auto overflow-x-hidden px-2 py-1.5 space-y-0.5 max-w-full ${className}`}>
       {children}
@@ -98,12 +98,12 @@ export function CustomDropdownContent({
 /**
  * Individual dropdown item with optional selection checkmark
  */
-export function CustomDropdownItem({
+export function DropdownMenuItem({
   onClick,
   selected = false,
   children,
   icon,
-}: CustomDropdownItemProps) {
+}: DropdownMenuItemProps) {
   return (
     <button
       type="button"
