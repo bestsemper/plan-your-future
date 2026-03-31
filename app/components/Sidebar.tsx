@@ -109,7 +109,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
       {!isLoginPage && (
       <aside
         id="mobile-sidebar-panel"
-        className={`lg:hidden fixed top-14 bottom-0 left-0 z-[70] w-72 bg-uva-blue text-white px-6 py-6 flex flex-col justify-between transform transition-transform duration-200 ${
+        className={`lg:hidden fixed top-14 bottom-0 left-0 z-[70] w-72 bg-uva-blue text-white p-4 flex flex-col justify-between transform transition-transform duration-200 ${
           mobileNavOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -211,7 +211,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
           </nav>
         </div>
 
-        <div className="pt-4 flex flex-col gap-2 border-t border-white/20">
+        <div className={`pt-4 flex flex-col gap-2 ${menuOpen ? '' : 'border-t border-white/20'}`}>
           {user ? (
             <div className="relative" ref={desktopMenuRef}>
               <button
