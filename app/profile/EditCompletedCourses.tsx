@@ -258,9 +258,9 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={closeModal}>
-      <div
-        className="bg-panel-bg rounded-2xl border border-panel-border shadow-xl max-w-2xl w-full max-h-[calc(100vh-2rem)] overflow-hidden flex flex-col"
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 max-sm:inset-x-0 max-sm:top-14 max-sm:bottom-0 max-sm:bg-transparent max-sm:p-0" onClick={closeModal}>
+      <div 
+        className="bg-panel-bg rounded-2xl border border-panel-border shadow-xl max-w-2xl w-full max-h-[calc(100vh-2rem)] overflow-hidden flex flex-col max-sm:rounded-3xl max-sm:m-3 max-sm:w-full max-sm:max-w-none max-sm:h-[calc(100vh-3.5rem-1.5rem)] max-sm:max-h-none"
         onClick={(e) => e.stopPropagation()}
       >
           {/* Header */}

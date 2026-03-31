@@ -141,19 +141,15 @@ function AttachedPlan({
 }: AttachedPlanProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const [isImporting, setIsImporting] = useState(false);
   const [size, setSize] = useState(() => {
     if (typeof window === 'undefined') {
-      return { width: MIN_WIDTH, height: MIN_HEIGHT };
-    }
-    const isMobile = window.innerWidth < 768;
-    if (isMobile) {
-      return { width: window.innerWidth, height: window.innerHeight };
+      return { width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT };
     }
     const initialWidth = Math.max(MIN_WIDTH, window.innerWidth * 0.4);
-    const initialHeight = window.innerHeight - 16;
     return {
       width: Math.min(initialWidth, window.innerWidth - 16),
-      height: Math.max(MIN_HEIGHT, initialHeight),
+      height: Math.max(MIN_HEIGHT, window.innerHeight - 16),
     };
   });
   const [isRendered, setIsRendered] = useState(false);
@@ -161,84 +157,34 @@ function AttachedPlan({
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [resizeState, setResizeState] = useState<ResizeState | null>(null);
-  const [isImporting, setIsImporting] = useState(false);
 
   useEffect(() => {
     if (!isOpen || typeof window === 'undefined') return;
 
-    const isMobile = window.innerWidth < 768;
-    
-    let width, height;
-    if (isMobile) {
-      width = window.innerWidth;
-      height = window.innerHeight;
-    } else {
-      const initialWidth = Math.max(MIN_WIDTH, window.innerWidth * 0.4);
-      width = Math.min(initialWidth, window.innerWidth - 16);
-      height = Math.max(MIN_HEIGHT, window.innerHeight - 16);
-    }
+    const initialWidth = Math.max(MIN_WIDTH, window.innerWidth * 0.4);
+    const width = Math.min(initialWidth, window.innerWidth - 16);
+    const height = Math.max(MIN_HEIGHT, window.innerHeight - 16);
     
     setSize({ width, height });
     
-    // Position differently based on screen size
+    // Position at the top right for desktop
     if (!initialPosition) {
-      if (isMobile) {
-        setPosition({ x: 0, y: 0 });
-      } else {
-        // Center or position at the start of the padded container
-        setPosition({
-          x: window.innerWidth - width - 8,
-          y: 8,
-        });
-      }
+      setPosition({
+        x: Math.max(8, window.innerWidth - width - 8),
+        y: 8,
+      });
     }
 
     setTimeout(() => setIsRendered(true), 10);
   }, [isOpen, initialPosition]);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const handleResize = () => {
-      setSize((prevSize) => {
-        const isMobile = window.innerWidth < 768;
-        if (isMobile) {
-          setPosition({ x: 0, y: 0 });
-          return { width: window.innerWidth, height: window.innerHeight };
-        }
-
-        const maxWidth = window.innerWidth - 16;
-        const maxHeight = window.innerHeight - 16;
-        const newWidth = Math.max(MIN_WIDTH, Math.min(prevSize.width, maxWidth));
-        const newHeight = Math.max(MIN_HEIGHT, Math.min(prevSize.height, maxHeight));
-
-        setPosition((prevPos) => ({
-          x: Math.min(window.innerWidth - newWidth - 8, Math.max(8, prevPos.x)),
-          y: Math.min(window.innerHeight - newHeight - 8, Math.max(8, prevPos.y)),
-        }));
-
-        return { width: newWidth, height: newHeight };
-      });
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  useEffect(() => {
     if (!isDragging) return;
 
     const handleMouseMove = (event: MouseEvent) => {
-      if (window.innerWidth < 768) return;
-
-      const maxWidth = window.innerWidth - 16;
-      const maxHeight = window.innerHeight - 16;
-      const actualWidth = Math.min(size.width, maxWidth);
-      const actualHeight = Math.min(size.height, maxHeight);
-
       setPosition({
-        x: Math.min(window.innerWidth - actualWidth - 8, Math.max(8, event.clientX - dragOffset.x)),
-        y: Math.min(window.innerHeight - actualHeight - 8, Math.max(8, event.clientY - dragOffset.y)),
+        x: Math.min(window.innerWidth - size.width - 8, Math.max(8, event.clientX - dragOffset.x)),
+        y: Math.min(window.innerHeight - size.height - 8, Math.max(8, event.clientY - dragOffset.y)),
       });
     };
 
@@ -266,38 +212,33 @@ function AttachedPlan({
       let nextLeft = resizeState.startLeft;
       let nextTop = resizeState.startTop;
 
-        const maxWidth = window.innerWidth - 16;
-        const maxHeight = window.innerHeight - 16;
+      if (resizeState.direction.includes('e')) {
+        nextWidth = Math.max(MIN_WIDTH, Math.min(window.innerWidth - resizeState.startLeft - 8, resizeState.startWidth + dx));
+      }
 
-        if (resizeState.direction.includes('e')) {
-          nextWidth = Math.max(MIN_WIDTH, Math.min(window.innerWidth - resizeState.startLeft - 8, maxWidth, resizeState.startWidth + dx));
-        }
+      if (resizeState.direction.includes('s')) {
+        nextHeight = Math.max(MIN_HEIGHT, Math.min(window.innerHeight - resizeState.startTop - 8, resizeState.startHeight + dy));
+      }
 
-        if (resizeState.direction.includes('s')) {
-          nextHeight = Math.max(MIN_HEIGHT, Math.min(window.innerHeight - resizeState.startTop - 8, maxHeight, resizeState.startHeight + dy));
-        }
+      if (resizeState.direction.includes('w')) {
+        const maxDeltaLeft = resizeState.startWidth - MIN_WIDTH;
+        const constrainedDeltaLeft = Math.max(-resizeState.startLeft + 8, Math.min(dx, maxDeltaLeft));
+        nextLeft = resizeState.startLeft + constrainedDeltaLeft;
+        nextWidth = resizeState.startWidth - constrainedDeltaLeft;
+      }
 
-        if (resizeState.direction.includes('w')) {
-          const maxDeltaLeft = resizeState.startWidth - MIN_WIDTH;
-          const minDeltaLeft = Math.max(8 - resizeState.startLeft, resizeState.startWidth - maxWidth);
-          const constrainedDeltaLeft = Math.max(minDeltaLeft, Math.min(dx, maxDeltaLeft));
-          nextLeft = resizeState.startLeft + constrainedDeltaLeft;
-          nextWidth = resizeState.startWidth - constrainedDeltaLeft;
-        }
+      if (resizeState.direction.includes('n')) {
+        const maxDeltaTop = resizeState.startHeight - MIN_HEIGHT;
+        const constrainedDeltaTop = Math.max(-resizeState.startTop + 8, Math.min(dy, maxDeltaTop));
+        nextTop = resizeState.startTop + constrainedDeltaTop;
+        nextHeight = resizeState.startHeight - constrainedDeltaTop;
+      }
 
-        if (resizeState.direction.includes('n')) {
-          const maxDeltaTop = resizeState.startHeight - MIN_HEIGHT;
-          const minDeltaTop = Math.max(8 - resizeState.startTop, resizeState.startHeight - maxHeight);
-          const constrainedDeltaTop = Math.max(minDeltaTop, Math.min(dy, maxDeltaTop));
-          nextTop = resizeState.startTop + constrainedDeltaTop;
-          nextHeight = resizeState.startHeight - constrainedDeltaTop;
-        }
-
-        setSize({
-          width: Math.min(nextWidth, window.innerWidth - nextLeft - 8, maxWidth),
-          height: Math.min(nextHeight, window.innerHeight - nextTop - 8, maxHeight),
-        });
-        setPosition({ x: nextLeft, y: nextTop });
+      setSize({
+        width: Math.min(nextWidth, window.innerWidth - nextLeft - 8),
+        height: Math.min(nextHeight, window.innerHeight - nextTop - 8),
+      });
+      setPosition({ x: nextLeft, y: nextTop });
       };
 
       const handleMouseUp = () => {
@@ -316,8 +257,6 @@ function AttachedPlan({
   }, [resizeState]);
 
   const startResize = (direction: ResizeDirection, event: React.MouseEvent<HTMLDivElement>) => {
-    if (window.innerWidth < 768) return;
-    event.preventDefault();
     event.stopPropagation();
     setIsDragging(false);
 
@@ -353,12 +292,93 @@ function AttachedPlan({
 
   if (!isOpen) return null;
 
+  if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+    return (
+      <div className="fixed inset-x-0 top-14 bottom-0 z-50 flex items-center justify-center" style={{ zIndex }} onClick={onClose}>
+        <div 
+          className="bg-panel-bg rounded-3xl border border-panel-border shadow-xl w-full m-3 h-[calc(100vh-3.5rem-1.5rem)] overflow-hidden flex flex-col"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="bg-panel-bg border-b border-panel-border px-4 md:px-8 py-4 md:py-6 flex justify-between items-center gap-4 shrink-0">
+            <h2 className="text-lg md:text-xl font-bold text-heading">Attached Plan</h2>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleImportPlan}
+                disabled={isImporting || loading}
+                className="px-3 py-1.5 bg-uva-blue/90 text-white rounded-xl hover:bg-uva-blue text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="Add this plan to plan builder"
+              >
+                {isImporting ? 'Adding...' : 'Add to Plan Builder'}
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-8 h-8 flex items-center justify-center text-text-secondary hover:text-text-primary cursor-pointer transition-colors"
+                aria-label="Close attached plan"
+              >
+                <Icon name="x" color="currentColor" width={24} height={24} className="w-6 h-6" />
+              </button>
+            </div>
+          </div>
+
+          <div className="px-4 md:px-8 py-4 md:py-6 overflow-y-auto flex-1">
+            {loading && (
+              <div className="animate-pulse space-y-3">
+                <div className="h-6 w-2/3 rounded bg-input-disabled" />
+                <div className="h-4 w-1/3 rounded bg-input-disabled" />
+                <div className="h-24 w-full rounded bg-input-disabled" />
+              </div>
+            )}
+
+            {!loading && plan && (
+              <div>
+                <h3 className="text-2xl font-bold text-heading break-words whitespace-pre-wrap">{plan.title}</h3>
+                <p className="text-sm text-text-secondary mt-1 mb-4">
+                  Plan by{' '}
+                  <Link href={`/profile/${plan.ownerComputingId}?from=${encodeURIComponent(pathname)}`} className="text-text-primary font-semibold hover:underline">
+                    {plan.ownerDisplayName}
+                  </Link>
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {plan.semesters.map((sem) => (
+                    <div key={sem.id} className="bg-panel-bg-alt border border-panel-border rounded-xl p-4">
+                      <div className="flex justify-between items-center border-b border-panel-border pb-2 mb-3">
+                        <h4 className="font-bold text-heading">{sem.termName} {sem.year}</h4>
+                        <span className="text-xs font-semibold bg-input-disabled px-2 py-1 rounded text-text-secondary">
+                          {sem.courses.reduce((acc, c) => acc + (c.creditsMin ?? 0), 0)} cr
+                        </span>
+                      </div>
+
+                      <div className="space-y-2">
+                        {sem.courses.length === 0 && (
+                          <p className="text-sm text-text-secondary">No courses in this semester.</p>
+                        )}
+                        {sem.courses.map((course) => (
+                          <div key={course.id} className="px-3 bg-panel-bg border border-panel-border-strong rounded-lg text-sm flex justify-between items-center h-[42px]">
+                            <span className="font-medium text-text-primary truncate">{course.courseCode}</span>
+                            <span className="text-text-secondary font-semibold">{course.creditsMin ?? 0} cr</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="fixed inset-0 pointer-events-none md:p-0" style={{ zIndex }}>
+    <div className="fixed inset-0 pointer-events-none" style={{ zIndex }}>
       <div
         role="dialog"
         aria-modal="false"
-        className={`pointer-events-auto fixed md:rounded-2xl border-0 md:border md:border-solid md:border-[color:var(--panel-border-strong)] bg-panel-bg shadow-2xl overflow-hidden min-w-[320px] md:min-w-[520px] min-h-[280px] max-w-[100vw] md:max-w-[calc(100vw-16px)] max-h-[100vh] md:max-h-[calc(100vh-16px)] flex flex-col transition-opacity duration-200 ${isDragging ? 'select-none' : ''} ${isRendered ? 'opacity-100' : 'opacity-0'}`}
+        className={`pointer-events-auto fixed rounded-2xl border border-panel-border bg-panel-bg shadow-2xl overflow-hidden min-w-[360px] md:min-w-[520px] min-h-[280px] max-w-[calc(100vw-16px)] max-h-[calc(100vh-16px)] flex flex-col transition-opacity duration-200 ${isDragging ? 'select-none' : ''} ${isRendered ? 'opacity-100' : 'opacity-0'}`}
         style={{
           left: position.x,
           top: position.y,
@@ -366,18 +386,17 @@ function AttachedPlan({
           height: size.height,
         }}
       >
-        <div className="hidden md:block absolute top-0 left-2 right-2 h-2 cursor-n-resize z-20" onMouseDown={(event) => startResize('n', event)} />
-        <div className="hidden md:block absolute bottom-0 left-2 right-2 h-2 cursor-s-resize z-20" onMouseDown={(event) => startResize('s', event)} />
-        <div className="hidden md:block absolute left-0 top-2 bottom-2 w-2 cursor-w-resize z-20" onMouseDown={(event) => startResize('w', event)} />
-        <div className="hidden md:block absolute right-0 top-2 bottom-2 w-2 cursor-e-resize z-20" onMouseDown={(event) => startResize('e', event)} />
-        <div className="hidden md:block absolute top-0 left-0 w-3 h-3 cursor-nw-resize z-20" onMouseDown={(event) => startResize('nw', event)} />
-        <div className="hidden md:block absolute top-0 right-0 w-3 h-3 cursor-ne-resize z-20" onMouseDown={(event) => startResize('ne', event)} />
-        <div className="hidden md:block absolute bottom-0 left-0 w-3 h-3 cursor-sw-resize z-20" onMouseDown={(event) => startResize('sw', event)} />
-        <div className="hidden md:block absolute bottom-0 right-0 w-3 h-3 cursor-se-resize z-20" onMouseDown={(event) => startResize('se', event)} />
+        <div className="absolute top-0 left-2 right-2 h-2 cursor-n-resize z-20" onMouseDown={(event) => startResize('n', event)} />
+        <div className="absolute bottom-0 left-2 right-2 h-2 cursor-s-resize z-20" onMouseDown={(event) => startResize('s', event)} />
+        <div className="absolute left-0 top-2 bottom-2 w-2 cursor-w-resize z-20" onMouseDown={(event) => startResize('w', event)} />
+        <div className="absolute right-0 top-2 bottom-2 w-2 cursor-e-resize z-20" onMouseDown={(event) => startResize('e', event)} />
+        <div className="absolute top-0 left-0 w-3 h-3 cursor-nw-resize z-20" onMouseDown={(event) => startResize('nw', event)} />
+        <div className="absolute top-0 right-0 w-3 h-3 cursor-ne-resize z-20" onMouseDown={(event) => startResize('ne', event)} />
+        <div className="absolute bottom-0 left-0 w-3 h-3 cursor-sw-resize z-20" onMouseDown={(event) => startResize('sw', event)} />
+        <div className="absolute bottom-0 right-0 w-3 h-3 cursor-se-resize z-20" onMouseDown={(event) => startResize('se', event)} />
 
         <div
           onMouseDown={(event) => {
-            if (window.innerWidth < 768) return;
             const target = event.target as HTMLElement;
             if (target.closest('button')) return;
 
@@ -385,7 +404,7 @@ function AttachedPlan({
             setDragOffset({ x: event.clientX - rect.left, y: event.clientY - rect.top });
             setIsDragging(true);
           }}
-          className="h-12 px-4 border-b border-panel-border flex items-center justify-between md:cursor-move bg-panel-bg-alt"
+          className="h-12 px-4 border-b border-panel-border flex items-center justify-between cursor-move bg-panel-bg-alt flex-shrink-0"
         >
           <div className="flex items-center">
             <h3 className="text-base font-bold text-heading">Attached Plan</h3>
@@ -422,7 +441,7 @@ function AttachedPlan({
 
           {!loading && plan && (
             <div>
-              <h4 className="text-2xl font-bold text-heading">{plan.title}</h4>
+              <h4 className="text-2xl font-bold text-heading break-words whitespace-pre-wrap">{plan.title}</h4>
               <p className="text-sm text-text-secondary mt-1 mb-4">
                 Plan by{' '}
                 <Link href={`/profile/${plan.ownerComputingId}?from=${encodeURIComponent(pathname)}`} className="text-text-primary font-semibold hover:underline">

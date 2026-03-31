@@ -206,7 +206,7 @@ export default function ForumPage() {
   }
 
   return (
-    <div className="w-full pt-0 pb-6">
+    <div className="w-full pt-0 pb-6 overflow-x-hidden">
       <div className="mb-6 border-b border-panel-border pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h1 className="text-3xl font-bold text-heading">Forum</h1>
         <div className="flex items-center gap-3 w-full lg:w-auto lg:min-w-[460px]">

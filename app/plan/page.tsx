@@ -1938,8 +1938,8 @@ export default function PlanBuilderPage() {
       )}
 
       {selectedCourseInfo && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => { setSelectedCourseInfo(null); setSelectedCourseMissingRequirements([]); }}>
-          <div className="bg-panel-bg p-6 rounded-2xl max-w-md w-full max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 max-sm:inset-x-0 max-sm:top-14 max-sm:bottom-0 max-sm:p-0 max-sm:bg-transparent" onClick={() => { setSelectedCourseInfo(null); setSelectedCourseMissingRequirements([]); }}>
+          <div className="bg-panel-bg p-6 rounded-2xl max-w-md w-full max-h-[80vh] overflow-y-auto max-sm:rounded-3xl max-sm:m-3 max-sm:h-[calc(100vh-3.5rem-1.5rem)] max-sm:max-h-none" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h2 className="text-2xl font-bold text-heading">{selectedCourseInfo.courseCode}</h2>
