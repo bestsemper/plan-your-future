@@ -296,7 +296,7 @@ function AttachedPlan({
     return (
       <div className="fixed inset-x-0 top-14 bottom-0 z-50 flex items-center justify-center" style={{ zIndex }} onClick={onClose}>
         <div 
-          className="bg-panel-bg rounded-3xl border border-panel-border shadow-xl w-full m-3 h-[calc(100vh-3.5rem-1.5rem)] overflow-hidden flex flex-col"
+          className="bg-panel-bg rounded-3xl border border-panel-border shadow-xl max-lg:shadow-none w-full m-3 h-[calc(100dvh-3.5rem-1.5rem)] overflow-hidden flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="bg-panel-bg border-b border-panel-border px-4 md:px-8 py-4 md:py-6 flex justify-between items-center gap-4 shrink-0">
@@ -306,7 +306,7 @@ function AttachedPlan({
                 type="button"
                 onClick={handleImportPlan}
                 disabled={isImporting || loading}
-                className="px-3 py-1.5 bg-uva-blue/90 text-white rounded-xl hover:bg-uva-blue text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-1.5 border border-panel-border bg-input-bg text-text-primary rounded-full hover:border-panel-border-strong text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label="Add this plan to plan builder"
               >
                 {isImporting ? 'Adding...' : 'Add to Plan Builder'}
@@ -378,7 +378,7 @@ function AttachedPlan({
       <div
         role="dialog"
         aria-modal="false"
-        className={`pointer-events-auto fixed rounded-2xl border border-panel-border bg-panel-bg shadow-2xl overflow-hidden min-w-[360px] md:min-w-[520px] min-h-[280px] max-w-[calc(100vw-16px)] max-h-[calc(100vh-16px)] flex flex-col transition-opacity duration-200 ${isDragging ? 'select-none' : ''} ${isRendered ? 'opacity-100' : 'opacity-0'}`}
+        className={`pointer-events-auto fixed rounded-2xl border border-panel-border bg-panel-bg shadow-2xl overflow-hidden min-w-[360px] md:min-w-[520px] min-h-[280px] max-w-[calc(100vw-16px)] max-h-[calc(100dvh-16px)] flex flex-col transition-opacity duration-200 ${isDragging ? 'select-none' : ''} ${isRendered ? 'opacity-100' : 'opacity-0'}`}
         style={{
           left: position.x,
           top: position.y,

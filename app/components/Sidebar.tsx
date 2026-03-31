@@ -133,7 +133,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
           </nav>
         </div>
 
-        <div className="pt-4 flex flex-col gap-2 border-t border-white/20">
+        <div className={`pt-4 flex flex-col gap-2 ${menuOpen ? '' : 'border-t border-white/20'}`}>
           {user ? (
             <div className="relative" ref={mobileMenuRef}>
               <button

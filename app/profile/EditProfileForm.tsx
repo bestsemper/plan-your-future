@@ -45,6 +45,18 @@ export default function EditProfileForm({
   const [formBio, setFormBio] = useState(bio ?? '');
   const startedWithNoAcademicInfo = currentAcademicYear === null && gradYear === null;
 
+  const hasChanges = useMemo(() => {
+    return (
+      formDisplayName !== displayName ||
+      formMajor !== (major ?? '') ||
+      formSchool !== (MAJOR_TO_SCHOOL_MAP.get(major ?? '') ?? '') ||
+      JSON.stringify(formAdditionalPrograms.sort()) !== JSON.stringify([...(additionalPrograms ?? [])].sort()) ||
+      formCurrentAcademicYear !== (currentAcademicYear ? String(currentAcademicYear) : '') ||
+      formGradYear !== (gradYear ? String(gradYear) : '') ||
+      formBio !== (bio ?? '')
+    );
+  }, [formDisplayName, formMajor, formSchool, formAdditionalPrograms, formCurrentAcademicYear, formGradYear, formBio, displayName, major, additionalPrograms, currentAcademicYear, gradYear, bio]);
+
   const schoolOptions = useMemo(
     () => PROFILE_SCHOOL_OPTIONS.map((option) => ({ value: option, label: option })),
     [],
@@ -172,9 +184,9 @@ export default function EditProfileForm({
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 max-sm:inset-x-0 max-sm:top-14 max-sm:bottom-0 max-sm:bg-transparent max-sm:p-0" onClick={handleCancel}>
+    <div className="fixed z-50 flex items-center justify-center lg:inset-0 lg:bg-black/50 lg:p-4 max-lg:inset-x-0 max-lg:top-14 max-lg:bottom-0 max-lg:p-3" onClick={handleCancel}>
       <div 
-        className="bg-panel-bg rounded-2xl border border-panel-border shadow-xl max-w-2xl w-full max-h-[calc(100vh-2rem)] overflow-hidden flex flex-col max-sm:rounded-3xl max-sm:m-3 max-sm:w-full max-sm:max-w-none max-sm:h-[calc(100vh-3.5rem-1.5rem)] max-sm:max-h-none"
+        className="bg-panel-bg rounded-2xl border border-panel-border shadow-xl max-lg:shadow-none max-w-2xl w-full max-h-[calc(100dvh-2rem)] overflow-hidden flex flex-col max-lg:rounded-3xl max-lg:max-w-none max-lg:h-full max-lg:max-h-none"
         onClick={(e) => e.stopPropagation()}
       >
           {/* Header */}
@@ -298,8 +310,12 @@ export default function EditProfileForm({
             <button
               type="button"
               onClick={handleSave}
-              disabled={isPending}
-              className="w-full sm:w-auto px-6 py-2.5 bg-uva-blue/90 text-white rounded-xl font-semibold hover:bg-uva-blue transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isPending || !hasChanges}
+              className={`w-full sm:w-auto px-6 py-2.5 rounded-xl font-semibold transition-colors cursor-pointer ${
+                hasChanges
+                  ? 'bg-uva-blue/90 text-white hover:bg-uva-blue disabled:opacity-50 disabled:cursor-not-allowed'
+                  : 'border border-panel-border-strong text-text-primary hover:bg-hover-bg disabled:opacity-50 disabled:cursor-not-allowed'
+              }`}
             >
               {isPending ? 'Saving...' : 'Save Changes'}
             </button>
