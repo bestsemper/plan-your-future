@@ -102,7 +102,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
             onTouchMove={(event) => event.preventDefault()}
             onClick={() => setMobileNavOpen(false)}
           />
-          <div className="pointer-events-none lg:hidden fixed top-[4.25rem] bottom-3 left-3 right-3 z-[60] rounded-3xl bg-black/35" />
+          <div className="pointer-events-none lg:hidden fixed top-14 bottom-3 left-3 right-3 z-[60] rounded-3xl bg-black/35" />
         </>
       )}
 

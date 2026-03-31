@@ -79,7 +79,7 @@ export default function CustomSelect({
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
         disabled={disabled}
-        className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none focus:border-white focus:ring-2 focus:ring-white/20 hover:border-panel-border-strong transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none focus:border-uva-blue focus:ring-2 focus:ring-uva-blue/20 hover:border-panel-border-strong transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         aria-haspopup="listbox"
         aria-expanded={isOpen}
       >
@@ -105,7 +105,7 @@ export default function CustomSelect({
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
                 placeholder={searchPlaceholder}
-                className="w-full px-3 py-2 border border-panel-border rounded-lg bg-input-bg text-text-primary text-sm outline-none focus:border-white focus:ring-2 focus:ring-white/20 transition-all"
+                className="w-full px-3 py-2 border border-panel-border rounded-lg bg-input-bg text-text-primary text-sm outline-none focus:border-uva-blue focus:ring-2 focus:ring-uva-blue/20 transition-all"
               />
             </div>
           )}
@@ -118,7 +118,7 @@ export default function CustomSelect({
                   onChange('');
                   setIsOpen(false);
                 }}
-                  className={`w-full text-left px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors ${value === '' ? 'bg-badge-blue-bg text-badge-blue-text font-semibold' : 'text-text-primary hover:bg-hover-bg'}`}
+                className={`w-full text-left px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors ${value === '' ? 'bg-button-bg text-button-text font-semibold' : 'text-text-primary hover:bg-hover-bg'}`}
               >
                 {emptyLabel}
               </button>
@@ -132,7 +132,7 @@ export default function CustomSelect({
                   onChange(option.value);
                   setIsOpen(false);
                 }}
-                className={`w-full text-left px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors flex items-center justify-between gap-2 ${value === option.value ? 'bg-badge-blue-bg text-badge-blue-text font-semibold' : 'text-text-primary hover:bg-hover-bg'}`}
+                className={`w-full text-left px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors flex items-center justify-between gap-2 ${value === option.value ? 'bg-button-bg text-button-text font-semibold' : 'text-text-primary hover:bg-hover-bg'}`}
               >
                 <span className="truncate">{option.label}</span>
                 {value === option.value && (
@@ -141,7 +141,7 @@ export default function CustomSelect({
                     color="currentColor"
                     width={14}
                     height={14}
-                    className="w-3.5 h-3.5 shrink-0 text-badge-blue-text"
+                    className="w-3.5 h-3.5 shrink-0 text-button-text"
                     aria-hidden="true"
                   />
                 )}
