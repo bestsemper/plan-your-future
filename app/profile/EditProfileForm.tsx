@@ -313,7 +313,7 @@ export default function EditProfileForm({
               disabled={isPending || !hasChanges}
               className={`w-full sm:w-auto px-6 py-2.5 rounded-xl font-semibold transition-colors cursor-pointer ${
                 hasChanges
-                  ? 'bg-uva-blue/90 text-white hover:bg-uva-blue disabled:opacity-50 disabled:cursor-not-allowed'
+                  ? 'bg-button-bg text-button-text hover:bg-button-hover disabled:opacity-50 disabled:cursor-not-allowed'
                   : 'border border-panel-border-strong text-text-primary hover:bg-hover-bg disabled:opacity-50 disabled:cursor-not-allowed'
               }`}
             >

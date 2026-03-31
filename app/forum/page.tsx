@@ -174,10 +174,13 @@ export default function ForumPage() {
 
   if (!dataLoaded) {
     return (
-      <div className="w-full pt-0 pb-6 animate-pulse">
-        <div className="mb-6 border-b border-panel-border pb-4 flex items-center justify-between gap-3">
+      <div className="w-full pt-0 pb-6 animate-pulse overflow-x-hidden">
+        <div className="mb-6 border-b border-panel-border pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="h-9 w-64 rounded bg-input-disabled" />
-          <div className="h-[42px] w-28 rounded bg-input-disabled" />
+          <div className="flex items-center gap-3 w-full lg:w-auto lg:min-w-[460px]">
+            <div className="h-10 flex-1 rounded bg-input-disabled" />
+            <div className="h-[42px] w-28 shrink-0 rounded bg-input-disabled" />
+          </div>
         </div>
 
         <div className="mb-6">
