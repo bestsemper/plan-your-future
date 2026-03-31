@@ -752,7 +752,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
   return (
     <div className="w-full h-full flex flex-col bg-panel-bg absolute inset-0 overflow-hidden min-w-0 min-h-0">
       {/* Search Bar - Left Side */}
-      <div className="absolute top-4 left-4 z-10 bg-panel-bg/90 backdrop-blur p-0.5 rounded-xl border border-panel-border shadow-sm w-80">
+      <div className="absolute top-4 left-4 right-40 z-10 bg-panel-bg/90 backdrop-blur p-0.5 rounded-xl border border-panel-border shadow-sm sm:right-44 md:right-40 lg:w-80 lg:right-auto">
         <div
           ref={courseSearchContainerRef}
           className="relative"

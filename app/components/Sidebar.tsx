@@ -66,7 +66,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
 
   return (
     <>
-      <header className="lg:hidden fixed top-0 left-0 right-0 z-40 h-14 bg-uva-blue text-white border-b border-white/15 px-4 flex items-center justify-between">
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-40 h-14 bg-uva-blue text-white px-4 flex items-center justify-between">
         <Link href="/" className="min-w-0 block">
           <div className="w-[190px]">
             <img src="/uva-logo.svg" alt="University of Virginia Logo" className="h-6 w-full" />

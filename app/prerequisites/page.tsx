@@ -15,8 +15,12 @@ export default function PrerequisitesPage() {
   const [selectedDepartment, setSelectedDepartment] = useState<DepartmentInfo | null>(null);
   const [searchText, setSearchText] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showInfoTooltip, setShowInfoTooltip] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
+  const [isHoveringInfo, setIsHoveringInfo] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const dropdownContainerRef = useRef<HTMLDivElement>(null);
+  const infoButtonRef = useRef<HTMLButtonElement>(null);
 
   // Fetch departments on mount and auto-select user's major
   useEffect(() => {
@@ -68,6 +72,58 @@ export default function PrerequisitesPage() {
     };
   }, []);
 
+  // Close info tooltip when clicking outside (mobile only) or when unhover (desktop)
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const isClickInsideInfoButton = infoButtonRef.current && infoButtonRef.current.contains(e.target as Node);
+      
+      if (!isClickInsideInfoButton && !isDesktop) {
+        setShowInfoTooltip(false);
+      }
+    };
+
+    if (showInfoTooltip && !isDesktop) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }
+  }, [showInfoTooltip, isDesktop]);
+
+  // Detect if user is on desktop (lg breakpoint and above - matches Sidebar's lg:hidden threshold)
+  useEffect(() => {
+    const checkIsDesktop = () => {
+      setIsDesktop(window.innerWidth >= 1024);
+    };
+    
+    checkIsDesktop();
+    window.addEventListener("resize", checkIsDesktop);
+    return () => {
+      window.removeEventListener("resize", checkIsDesktop);
+    };
+  }, []);
+
+  // Handle info tooltip visibility based on device
+  const handleInfoMouseEnter = () => {
+    if (isDesktop) {
+      setIsHoveringInfo(true);
+      setShowInfoTooltip(true);
+    }
+  };
+
+  const handleInfoMouseLeave = () => {
+    if (isDesktop) {
+      setIsHoveringInfo(false);
+      setShowInfoTooltip(false);
+    }
+  };
+
+  const handleInfoClick = () => {
+    if (!isDesktop) {
+      setShowInfoTooltip(!showInfoTooltip);
+    }
+  };
+
   // Filter departments based on search text
   const filteredDepartments = departments
     .filter(
@@ -101,13 +157,17 @@ export default function PrerequisitesPage() {
 
   return (
     <div className="w-full h-full pt-0 flex flex-col min-w-0">
-      <div className="mb-6 flex items-center justify-between gap-3 border-b border-panel-border pb-4 w-full min-w-0">
-        <div className="flex items-center gap-2">
+      <div className="mb-6 flex flex-col gap-4 border-b border-panel-border pb-4 w-full min-w-0 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex items-center gap-2 min-w-0">
           <h1 className="text-3xl font-bold text-heading">Prerequisites Tree</h1>
-          <div className="group relative flex-shrink-0">
+          <div className="relative flex-shrink-0">
             <button
+              ref={infoButtonRef}
               type="button"
-              className="w-5 h-5 text-text-tertiary hover:text-text-secondary transition-colors cursor-help"
+              onClick={handleInfoClick}
+              onMouseEnter={handleInfoMouseEnter}
+              onMouseLeave={handleInfoMouseLeave}
+              className="w-5 h-5 text-text-tertiary hover:text-text-secondary focus:text-text-secondary transition-colors cursor-help"
               aria-label="Information about the prerequisites tree"
             >
               <Icon 
@@ -117,12 +177,14 @@ export default function PrerequisitesPage() {
                 height={20}
               />
             </button>
-            <div className="absolute left-0 top-full w-48 p-2 bg-panel-bg border border-panel-border rounded-lg text-xs text-text-secondary shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity z-50">
-              This tree only displays courses that have prerequisites or are prerequisites for other courses.
-            </div>
+            {showInfoTooltip && (
+              <div className="absolute left-1/2 -translate-x-1/2 top-full w-56 sm:w-48 p-2 bg-panel-bg border border-panel-border rounded-lg text-xs text-text-secondary shadow-lg z-50 mt-1">
+                This tree only displays courses that have prerequisites or are prerequisites for other courses.
+              </div>
+            )}
           </div>
         </div>
-        <div className="relative flex-1 max-w-xs">
+        <div className="relative w-full lg:flex-1 lg:max-w-xs">
           <span className="sr-only">Search departments</span>
           <Icon
             name="search"
@@ -141,6 +203,7 @@ export default function PrerequisitesPage() {
               setShowDropdown(true);
             }}
             onFocus={() => setShowDropdown(true)}
+            suppressHydrationWarning
             className="w-full h-[42px] pl-10 pr-4 border border-panel-border rounded-full bg-input-bg text-text-primary outline-none focus:border-uva-blue/40 focus:ring-2 focus:ring-uva-blue/15"
           />
           
