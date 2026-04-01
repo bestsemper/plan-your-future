@@ -5,6 +5,7 @@ export interface SimpleCourse {
   id: string;
   label: string;
   title?: string;
+  type?: string;
   prereqs: string[];
   coreqs?: string[];
 }
@@ -228,7 +229,7 @@ export function buildCourseDag(department: string): CourseDAG {
   const groupCodeMap = buildGroupCodeMap(courseToGroup);
   
   // Step 1: Collect all relevant courses for this department
-  const allCourses = new Map<string, { prereqs: string[]; coreqs: string[] }>();
+  const allCourses = new Map<string, { prereqs: string[]; coreqs: string[]; rawPrereq?: any }>();
   const relevantCourses = new Set<string>();
   
   Object.entries(data.prerequisite_trees).forEach(([courseCode, prereqData]: [string, any]) => {
@@ -264,7 +265,7 @@ export function buildCourseDag(department: string): CourseDAG {
       !specialTopicsCourses.has(p)
     );
     
-    allCourses.set(courseCode, { prereqs: validRecentPrereqs, coreqs: validRecentCoreqs });
+    allCourses.set(courseCode, { prereqs: validRecentPrereqs, coreqs: validRecentCoreqs, rawPrereq: prereqData });
     
     // Always add the course itself to relevant courses (whether or not it has prerequisites)
     relevantCourses.add(courseCode);
@@ -322,6 +323,75 @@ export function buildCourseDag(department: string): CourseDAG {
     return 0;
   };
   
+  let logicNodeCounter = 0;
+
+  const buildLogicTree = (node: any, targetGroup: string, targetLevel: number, isInOr: boolean): string[] => {
+    if (!node) return [];
+    
+    if (node.type === 'course') {
+      const prereq = node.code;
+      if (!relevantCourses.has(prereq)) return [];
+      
+      const prereqGroup = courseToGroupRep.get(prereq);
+      if (!prereqGroup) return [];
+      
+      const prereqLevel = getCourseLevel(prereq);
+      // Skip if prerequisite has a higher level than the course (parsing error)
+      if (prereqLevel > targetLevel) return [];
+      
+      // Avoid self-references
+      if (prereqGroup === targetGroup) return [];
+      
+      return [prereqGroup];
+    }
+    
+    if (node.type === 'AND') {
+      const childIds: string[] = (node.children || []).flatMap((c: any) => buildLogicTree(c, targetGroup, targetLevel, isInOr));
+      // Deduplicate
+      return Array.from(new Set<string>(childIds));
+    }
+    
+    if (node.type === 'OR' || node.type === 'count') {
+      const childIds: string[] = (node.children || []).flatMap((c: any) => buildLogicTree(c, targetGroup, targetLevel, true));
+      const uniqueChildIds = Array.from(new Set<string>(childIds));
+      
+      if (uniqueChildIds.length <= 1) return uniqueChildIds;
+      
+      logicNodeCounter++;
+      // Give it the targetGroup prefix for level detection
+      const nodeType = node.type === 'count' && node.count ? `${node.count} of` : 'OR';
+      const orId = `${targetGroup}-${nodeType.toUpperCase().replace(/\s/g, '')}-${logicNodeCounter}`;
+      
+      nodes.set(orId, {
+        id: orId,
+        label: nodeType,
+        type: 'or',
+        prereqs: [],
+        coreqs: []
+      });
+      if (!edges.has(orId)) edges.set(orId, new Set<string>());
+      
+      // Connect children to this OR node
+      uniqueChildIds.forEach(child => {
+        if (!edges.has(child)) edges.set(child, new Set<string>());
+        const edgeKey = `${child}->${orId}`;
+        if (!edgeSet.has(edgeKey)) {
+          edgeSet.add(edgeKey);
+          edges.get(child)?.add(orId);
+        }
+      });
+      
+      return [orId];
+    }
+    
+    // COREQ or other types? Treat them like nothing or flat list?
+    // Let's recurse if it's COREQ? No, COREQ extraction handles it.
+    if (node.children) {
+      return (node.children || []).flatMap((c: any) => buildLogicTree(c, targetGroup, targetLevel, isInOr)) as string[];
+    }
+    return [];
+  };
+  
   relevantCourses.forEach(courseId => {
     const courseData = allCourses.get(courseId);
     if (!courseData) return;
@@ -329,23 +399,21 @@ export function buildCourseDag(department: string): CourseDAG {
     const courseGroup = courseToGroupRep.get(courseId)!;
     const courseLevel = getCourseLevel(courseId);
     
-    courseData.prereqs.forEach(prereq => {
-      if (!relevantCourses.has(prereq)) return;
+    if (courseData.rawPrereq) {
+      const rootPrereqs = buildLogicTree(courseData.rawPrereq, courseGroup, courseLevel, false);
+      const uniqueRootPrereqs = Array.from(new Set(rootPrereqs));
       
-      const prereqGroup = courseToGroupRep.get(prereq)!;
-      const prereqLevel = getCourseLevel(prereq);
-      
-      // Skip if prerequisite has a higher level than the course (parsing error)
-      if (prereqLevel > courseLevel) return;
-      
-      if (courseGroup !== prereqGroup) {
-        const edgeKey = `${prereqGroup}->${courseGroup}`;
-        if (!edgeSet.has(edgeKey)) {
-          edgeSet.add(edgeKey);
-          edges.get(prereqGroup)?.add(courseGroup);
+      uniqueRootPrereqs.forEach(prereqGroup => {
+        if (courseGroup !== prereqGroup) {
+          const edgeKey = `${prereqGroup}->${courseGroup}`;
+          if (!edgeSet.has(edgeKey)) {
+            edgeSet.add(edgeKey);
+            if (!edges.has(prereqGroup)) edges.set(prereqGroup, new Set<string>());
+            edges.get(prereqGroup)?.add(courseGroup);
+          }
         }
-      }
-    });
+      });
+    }
     
     courseData.coreqs.forEach(coreq => {
       if (!relevantCourses.has(coreq)) return;

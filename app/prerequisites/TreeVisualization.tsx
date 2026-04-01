@@ -13,6 +13,7 @@ interface Course {
   id: string;
   label: string;
   title?: string;
+  type?: string;
   prereqs: string[];
 }
 
@@ -72,10 +73,11 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
   // Handle clicking outside the popup to close it
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
+      const clickedOutsidePopup = popupRef.current ? !popupRef.current.contains(event.target as Node) : true;
+      if (clickedOutsidePopup) {
         const target = event.target as HTMLElement;
         // Don't close if clicking on a node (they have their own click handler)
-        if (!target.closest('rect[data-node-id]')) {
+        if (!target.closest('[data-node-id]')) {
           setClickedNodeId(null);
           setHoveredNodeId(null);
           setHoverPos(null);
@@ -248,11 +250,27 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
       sortedCourseLevels.set(level, sorted);
     }
 
+    // Build coreq groups - track which courses are corequisites of each other
+    const coreqGroup = new Map<string, Set<string>>();
+    dagData.nodes.forEach(course => {
+      coreqGroup.set(course.id, new Set());
+    });
+    if (dagData.coreqEdges) {
+      dagData.coreqEdges.forEach((edge) => {
+        edge.children.forEach((child) => {
+          coreqGroup.get(edge.parent)?.add(child);
+          coreqGroup.get(child)?.add(edge.parent); // bidirectional
+        });
+      });
+    }
+
     // Group levels into rows, separating by depth level WITHIN each course level
+    // Also keep corequisites together in the same row
     const levelRows = new Map<number, string[]>(); // rowIndex -> courseIds
     let currentRowIndex = 0;
     let currentRowCount = 0;
     let lastDepth = -1;
+    const placedCourses = new Set<string>();
 
     for (const level of sortedLevels) {
       const coursesAtLevel = sortedCourseLevels.get(level)!;
@@ -266,11 +284,25 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
       }
       
       // Add courses from this level, creating new rows when depth changes or we hit maxNodesPerLevel
+      // Group corequisites together
       for (const courseId of coursesAtLevel) {
+        if (placedCourses.has(courseId)) continue; // Already placed as part of a coreq group
+        
         const depth = Math.floor(depthMap.get(courseId) || 0);
         
-        // Move to next row if depth changes OR if we've hit max nodes per row
-        if ((lastDepth >= 0 && depth !== lastDepth) || currentRowCount >= maxNodesPerLevel) {
+        // Get corequisites for this course that are also in this level
+        const coreqs = Array.from(coreqGroup.get(courseId) || []).filter(
+          c => coursesAtLevel.includes(c) && !placedCourses.has(c)
+        );
+        
+        // Check if adding this course and its coreqs would exceed row size
+        const groupSize = 1 + coreqs.length;
+        
+        // Move to next row if depth changes OR if we've hit max nodes per row OR if group won't fit
+        if (
+          (lastDepth >= 0 && depth !== lastDepth) || 
+          (currentRowCount > 0 && currentRowCount + groupSize > maxNodesPerLevel)
+        ) {
           currentRowIndex++;
           currentRowCount = 0;
         }
@@ -278,8 +310,26 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
         if (!levelRows.has(currentRowIndex)) {
           levelRows.set(currentRowIndex, []);
         }
+        
+        // Add the course and its corequisites together
         levelRows.get(currentRowIndex)!.push(courseId);
+        placedCourses.add(courseId);
         currentRowCount++;
+        
+        // Add corequisites right after
+        for (const coreq of coreqs) {
+          if (currentRowCount >= maxNodesPerLevel) {
+            currentRowIndex++;
+            currentRowCount = 0;
+            if (!levelRows.has(currentRowIndex)) {
+              levelRows.set(currentRowIndex, []);
+            }
+          }
+          levelRows.get(currentRowIndex)!.push(coreq);
+          placedCourses.add(coreq);
+          currentRowCount++;
+        }
+        
         lastDepth = depth;
       }
     }
@@ -609,6 +659,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
     const positionedNodes = dagData.nodes.map((course) => ({
       id: course.id,
       label: course.label,
+      type: course.type,
       x: positionMap.get(course.id)?.x || 0,
       y: positionMap.get(course.id)?.y || 0,
     }));
@@ -795,6 +846,25 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
 
   const visibleSearchMatches = filteredCourseMatches.slice(0, 25);
   const showSearchPanel = showCourseSearchDropdown && courseSearchText.trim().length > 0;
+
+  const formatNodeLabel = (id: string, isPostreq = false, depth = 0): string => {
+    const node = dagData?.nodes.find(n => n.id === id);
+    if (!node) return id;
+    if (node.type === 'or' || node.type === 'and') {
+      const relatedEdges = isPostreq ? edgesMap?.get(id) : reverseEdgesMap?.get(id);
+      const children = Array.from(relatedEdges || new Set<string>()) as string[];
+      const formatted = children.map(c => formatNodeLabel(c, isPostreq, depth + 1));
+      const joinStr = node.type === 'or' ? ' OR ' : ' AND ';
+      
+      const out = formatted.join(joinStr);
+      if (node.label === 'OR' || node.label === 'AND') {
+        return depth > 0 && children.length > 1 ? `(${out})` : out;
+      } else {
+        return `${node.label} (${formatted.join(', ')})`;
+      }
+    }
+    return node.id;
+  };
 
   return (
     <div className="w-full h-full flex flex-col bg-panel-bg absolute inset-0 overflow-hidden min-w-0 min-h-0">
@@ -1120,7 +1190,11 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
         })}
 
         {/* Draw nodes */}
-        {nodes.map(({ id, label, x, y }) => {
+        {nodes.map(({ id, label, x, y, type }) => {
+          const isOrNode = type === 'or';
+          const isAndNode = type === 'and';
+          const isLogicNode = isOrNode || isAndNode;
+          
           const prereqs = dagData?.nodes.find(n => n.id === id)?.prereqs || [];
           const postreqs = Array.from(edgesMap?.get(id) || new Set());
           
@@ -1128,6 +1202,58 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
           const activeNodeId = clickedNodeId || hoveredNodeId;
           const isDirectlyConnected = activeNodeId && (postreqs.includes(activeNodeId) || reverseEdgesMap?.get(id)?.has(activeNodeId));
           
+          if (isLogicNode) {
+            return (
+              <g key={id}>
+                <circle
+                  cx={x}
+                  cy={y}
+                  r={16}
+                  fill={isDark ? (activeNodeId === id ? "#4b5563" : isDirectlyConnected ? "#374151" : "#1f2937") : (activeNodeId === id ? "#e5e7eb" : isDirectlyConnected ? "#f3f4f6" : "#f9fafb")}
+                  stroke={isDark ? "#d97706" : "#f59e0b"}
+                  strokeWidth={2}
+                  onMouseEnter={(e) => {
+                    if (!clickedNodeId) {
+                      setHoveredNodeId(id);
+                      setHoverPos({ x: 0, y: 0 });
+                    }
+                  }}
+                  onMouseLeave={() => {
+                    if (!clickedNodeId) {
+                      setHoveredNodeId(null);
+                      setHoverPos(null);
+                    }
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (clickedNodeId === id) {
+                      setClickedNodeId(null);
+                      setHoveredNodeId(null);
+                      setHoverPos(null);
+                    } else {
+                      setClickedNodeId(id);
+                      setHoveredNodeId(null);
+                      setHoverPos({ x: 0, y: 0 });
+                    }
+                  }}
+                  data-node-id={id}
+                  style={{ cursor: "pointer" }}
+                />
+                <text
+                  x={x}
+                  y={y + 3}
+                  textAnchor="middle"
+                  fontSize={8}
+                  fill={isDark ? "#e5e7eb" : "#111827"}
+                  fontWeight="bold"
+                  className="pointer-events-none select-none"
+                >
+                  {label}
+                </text>
+              </g>
+            );
+          }
+
           return (
             <g key={id}>
               <rect
@@ -1188,7 +1314,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
       </div>
       </div>
 
-      {(hoveredNodeId || clickedNodeId) && hoverPos && (
+      {(hoveredNodeId || clickedNodeId) && hoverPos && !dagData?.nodes.find(n => n.id === (clickedNodeId || hoveredNodeId))?.type && (
         <div
           ref={popupRef}
           className="fixed bottom-5 right-5 z-[1000] min-w-[200px] max-w-[250px] bg-panel-bg border border-panel-border-strong rounded-lg p-3 text-xs shadow-lg pointer-events-auto"
@@ -1209,7 +1335,22 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
                 <span>None</span>
               ) : (
                 Array.from(reverseEdgesMap?.get((clickedNodeId || hoveredNodeId)!) as Set<string> | Set<unknown>).map((prereq: string | unknown) => (
-                  <div key={prereq as string}>• {String(prereq)}</div>
+                  <div key={prereq as string}>• {formatNodeLabel(String(prereq), false, 0)}</div>
+                ))
+              )}
+            </div>
+          </div>
+
+          <div className="mb-2">
+            <div className="font-semibold text-primary mb-1">
+              Corequisites:
+            </div>
+            <div className="pl-2 text-text-muted">
+              {(coreqMap?.get((clickedNodeId || hoveredNodeId)!) as Set<string> | undefined)?.size === 0 ? (
+                <span>None</span>
+              ) : (
+                Array.from(coreqMap?.get((clickedNodeId || hoveredNodeId)!) as Set<string> | Set<unknown>).map((coreq: string | unknown) => (
+                  <div key={coreq as string}>• {String(coreq)}</div>
                 ))
               )}
             </div>
@@ -1224,22 +1365,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
                 <span>None</span>
               ) : (
                 Array.from(edgesMap?.get((clickedNodeId || hoveredNodeId)!) as Set<string> | Set<unknown>).map((postreq: string | unknown) => (
-                  <div key={postreq as string}>• {String(postreq)}</div>
-                ))
-              )}
-            </div>
-          </div>
-
-          <div className="mt-2">
-            <div className="font-semibold text-primary mb-1">
-              Corequisites:
-            </div>
-            <div className="pl-2 text-text-muted">
-              {(coreqMap?.get((clickedNodeId || hoveredNodeId)!) as Set<string> | undefined)?.size === 0 ? (
-                <span>None</span>
-              ) : (
-                Array.from(coreqMap?.get((clickedNodeId || hoveredNodeId)!) as Set<string> | Set<unknown>).map((coreq: string | unknown) => (
-                  <div key={coreq as string}>• {String(coreq)}</div>
+                  <div key={postreq as string}>• {formatNodeLabel(String(postreq), true, 0)}</div>
                 ))
               )}
             </div>
