@@ -860,7 +860,16 @@ def split_requisite_subsnippets(raw_snippet: str, default_kind: str) -> List[Tup
             continue
 
         inferred_kind = classify_requisite_text(normalized_piece)
-        kind = default_kind if index == 0 and default_kind == 'prerequisite' and inferred_kind == 'prerequisite' else inferred_kind
+        # For the first piece, use the default_kind from the label unless inference clearly contradicts it
+        # Only override if inference detects a fundamentally different category (e.g., exclusion/other)
+        if index == 0:
+            if inferred_kind in ('exclusion', 'other'):
+                kind = inferred_kind
+            else:
+                kind = default_kind
+        else:
+            kind = inferred_kind
+        
         key = (kind, normalized_piece.lower())
         if key in seen:
             continue
@@ -888,7 +897,9 @@ def extract_requirement_snippets(description: str, enrollment_requirements: str)
 
         snippets: List[Tuple[str, str]] = []
         for index, match in enumerate(matches):
-            start = match.start()
+            # Extract from the end of the current label to the start of the next label
+            # Use match.end() to skip past the label and its separator
+            start = match.end()
             end = matches[index + 1].start() if index + 1 < len(matches) else len(normalized_text)
             raw_snippet = normalized_text[start:end]
 
@@ -942,8 +953,17 @@ def extract_requirement_snippets(description: str, enrollment_requirements: str)
 
     description_text = description.strip()
     if description_text:
-        # Parse only labeled requisite sentences from the description so we do
-        # not over-interpret general catalog prose.
+        # If no courses found in enrollment requirements, process description directly  
+        if not enrollment_has_courses:
+            # Try to extract labeled snippets directly from description first
+            labeled_snippets = extract_labeled_snippets(description_text)
+            for kind, snippet in labeled_snippets:
+                key = (kind, snippet.lower())
+                if key not in seen:
+                    seen.add(key)
+                    snippets.append((kind, snippet))
+        
+        # Also check for legacy pattern-based extraction for edge cases
         description_requisite_sentences = extract_requisite_sentences_from_description(description_text)
         if not description_requisite_sentences:
             # Fallback for cases where catalog text omits terminal periods.
@@ -997,13 +1017,22 @@ def extract_requirement_snippets(description: str, enrollment_requirements: str)
                 continue  # Skip normal processing for this sentence
             
             # Normal prerequisite processing (no restrictions)
-            normalized = normalize_requirement_text(sentence)
-            inferred_kind = classify_requisite_text(sentence)
-            key = (inferred_kind, normalized.lower())
-            if key in seen:
-                continue
-            seen.add(key)
-            snippets.append((inferred_kind, normalized))
+            # Use extract_labeled_snippets to properly split on requisite labels
+            labeled_snippets = extract_labeled_snippets(sentence)
+            if labeled_snippets:
+                for kind, snippet in labeled_snippets:
+                    key = (kind, snippet.lower())
+                    if key not in seen:
+                        seen.add(key)
+                        snippets.append((kind, snippet))
+            else:
+                # Fallback for unlabeled sentences
+                normalized = normalize_requirement_text(sentence)
+                inferred_kind = classify_requisite_text(sentence)
+                key = (inferred_kind, normalized.lower())
+                if key not in seen:
+                    seen.add(key)
+                    snippets.append((inferred_kind, normalized))
 
     return snippets
 
@@ -1897,30 +1926,27 @@ def process_course_requirements(
     description: str,
     enrollment_requirements: str,
     equivalent_course_map: Dict[str, List[str]],
-) -> Tuple[Optional[Any], Optional[Any], Optional[Any]]:
-    """Process a single course and return separate prerequisite, corequisite, and other-requirement trees."""
+) -> Tuple[Optional[Any], Optional[Any]]:
+    """Process a single course and return combined requirement tree (with embedded coreqs) and other-requirement tree."""
 
     categorized_snippets = extract_requirement_snippets(description, enrollment_requirements)
     prerequisite_snippets = [snippet for kind, snippet in categorized_snippets if kind == 'prerequisite']
     corequisite_snippets = [snippet for kind, snippet in categorized_snippets if kind == 'corequisite']
     exclusion_snippets = [snippet for kind, snippet in categorized_snippets if kind == 'exclusion']
     
-    # Deduplicate overlapping snippets: if multiple snippets describe the same requirement
-    # but with different levels of completeness, keep only the most complete one.
+    # Deduplicate overlapping snippets
     prerequisite_snippets = deduplicate_overlapping_snippets(prerequisite_snippets)
     corequisite_snippets = deduplicate_overlapping_snippets(corequisite_snippets)
     exclusion_snippets = deduplicate_overlapping_snippets(exclusion_snippets)
+    
     all_requirement_texts = []
     if enrollment_requirements.strip():
         all_requirement_texts.append(enrollment_requirements)
 
-    # Pull non-course restrictions only from labeled requisite sentences in
-    # descriptions, matching legacy scraper behavior.
     description_requisite_sentences = extract_requisite_sentences_from_description(description)
     if not description_requisite_sentences and description.strip():
         description_requisite_sentences = [snippet for _, snippet in extract_requirement_snippets(description, "")]
     all_requirement_texts.extend(description_requisite_sentences)
-
     all_requirement_texts.extend(snippet for _, snippet in categorized_snippets)
 
     prerequisite_tree = build_course_requirement_tree(
@@ -1930,7 +1956,7 @@ def process_course_requirements(
     )
     corequisite_tree = build_course_requirement_tree(course_code, corequisite_snippets, equivalent_course_map)
     
-    # Build exclusion tree with NOT operator and wrap into prerequisite tree if both exist
+    # Build exclusion tree with NOT operator
     if exclusion_snippets:
         exclusion_base_tree = build_course_requirement_tree(
             course_code,
@@ -1939,23 +1965,29 @@ def process_course_requirements(
         )
         if exclusion_base_tree:
             exclusion_tree = OperatorNode(type='NOT', children=[exclusion_base_tree])
-            # If there are prerequisites, combine them with exclusions using AND
+            # Combine prerequisites with exclusions using AND
             if prerequisite_tree:
                 prerequisite_tree = OperatorNode(type='AND', children=[prerequisite_tree, exclusion_tree])
             else:
-                # If no actual prerequisites, use just the NOT exclusion
                 prerequisite_tree = exclusion_tree
 
-    # Prevent impossible duplication: a specific course should not be both
-    # prerequisite and corequisite for the same catalog course.
-    if prerequisite_tree is not None and corequisite_tree is not None:
-        overlapping_codes = collect_course_codes(prerequisite_tree).intersection(collect_course_codes(corequisite_tree))
-        if overlapping_codes:
-            prerequisite_tree = remove_course_codes(prerequisite_tree, overlapping_codes)
+    # Build corequisite tree with COREQ operator and combine with prerequisites
+    if corequisite_tree:
+        coreq_wrapped = OperatorNode(type='COREQ', children=[corequisite_tree])
+        # Combine prerequisites with corequisites using AND
+        if prerequisite_tree:
+            prerequisite_tree = OperatorNode(type='AND', children=[prerequisite_tree, coreq_wrapped])
+        else:
+            prerequisite_tree = coreq_wrapped
+
+    # Prevent impossible duplication between combined tree and any other requirements
+    if prerequisite_tree is not None:
+        # No need to check corequisites in separate tree anymore since they're embedded
+        pass
 
     other_requirement_tree = build_other_requirement_tree(all_requirement_texts)
     other_requirement_tree = assign_default_credit_subject(other_requirement_tree, course_code)
-    return prerequisite_tree, corequisite_tree, other_requirement_tree
+    return prerequisite_tree, other_requirement_tree
 
 
 def process_course_row(
@@ -1968,25 +2000,22 @@ def process_course_row(
     enrollment_requirements = row.get('uva_enrollment_requirements', row.get('enrollment_requirements', '')).strip()
     
     if not course_code:
-        return '', None, None, None, False, False, False
+        return '', None, None, False, False
     
-    prerequisite_tree, corequisite_tree, other_requirement_tree = process_course_requirements(
+    prerequisite_tree, other_requirement_tree = process_course_requirements(
         course_code,
         description,
         enrollment_requirements,
         equivalent_course_map,
     )
     has_prereq = prerequisite_tree is not None
-    has_coreq = corequisite_tree is not None
     has_other = other_requirement_tree is not None
     
     return (
         course_code,
         prerequisite_tree.to_dict() if prerequisite_tree and hasattr(prerequisite_tree, 'to_dict') else prerequisite_tree,
-        corequisite_tree.to_dict() if corequisite_tree and hasattr(corequisite_tree, 'to_dict') else corequisite_tree,
         other_requirement_tree.to_dict() if other_requirement_tree and hasattr(other_requirement_tree, 'to_dict') else other_requirement_tree,
         has_prereq,
-        has_coreq,
         has_other,
     )
 
@@ -2050,17 +2079,15 @@ def main():
     equivalent_course_map = build_equivalent_course_map(rows)
 
     courses_with_prereqs = {}
-    courses_with_coreqs = {}
     courses_with_other_requirements = {}
     courses_without_prereqs = []
-    courses_without_coreqs = []
     courses_without_other_requirements = []
     
     error_count = 0
 
     for row in rows:
         try:
-            course_code, prereq_tree, coreq_tree, other_tree, has_prereq, has_coreq, has_other = process_course_row(row, equivalent_course_map)
+            course_code, prereq_tree, other_tree, has_prereq, has_other = process_course_row(row, equivalent_course_map)
 
             if not course_code:
                 continue
@@ -2069,11 +2096,6 @@ def main():
                 courses_with_prereqs[course_code] = prereq_tree
             else:
                 courses_without_prereqs.append(course_code)
-
-            if coreq_tree and has_coreq:
-                courses_with_coreqs[course_code] = coreq_tree
-            else:
-                courses_without_coreqs.append(course_code)
 
             if other_tree and has_other:
                 courses_with_other_requirements[course_code] = other_tree
@@ -2090,16 +2112,12 @@ def main():
             "total_courses": len(courses_with_prereqs) + len(courses_without_prereqs),
             "courses_with_prerequisites": len(courses_with_prereqs),
             "courses_without_prerequisites": len(courses_without_prereqs),
-            "courses_with_corequisites": len(courses_with_coreqs),
-            "courses_without_corequisites": len(courses_without_coreqs),
             "courses_with_other_requirements": len(courses_with_other_requirements),
             "courses_without_other_requirements": len(courses_without_other_requirements),
         },
         "prerequisite_trees": courses_with_prereqs,
-        "corequisite_trees": courses_with_coreqs,
         "other_requirement_trees": courses_with_other_requirements,
         "courses_without_prerequisites": courses_without_prereqs,
-        "courses_without_corequisites": courses_without_coreqs,
         "courses_without_other_requirements": courses_without_other_requirements,
     }
     

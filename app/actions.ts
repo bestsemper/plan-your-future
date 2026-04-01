@@ -2069,14 +2069,28 @@ export async function getCourseInfoFromJSON(courseCode: string) {
       const { loadPrerequisites, formatPrerequisiteTreeForDisplay } = await import('./utils/prerequisiteChecker');
       const prerequisiteData = loadPrerequisites();
       const prerequisiteTree = prerequisiteData.prerequisite_trees[normalizedCode];
-      const corequisiteTree = prerequisiteData.corequisite_trees?.[normalizedCode];
       const otherRequirementTree = prerequisiteData.other_requirement_trees?.[normalizedCode];
+      
+      // Parse the prerequisite tree to extract prerequisites and corequisites
       if (prerequisiteTree) {
-        structuredPrerequisites = formatPrerequisiteTreeForDisplay(prerequisiteTree);
+        // If the root is an AND node, it contains separate components
+        if (prerequisiteTree.type === 'AND') {
+          for (const child of prerequisiteTree.children) {
+            if (child.type === 'COREQ') {
+              // Format corequisites with special label
+              structuredCorequisites.push(...formatPrerequisiteTreeForDisplay(child));
+            } else {
+              // All other children (including NOT for exclusions) are prerequisites
+              structuredPrerequisites.push(...formatPrerequisiteTreeForDisplay(child));
+            }
+          }
+        } else if (prerequisiteTree.type === 'COREQ') {
+          structuredCorequisites.push(...formatPrerequisiteTreeForDisplay(prerequisiteTree));
+        } else {
+          structuredPrerequisites.push(...formatPrerequisiteTreeForDisplay(prerequisiteTree));
+        }
       }
-      if (corequisiteTree) {
-        structuredCorequisites = formatPrerequisiteTreeForDisplay(corequisiteTree);
-      }
+      
       if (otherRequirementTree) {
         structuredOtherRequirements = formatPrerequisiteTreeForDisplay(otherRequirementTree);
       }

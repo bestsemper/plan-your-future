@@ -185,6 +185,25 @@ interface CourseDescriptionProps {
 function formatEnrollmentRequirement(requirement: string): { label: string; value: string } {
   const trimmed = requirement.trim();
 
+  if (/^NOT\s*\(/i.test(trimmed)) {
+    // Extract content inside NOT(...) and remove the wrapping parens
+    const contentMatch = trimmed.match(/^NOT\s*\(\s*(.*?)\s*\)$/i);
+    const content = contentMatch ? contentMatch[1] : trimmed.replace(/^NOT\s*\(\s*|\s*\)$/gi, '');
+    return {
+      label: 'NOT',
+      value: content,
+    };
+  }
+
+  if (/^Concurrent:\s+/i.test(trimmed)) {
+    // Extract content after "Concurrent: "
+    const content = trimmed.replace(/^Concurrent:\s+/i, '');
+    return {
+      label: 'Concurrent',
+      value: content,
+    };
+  }
+
   if (/^(?:Other Requirement:\s*)?instructor(?:'s)?\s+(?:permission|consent)\b/i.test(trimmed)) {
     return {
       label: 'Instructor Permission',
@@ -232,8 +251,6 @@ function CourseDescriptionContent({
     );
   }
 
-  const notRestrictions = courseInfo.notRestrictions ?? courseInfo.enrollmentRestrictions ?? [];
-
   const RequirementCard = ({ requirement }: { requirement: string }) => {
     const formattedRequirement = formatEnrollmentRequirement(requirement);
 
@@ -269,8 +286,7 @@ function CourseDescriptionContent({
 
       {(courseInfo.prerequisites.length > 0 ||
         courseInfo.corequisites.length > 0 ||
-        courseInfo.otherRequirements.length > 0 ||
-        notRestrictions.length > 0) && (
+        courseInfo.otherRequirements.length > 0) && (
         <div>
           <h3 className="font-semibold text-text-primary mb-3 border-b border-panel-border pb-2">
             Requirements
@@ -308,17 +324,6 @@ function CourseDescriptionContent({
                 </div>
               </div>
             )}
-
-            {notRestrictions.length > 0 && (
-              <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">NOT</h4>
-                <div className="space-y-2">
-                  {notRestrictions.map((requirement, i) => (
-                    <RequirementCard key={`not-restriction-${i}`} requirement={requirement} />
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         </div>
       )}
@@ -346,7 +351,6 @@ function CourseDescriptionContent({
         courseInfo.prerequisites.length === 0 &&
         courseInfo.corequisites.length === 0 &&
         courseInfo.otherRequirements.length === 0 &&
-        notRestrictions.length === 0 &&
         courseInfo.terms.length === 0 && (
           <p className="text-gray-500 italic text-sm">
             No course details were found for this course in the current catalog data.

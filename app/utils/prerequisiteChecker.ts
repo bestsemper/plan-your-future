@@ -41,7 +41,7 @@ type OtherRequirementNode = {
 };
 
 type OperatorNode = {
-  type: 'AND' | 'OR' | 'NOT';
+  type: 'AND' | 'OR' | 'NOT' | 'COREQ';
   children: (CourseNode | OperatorNode | CountNode | MajorRequirementNode | ProgramRequirementNode | YearRequirementNode | SchoolRequirementNode | CreditRequirementNode | OtherRequirementNode)[];
 };
 
@@ -348,6 +348,11 @@ function formatInlineRequirement(tree: PrerequisiteTree): string {
     }
 
     return tree.children.map(formatInlineRequirement).join(' OR ');
+  }
+
+  if (tree.type === 'COREQ') {
+    const concurrent = tree.children.map(formatInlineRequirement).join(', ');
+    return concurrent;
   }
 
   return tree.children.map(formatInlineRequirement).join(' AND ');
