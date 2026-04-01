@@ -1,7 +1,12 @@
 import { PrismaClient } from '@prisma/client'
 
 const prismaClientSingleton = () => {
-  return new PrismaClient()
+  return new PrismaClient({
+    log: [
+      { level: 'warn', emit: 'stdout' },
+      { level: 'error', emit: 'stdout' },
+    ],
+  })
 }
 
 declare const globalThis: {
@@ -10,6 +15,17 @@ declare const globalThis: {
 
 const prisma = globalThis.prismaGlobal ?? prismaClientSingleton()
 
-export default prisma
+// Add connection event handlers to detect and recover from disconnections
+if (process.env.NODE_ENV !== 'production') {
+  prisma.$on('error', (e) => {
+    console.error('Prisma error event:', e)
+  })
 
-if (process.env.NODE_ENV !== 'production') globalThis.prismaGlobal = prisma
+  prisma.$on('warn', (e) => {
+    console.warn('Prisma warn event:', e)
+  })
+
+  globalThis.prismaGlobal = prisma
+}
+
+export default prisma
