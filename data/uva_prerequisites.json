@@ -1,8 +1,8 @@
 {
   "metadata": {
     "total_courses": 9437,
-    "courses_with_prerequisites": 1519,
-    "courses_without_prerequisites": 7918,
+    "courses_with_prerequisites": 1523,
+    "courses_without_prerequisites": 7914,
     "courses_with_other_requirements": 1662,
     "courses_without_other_requirements": 7775
   },
@@ -82,7 +82,17 @@
       "code": "ACCT 5120",
       "level": false
     },
+    "ACCT 5310": {
+      "type": "course",
+      "code": "ACCT 5120",
+      "level": false
+    },
     "ACCT 5330": {
+      "type": "course",
+      "code": "ACCT 5120",
+      "level": false
+    },
+    "ACCT 5410": {
       "type": "course",
       "code": "ACCT 5120",
       "level": false
@@ -2514,7 +2524,7 @@
       ]
     },
     "BIOL 3559": {
-      "type": "COREQ",
+      "type": "AND",
       "children": [
         {
           "type": "AND",
@@ -2543,7 +2553,12 @@
               "type": "course",
               "code": "CHEM 1420",
               "level": false
-            },
+            }
+          ]
+        },
+        {
+          "type": "COREQ",
+          "children": [
             {
               "type": "OR",
               "children": [
@@ -4194,12 +4209,32 @@
       ]
     },
     "CE 3212": {
-      "type": "COREQ",
+      "type": "AND",
       "children": [
         {
-          "type": "course",
-          "code": "CE 3210",
-          "level": false
+          "type": "OR",
+          "children": [
+            {
+              "type": "course",
+              "code": "MAE 2300",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "CE 2300",
+              "level": false
+            }
+          ]
+        },
+        {
+          "type": "COREQ",
+          "children": [
+            {
+              "type": "course",
+              "code": "CE 3210",
+              "level": false
+            }
+          ]
         }
       ]
     },
@@ -4682,6 +4717,21 @@
       "type": "course",
       "code": "CE 2310",
       "level": false
+    },
+    "CE 6770": {
+      "type": "OR",
+      "children": [
+        {
+          "type": "course",
+          "code": "CE 6720",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "MAE 6020",
+          "level": false
+        }
+      ]
     },
     "CELL 8301": {
       "type": "course",
@@ -8160,6 +8210,11 @@
           "level": false
         }
       ]
+    },
+    "EBUS 3840": {
+      "type": "course",
+      "code": "EBUS 1800",
+      "level": false
     },
     "EBUS 4580": {
       "type": "OR",
@@ -13886,6 +13941,11 @@
       "code": "KINE 5430",
       "level": false
     },
+    "KINE 5460": {
+      "type": "course",
+      "code": "KINE 5450",
+      "level": false
+    },
     "KINE 5470": {
       "type": "course",
       "code": "KINE 5430",
@@ -15056,26 +15116,6 @@
       "type": "course",
       "code": "LAW 9294",
       "level": false
-    },
-    "LAW 8660": {
-      "type": "COREQ",
-      "children": [
-        {
-          "type": "OR",
-          "children": [
-            {
-              "type": "course",
-              "code": "LAW 9500",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "LAW 8011",
-              "level": false
-            }
-          ]
-        }
-      ]
     },
     "LAW 8668": {
       "type": "course",
@@ -19142,6 +19182,21 @@
               "children": [
                 {
                   "type": "course",
+                  "code": "MATH 3250",
+                  "level": false
+                },
+                {
+                  "type": "course",
+                  "code": "APMA 2130",
+                  "level": false
+                }
+              ]
+            },
+            {
+              "type": "OR",
+              "children": [
+                {
+                  "type": "course",
                   "code": "PHYS 1420",
                   "level": false
                 },
@@ -19168,21 +19223,6 @@
                 {
                   "type": "course",
                   "code": "MATH 2315",
-                  "level": false
-                }
-              ]
-            },
-            {
-              "type": "OR",
-              "children": [
-                {
-                  "type": "course",
-                  "code": "MATH 3250",
-                  "level": false
-                },
-                {
-                  "type": "course",
-                  "code": "APMA 2130",
                   "level": false
                 }
               ]
@@ -26077,8 +26117,17 @@
       "requirement": "3rd year"
     },
     "COMM 2700": {
-      "type": "year",
-      "requirement": "4th year"
+      "type": "AND",
+      "children": [
+        {
+          "type": "year",
+          "requirement": "4th year"
+        },
+        {
+          "type": "major",
+          "requirement": "course for application to the real estate minor"
+        }
+      ]
     },
     "COMM 2730": {
       "type": "AND",
@@ -28156,8 +28205,17 @@
       "requirement": "students in the graduate education program or the non graduate education program"
     },
     "EDIS 5020": {
-      "type": "program",
-      "requirement": "teacher education program mt"
+      "type": "AND",
+      "children": [
+        {
+          "type": "program",
+          "requirement": "teacher education program mt"
+        },
+        {
+          "type": "program",
+          "requirement": "admission to teacher education program"
+        }
+      ]
     },
     "EDIS 5025": {
       "type": "program",
@@ -31750,6 +31808,14 @@
         {
           "type": "school",
           "requirement": "School of Engineering and Applied Science"
+        },
+        {
+          "type": "year",
+          "requirement": "4th year standing"
+        },
+        {
+          "type": "other",
+          "requirement": "instructor's permission"
         }
       ]
     },
@@ -31897,6 +31963,10 @@
         {
           "type": "school",
           "requirement": "School of Engineering and Applied Science"
+        },
+        {
+          "type": "year",
+          "requirement": "4th year standing"
         }
       ]
     },
@@ -36323,8 +36393,6 @@
     "ACCT 3010",
     "ACCT 4700",
     "ACCT 5200",
-    "ACCT 5310",
-    "ACCT 5410",
     "ACCT 5480",
     "ACCT 5710",
     "AIRS  100",
@@ -37193,7 +37261,6 @@
     "CE 6710",
     "CE 6720",
     "CE 6731",
-    "CE 6770",
     "CE 6775",
     "CE 6780",
     "CE 6993",
@@ -37907,7 +37974,6 @@
     "EBUS 2890",
     "EBUS 3570",
     "EBUS 3580",
-    "EBUS 3840",
     "ECE 1000T",
     "ECE 1501",
     "ECE 2066",
@@ -40739,7 +40805,6 @@
     "KINE 5280",
     "KINE 5430",
     "KINE 5450",
-    "KINE 5460",
     "KINE 5475",
     "KINE 5485",
     "KINE 5495",
@@ -41173,6 +41238,7 @@
     "LAW 8652",
     "LAW 8655",
     "LAW 8657",
+    "LAW 8660",
     "LAW 8661",
     "LAW 8664",
     "LAW 8665",

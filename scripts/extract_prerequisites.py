@@ -48,13 +48,14 @@ DESCRIPTION_INLINE_CONCURRENT_PATTERN = re.compile(
 # Regex patterns for requisite prefixes
 PREREQ_PREFIX_PATTERN = r'(?:prerequisites?|prereqs?)(?:\s*[:\-]?)\s*'
 REQUISITE_LABEL_PATTERN = re.compile(
-    r'(?<!recommended\s)(?P<label>'
-    r'prerequisite\s*/\s*corequisite|'
-    r'prerequisite\s+or\s+corequisite|'
-    r'pre\s*(?:-|/)?\s*or\s+co\s*(?:-|/)?\s*requisites?|'
-    r'pre\s*(?:-|/)?\s*co\s*(?:-|/)?\s*requisites?|'
-    r'prerequisites?|prereqs?|'
-    r'co\s*(?:-|/)?\s*requisites?|coreqs?'
+    r'(?P<label>'
+    r'(?:recommended\s+)?prerequisite\s*/\s*corequisite|'
+    r'(?:recommended\s+)?prerequisite\s+or\s+corequisite|'
+    r'(?:recommended\s+)?pre\s*(?:-|/)?\s*or\s+co\s*(?:-|/)?\s*requisites?|'
+    r'(?:recommended\s+)?pre\s*(?:-|/)?\s*co\s*(?:-|/)?\s*requisites?|'
+    r'(?:recommended\s+)?(?:pre|prerequisite)(?:-|/)requisites?|'
+    r'(?:recommended\s+)?prerequisites?|(?:recommended\s+)?pre(?:-)?requisites?|(?:recommended\s+)?prereqs?|'
+    r'co\s*(?:-|/)?\s*requisites?|co(?:-)?requisites?|coreqs?'
     r')(?=\s*[:\-]|\s+[A-Z(\d]|\s+[a-z])(?:\s*[:\-]?)\s*',
     re.IGNORECASE,
 )
