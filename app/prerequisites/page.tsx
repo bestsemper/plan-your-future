@@ -160,14 +160,14 @@ export default function PrerequisitesPage() {
       <div className="mb-6 flex flex-col gap-4 border-b border-panel-border pb-4 w-full min-w-0 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-2 min-w-0">
           <h1 className="text-3xl font-bold text-heading">Prerequisites Tree</h1>
-          <div className="relative flex-shrink-0">
+          <div className="relative w-5 h-5 mt-1 flex-shrink-0">
             <button
               ref={infoButtonRef}
               type="button"
               onClick={handleInfoClick}
               onMouseEnter={handleInfoMouseEnter}
               onMouseLeave={handleInfoMouseLeave}
-              className="w-5 h-5 text-text-tertiary hover:text-text-secondary focus:text-text-secondary transition-colors cursor-help"
+              className="w-5 h-5 flex items-center justify-center text-text-tertiary hover:text-text-secondary focus:text-text-secondary transition-colors cursor-help"
               aria-label="Information about the prerequisites tree"
             >
               <Icon 
@@ -178,7 +178,7 @@ export default function PrerequisitesPage() {
               />
             </button>
             {showInfoTooltip && (
-              <div className="absolute left-1/2 -translate-x-1/2 top-full w-56 sm:w-48 p-2 bg-panel-bg border border-panel-border rounded-lg text-xs text-text-secondary shadow-lg z-50 mt-1">
+              <div className="absolute left-1/2 -translate-x-1/2 top-full w-52 p-2 bg-panel-bg border border-panel-border rounded-lg text-xs text-text-secondary shadow-lg z-50 mt-2">
                 This tree only displays courses that have prerequisites or are prerequisites for other courses.
               </div>
             )}

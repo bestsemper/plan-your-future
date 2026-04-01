@@ -1940,15 +1940,11 @@ def process_course_requirements(
     corequisite_snippets = deduplicate_overlapping_snippets(corequisite_snippets)
     exclusion_snippets = deduplicate_overlapping_snippets(exclusion_snippets)
     
+    # Only use enrollment_requirements for other requirements
+    # Don't use description since prerequisites are already extracted separately
     all_requirement_texts = []
     if enrollment_requirements.strip():
         all_requirement_texts.append(enrollment_requirements)
-
-    description_requisite_sentences = extract_requisite_sentences_from_description(description)
-    if not description_requisite_sentences and description.strip():
-        description_requisite_sentences = [snippet for _, snippet in extract_requirement_snippets(description, "")]
-    all_requirement_texts.extend(description_requisite_sentences)
-    all_requirement_texts.extend(snippet for _, snippet in categorized_snippets)
 
     prerequisite_tree = build_course_requirement_tree(
         course_code,

@@ -28,7 +28,11 @@ export default function CoursesPage() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedCourseInfo, setSelectedCourseInfo] = useState<CourseInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showInfoTooltip, setShowInfoTooltip] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
+  const [isHoveringInfo, setIsHoveringInfo] = useState(false);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
+  const infoButtonRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     const loadCourses = async () => {
@@ -47,6 +51,37 @@ export default function CoursesPage() {
     };
 
     loadCourses();
+  }, []);
+
+  // Close info tooltip when clicking outside (mobile only) or when unhover (desktop)
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const isClickInsideInfoButton = infoButtonRef.current && infoButtonRef.current.contains(e.target as Node);
+      
+      if (!isClickInsideInfoButton && !isDesktop) {
+        setShowInfoTooltip(false);
+      }
+    };
+
+    if (showInfoTooltip && !isDesktop) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }
+  }, [showInfoTooltip, isDesktop]);
+
+  // Detect if user is on desktop (lg breakpoint and above - matches Sidebar's lg:hidden threshold)
+  useEffect(() => {
+    const checkIsDesktop = () => {
+      setIsDesktop(window.innerWidth >= 1024);
+    };
+    
+    checkIsDesktop();
+    window.addEventListener("resize", checkIsDesktop);
+    return () => {
+      window.removeEventListener("resize", checkIsDesktop);
+    };
   }, []);
 
   const filteredCourses = courseCode
@@ -85,6 +120,27 @@ export default function CoursesPage() {
   };
 
   const normalizeSearchCode = (value: string) => value.toUpperCase().replace(/\s+/g, ' ').trim();
+
+  // Handle info tooltip visibility based on device
+  const handleInfoMouseEnter = () => {
+    if (isDesktop) {
+      setIsHoveringInfo(true);
+      setShowInfoTooltip(true);
+    }
+  };
+
+  const handleInfoMouseLeave = () => {
+    if (isDesktop) {
+      setIsHoveringInfo(false);
+      setShowInfoTooltip(false);
+    }
+  };
+
+  const handleInfoClick = () => {
+    if (!isDesktop) {
+      setShowInfoTooltip(!showInfoTooltip);
+    }
+  };
 
   const handleSearchSubmit = async () => {
     const normalizedInput = normalizeSearchCode(courseCode);
@@ -165,7 +221,14 @@ export default function CoursesPage() {
         {/* Course Details Panel */}
         <div className="lg:col-span-2">
           {selectedCourseInfo ? (
-            <CourseDescriptionContent courseInfo={selectedCourseInfo} />
+            <CourseDescriptionContent 
+              courseInfo={selectedCourseInfo}
+              showInfoTooltip={showInfoTooltip}
+              infoButtonRef={infoButtonRef}
+              onInfoClick={handleInfoClick}
+              onInfoMouseEnter={handleInfoMouseEnter}
+              onInfoMouseLeave={handleInfoMouseLeave}
+            />
           ) : (
             <div className="bg-panel-bg p-6 rounded-xl border border-panel-border text-center py-12">
             <Icon name="book" color="currentColor" width={48} height={48} className="w-12 h-12 mx-auto mb-4 text-text-muted opacity-50" />
@@ -180,6 +243,11 @@ export default function CoursesPage() {
 
 interface CourseDescriptionProps {
   courseInfo: CourseInfo | null;
+  showInfoTooltip: boolean;
+  infoButtonRef: React.RefObject<HTMLButtonElement | null>;
+  onInfoClick: () => void;
+  onInfoMouseEnter: () => void;
+  onInfoMouseLeave: () => void;
 }
 
 function formatEnrollmentRequirement(requirement: string): { label: string; value: string } {
@@ -241,6 +309,11 @@ function formatEnrollmentRequirement(requirement: string): { label: string; valu
 
 function CourseDescriptionContent({
   courseInfo,
+  showInfoTooltip,
+  infoButtonRef,
+  onInfoClick,
+  onInfoMouseEnter,
+  onInfoMouseLeave,
 }: CourseDescriptionProps) {
   if (!courseInfo) {
     return (
@@ -288,9 +361,35 @@ function CourseDescriptionContent({
         courseInfo.corequisites.length > 0 ||
         courseInfo.otherRequirements.length > 0) && (
         <div>
-          <h3 className="font-semibold text-text-primary mb-3 border-b border-panel-border pb-2">
-            Requirements
-          </h3>
+          <div className="mb-3 border-b border-panel-border pb-2">
+            <div className="inline-flex items-start gap-1">
+              <h3 className="font-semibold text-text-primary">
+                Enrollment Requirements
+              </h3>
+              <div className="relative w-4 h-4 mt-0.5">
+                <button
+                  ref={infoButtonRef}
+                  onClick={onInfoClick}
+                  onMouseEnter={onInfoMouseEnter}
+                  onMouseLeave={onInfoMouseLeave}
+                  className="w-4 h-4 flex items-center justify-center text-text-tertiary hover:text-text-secondary focus:text-text-secondary transition-colors cursor-help flex-shrink-0"
+                  aria-label="Information about enrollment requirements data"
+                >
+                  <Icon 
+                    name="info"
+                    color="currentColor"
+                    width={16}
+                    height={16}
+                  />
+                </button>
+                {showInfoTooltip && (
+                  <div className="absolute left-1/2 -translate-x-1/2 top-full w-52 mt-2 p-2 bg-panel-bg border border-panel-border rounded-lg text-xs text-text-secondary shadow-lg z-50 whitespace-normal">
+                    This data is parsed from SIS and may contain errors.
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
           <div className="space-y-4">
             {courseInfo.prerequisites.length > 0 && (
               <div>
