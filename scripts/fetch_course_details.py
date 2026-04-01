@@ -449,6 +449,9 @@ def process_course(subject: str, course: dict) -> dict | None:
         if not course_id:
             return None
         
+        # Normalize course code: remove extra whitespace from subject and catalog number
+        course_code = " ".join(str(course_code or "").split())
+        catalog_nbr = " ".join(str(catalog_nbr or "").split())
         full_course_code = f"{course_code} {catalog_nbr}"
 
         catalog_details = get_catalog_details(course_id, subject, catalog_nbr)
