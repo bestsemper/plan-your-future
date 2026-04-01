@@ -6,11 +6,13 @@ export interface SimpleCourse {
   label: string;
   title?: string;
   prereqs: string[];
+  coreqs?: string[];
 }
 
 export interface CourseDAG {
   nodes: Map<string, SimpleCourse>;
   edges: Map<string, Set<string>>; // nodeId -> Set of childIds
+  coreqEdges?: Map<string, Set<string>>; // nodeId -> Set of coreq childIds
 }
 
 function extractCoursesFromPrereq(prereqObj: any): string[] {
@@ -26,6 +28,48 @@ function extractCoursesFromPrereq(prereqObj: any): string[] {
     return (prereqObj.children || []).flatMap(extractCoursesFromPrereq);
   }
   return [];
+}
+
+function extractCoursesFromCoreq(prereqObj: any): string[] {
+  if (!prereqObj) return [];
+  
+  let coreqs: string[] = [];
+  
+  // Recursively search for COREQ nodes in the tree
+  function findCoreqs(node: any): void {
+    if (!node) return;
+    
+    if (node.type === 'COREQ' && node.children) {
+      // Extract courses from inside the COREQ
+      node.children.forEach((child: any) => {
+        if (child.type === 'course') {
+          coreqs.push(child.code);
+        } else if (child.type === 'OR' || child.type === 'AND') {
+          // Recursively extract from OR/AND inside COREQ
+          extractFromLogical(child);
+        }
+      });
+    } else if (node.type === 'AND' || node.type === 'OR') {
+      // Search children for COREQ nodes
+      node.children?.forEach((child: any) => {
+        findCoreqs(child);
+      });
+    }
+  }
+  
+  function extractFromLogical(node: any): void {
+    if (!node || !node.children) return;
+    node.children.forEach((child: any) => {
+      if (child.type === 'course') {
+        coreqs.push(child.code);
+      } else if (child.type === 'OR' || child.type === 'AND') {
+        extractFromLogical(child);
+      }
+    });
+  }
+  
+  findCoreqs(prereqObj);
+  return coreqs;
 }
 
 function getValidCourses(): Set<string> {
@@ -184,7 +228,7 @@ export function buildCourseDag(department: string): CourseDAG {
   const groupCodeMap = buildGroupCodeMap(courseToGroup);
   
   // Step 1: Collect all relevant courses for this department
-  const allCourses = new Map<string, { prereqs: string[] }>();
+  const allCourses = new Map<string, { prereqs: string[]; coreqs: string[] }>();
   const relevantCourses = new Set<string>();
   
   Object.entries(data.prerequisite_trees).forEach(([courseCode, prereqData]: [string, any]) => {
@@ -200,8 +244,12 @@ export function buildCourseDag(department: string): CourseDAG {
     if (recentCourses.size > 0 && !recentCourses.has(courseCode)) return;
     
     const prereqs = extractCoursesFromPrereq(prereqData);
+    const coreqs = extractCoursesFromCoreq(prereqData);
+    
     // Only keep prerequisites from the SAME department (not group codes or cross-department equivalents)
     const filteredPrereqs = prereqs.filter(p => p.startsWith(deptPrefix));
+    const filteredCoreqs = coreqs.filter(p => p.startsWith(deptPrefix));
+    
     // DON'T map to equivalence groups for same-department prerequisites - keep them as-is
     // Only include valid and recently offered prerequisites
     const validRecentPrereqs = filteredPrereqs.filter(p => 
@@ -210,12 +258,19 @@ export function buildCourseDag(department: string): CourseDAG {
       !specialTopicsCourses.has(p)
     );
     
-    allCourses.set(courseCode, { prereqs: validRecentPrereqs });
+    const validRecentCoreqs = filteredCoreqs.filter(p => 
+      (validCourses.size === 0 || validCourses.has(p)) && 
+      (recentCourses.size === 0 || recentCourses.has(p)) &&
+      !specialTopicsCourses.has(p)
+    );
+    
+    allCourses.set(courseCode, { prereqs: validRecentPrereqs, coreqs: validRecentCoreqs });
     
     // Always add the course itself to relevant courses (whether or not it has prerequisites)
     relevantCourses.add(courseCode);
-    // Also add any valid prerequisites
+    // Also add any valid prerequisites and corequisites
     validRecentPrereqs.forEach(prereq => relevantCourses.add(prereq));
+    validRecentCoreqs.forEach(coreq => relevantCourses.add(coreq));
   });
   
   // Step 2: Group equivalent courses
@@ -239,6 +294,7 @@ export function buildCourseDag(department: string): CourseDAG {
   // Step 3: Build nodes for groups
   const nodes = new Map<string, SimpleCourse>();
   const edges = new Map<string, Set<string>>();
+  const coreqEdges = new Map<string, Set<string>>();
   
   groupMembers.forEach((members, groupId) => {
     const label = createGroupLabel(groupId, members, courseToGroup);
@@ -248,8 +304,10 @@ export function buildCourseDag(department: string): CourseDAG {
       label,
       title,
       prereqs: [],
+      coreqs: [],
     });
     edges.set(groupId, new Set<string>());
+    coreqEdges.set(groupId, new Set<string>());
   });
   
   // Step 4: Build edges between groups (avoiding duplicates)
@@ -285,6 +343,22 @@ export function buildCourseDag(department: string): CourseDAG {
         if (!edgeSet.has(edgeKey)) {
           edgeSet.add(edgeKey);
           edges.get(prereqGroup)?.add(courseGroup);
+        }
+      }
+    });
+    
+    courseData.coreqs.forEach(coreq => {
+      if (!relevantCourses.has(coreq)) return;
+      
+      const coreqGroup = courseToGroupRep.get(coreq)!;
+      
+      if (courseGroup !== coreqGroup) {
+        const edgeKey = `${courseGroup}<->${coreqGroup}`;
+        if (!edgeSet.has(edgeKey)) {
+          edgeSet.add(edgeKey);
+          coreqEdges.get(courseGroup)?.add(coreqGroup);
+          // Also add reverse edge for bidirectional coreq relationship
+          coreqEdges.get(coreqGroup)?.add(courseGroup);
         }
       }
     });
@@ -354,15 +428,27 @@ export function buildCourseDag(department: string): CourseDAG {
   // Step 7: Remove isolated nodes (nodes with no incoming or outgoing edges)
   const nodesWithEdges = new Set<string>();
   
-  // Add nodes that have outgoing edges
+  // Add nodes that have outgoing edges (prerequisites or coreqs)
   edges.forEach((children, nodeId) => {
     if (children.size > 0) {
       nodesWithEdges.add(nodeId);
     }
   });
   
-  // Add nodes that have incoming edges
+  coreqEdges.forEach((children, nodeId) => {
+    if (children.size > 0) {
+      nodesWithEdges.add(nodeId);
+    }
+  });
+  
+  // Add nodes that have incoming edges (prerequisites or coreqs)
   edges.forEach((children) => {
+    children.forEach(childId => {
+      nodesWithEdges.add(childId);
+    });
+  });
+  
+  coreqEdges.forEach((children) => {
     children.forEach(childId => {
       nodesWithEdges.add(childId);
     });
@@ -375,7 +461,7 @@ export function buildCourseDag(department: string): CourseDAG {
     }
   });
   
-  return { nodes, edges };
+  return { nodes, edges, coreqEdges };
 }
 
 function hasPath(from: string, to: string, edges: Map<string, Set<string>>): boolean {

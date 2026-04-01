@@ -19,6 +19,7 @@ interface Course {
 interface DagData {
   nodes: Course[];
   edges: Array<{ parent: string; children: string[] }>;
+  coreqEdges?: Array<{ parent: string; children: string[] }>;
 }
 
 export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department, departmentFullName }) => {
@@ -545,6 +546,44 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
       });
     });
 
+    // Create coreq edge lines (bidirectional edges)
+    const coreqEdgeLines: {
+      waypoints: Array<{ x: number; y: number }>;
+      parentId?: string;
+      childId?: string;
+    }[] = [];
+    
+    if (dagData.coreqEdges) {
+      const coreqEdgesMap = new Map<string, Set<string>>();
+      dagData.nodes.forEach((course) => {
+        coreqEdgesMap.set(course.id, new Set());
+      });
+      dagData.coreqEdges.forEach((edge) => {
+        edge.children.forEach((child) => {
+          coreqEdgesMap.get(edge.parent)?.add(child);
+        });
+      });
+      
+      coreqEdgesMap.forEach((children, parentId) => {
+        const parentPos = positionMap.get(parentId);
+        if (!parentPos) return;
+
+        children.forEach((childId) => {
+          const childPos = positionMap.get(childId);
+          if (!childPos) return;
+
+          // Bidirectional: place waypoints to curve around
+          const midY = (parentPos.y + childPos.y) / 2;
+          const waypoints = [
+            { x: parentPos.x, y: parentPos.y + nodeH / 2 },
+            { x: childPos.x, y: childPos.y - nodeH / 2 }
+          ];
+
+          coreqEdgeLines.push({ waypoints, parentId, childId });
+        });
+      });
+    }
+
     // Create positioned nodes
     const positionedNodes = dagData.nodes.map((course) => ({
       id: course.id,
@@ -556,6 +595,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
     return {
       nodes: positionedNodes,
       edges: edgeLines,
+      coreqEdges: coreqEdgeLines,
       totalWidth,
       totalHeight,
       nodeW,
@@ -709,7 +749,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
     return <div className="text-gray-600 p-4">No courses to display</div>;
   }
 
-  const { nodes, edges, totalWidth, totalHeight, nodeW, nodeH, nodeFontSize, strokeWidth, arrowMarkerSize, edgesMap, reverseEdgesMap } = layout;
+  const { nodes, edges, coreqEdges, totalWidth, totalHeight, nodeW, nodeH, nodeFontSize, strokeWidth, arrowMarkerSize, edgesMap, reverseEdgesMap } = layout;
   
   // Helper function to darken a color
   const darkenColor = (color: string, factor: number) => {
@@ -1015,6 +1055,43 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
                 points={createArrowhead(p_end.x, p_end.y, angle, isConnectedToActive ? arrowMarkerSize * 1.5 : arrowMarkerSize)}
                 fill={displayColor}
                 opacity={isConnectedToActive ? 1 : 0.7}
+              />
+            </g>
+          );
+        })}
+
+        {/* Draw corequisite edges (dashed) */}
+        {coreqEdges
+          .map((edge: any, idx) => {
+          const activeNodeId = clickedNodeId || hoveredNodeId;
+          const isConnectedToActive = activeNodeId && (edge.parentId === activeNodeId || edge.childId === activeNodeId);
+          
+          // Use a muted color for coreq edges
+          const coreqColor = isDark ? "#9ca3af" : "#d1d5db";
+          const displayColor = isConnectedToActive ? (isDark ? "#e5e7eb" : "#6b7280") : coreqColor;
+
+          const waypoints = edge.waypoints;
+          const numPoints = waypoints.length;
+          
+          // Simple path for coreq edges
+          let pathData = `M ${waypoints[0].x} ${waypoints[0].y}`;
+          if (numPoints === 2) {
+            pathData += ` L ${waypoints[1].x} ${waypoints[1].y}`;
+          } else {
+            for (let i = 1; i < numPoints; i++) {
+              pathData += ` L ${waypoints[i].x} ${waypoints[i].y}`;
+            }
+          }
+
+          return (
+            <g key={`coreq-edge-${edge.parentId}-${edge.childId}`}>
+              <path
+                d={pathData}
+                fill="none"
+                stroke={displayColor}
+                strokeWidth={isConnectedToActive ? strokeWidth * 2 : strokeWidth}
+                strokeDasharray="4,4"
+                opacity={isConnectedToActive ? 1 : 0.5}
               />
             </g>
           );
