@@ -124,11 +124,9 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
     // Build edges map
     const edgesMap = new Map<string, Set<string>>();
     const reverseEdgesMap = new Map<string, Set<string>>();
-    const coreqMap = new Map<string, Set<string>>();
     dagData.nodes.forEach((course) => {
       edgesMap.set(course.id, new Set());
       reverseEdgesMap.set(course.id, new Set());
-      coreqMap.set(course.id, new Set());
     });
     dagData.edges.forEach((edge) => {
       edge.children.forEach((child) => {
@@ -136,15 +134,6 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
         reverseEdgesMap.get(child)?.add(edge.parent);
       });
     });
-    
-    // Build coreq map
-    if (dagData.coreqEdges) {
-      dagData.coreqEdges.forEach((edge) => {
-        edge.children.forEach((child) => {
-          coreqMap.get(edge.parent)?.add(child);
-        });
-      });
-    }
 
     // Extract course level from course code (e.g., "CS 2100" -> 2000)
     function getCourseLevel(courseId: string): number {
@@ -575,9 +564,6 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
         });
       });
       
-      // Track edges we've already drawn to avoid duplicates for bidirectional edges
-      const drawnCoreqEdges = new Set<string>();
-      
       coreqEdgesMap.forEach((children, parentId) => {
         const parentPos = positionMap.get(parentId);
         if (!parentPos) return;
@@ -585,13 +571,6 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
         children.forEach((childId) => {
           const childPos = positionMap.get(childId);
           if (!childPos) return;
-
-          // Create a unique key for this edge (sorted to handle bidirectional)
-          const edgeKey = [parentId, childId].sort().join('|');
-          
-          // Skip if we've already drawn this edge (handles bidirectional coreqs)
-          if (drawnCoreqEdges.has(edgeKey)) return;
-          drawnCoreqEdges.add(edgeKey);
 
           // Bidirectional: place waypoints to curve around
           const midY = (parentPos.y + childPos.y) / 2;
@@ -626,7 +605,6 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
       arrowMarkerSize,
       edgesMap,
       reverseEdgesMap,
-      coreqMap,
     };
   }, [dagData]);
 
@@ -771,7 +749,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
     return <div className="text-gray-600 p-4">No courses to display</div>;
   }
 
-  const { nodes, edges, coreqEdges, totalWidth, totalHeight, nodeW, nodeH, nodeFontSize, strokeWidth, arrowMarkerSize, edgesMap, reverseEdgesMap, coreqMap } = layout;
+  const { nodes, edges, coreqEdges, totalWidth, totalHeight, nodeW, nodeH, nodeFontSize, strokeWidth, arrowMarkerSize, edgesMap, reverseEdgesMap } = layout;
   
   // Helper function to darken a color
   const darkenColor = (color: string, factor: number) => {
@@ -1225,21 +1203,6 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
               ) : (
                 Array.from(edgesMap?.get((clickedNodeId || hoveredNodeId)!) as Set<string> | Set<unknown>).map((postreq: string | unknown) => (
                   <div key={postreq as string}>• {String(postreq)}</div>
-                ))
-              )}
-            </div>
-          </div>
-
-          <div className="mt-2">
-            <div className="font-semibold text-primary mb-1">
-              Corequisites:
-            </div>
-            <div className="pl-2 text-text-muted">
-              {(coreqMap?.get((clickedNodeId || hoveredNodeId)!) as Set<string> | undefined)?.size === 0 ? (
-                <span>None</span>
-              ) : (
-                Array.from(coreqMap?.get((clickedNodeId || hoveredNodeId)!) as Set<string> | Set<unknown>).map((coreq: string | unknown) => (
-                  <div key={coreq as string}>• {String(coreq)}</div>
                 ))
               )}
             </div>
