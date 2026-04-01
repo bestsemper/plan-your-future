@@ -1991,6 +1991,74 @@ def process_course_requirements(
     return prerequisite_tree, other_requirement_tree
 
 
+def remove_invalid_courses(tree: Any, valid_courses: set) -> Optional[Any]:
+    """Remove course nodes from tree that don't exist in valid_courses.
+    Only remove container nodes if they have no valid children left."""
+    if tree is None:
+        return None
+    
+    if isinstance(tree, dict):
+        # If it's a course node, check if it's valid
+        if tree.get('type') == 'course':
+            code = tree.get('code')
+            # Remove this course if it's not in valid_courses
+            if code and code not in valid_courses:
+                return None
+            return tree
+        
+        # If it has children, process them recursively
+        if 'children' in tree:
+            children = tree.get('children', [])
+            cleaned_children = []
+            for child in children:
+                cleaned = remove_invalid_courses(child, valid_courses)
+                if cleaned is not None:
+                    cleaned_children.append(cleaned)
+            
+            # If no valid children remain for a container, remove it
+            if not cleaned_children:
+                return None
+            
+            tree['children'] = cleaned_children
+            return tree
+        
+        # For all other node types (credit, year, other requirements, etc),
+        # keep them as-is since they don't reference courses directly
+        return tree
+    
+    return tree
+
+
+def clean_prerequisite_trees(prerequisite_trees: Dict[str, Any], other_requirement_trees: Dict[str, Any]) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    """Remove all invalid courses from prerequisite and other requirement trees"""
+    # Load valid courses from uva_course_details.json
+    valid_courses = set()
+    try:
+        with open('data/uva_course_details.json', 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            if isinstance(data, list):
+                valid_courses = set(course['course_code'] for course in data if 'course_code' in course)
+    except Exception as e:
+        print(f"Warning: Could not load valid courses: {e}")
+        return prerequisite_trees, other_requirement_trees
+    
+    # Clean prerequisite trees
+    cleaned_prereqs = {}
+    for course_code, tree in prerequisite_trees.items():
+        cleaned = remove_invalid_courses(tree, valid_courses)
+        if cleaned is not None:
+            cleaned_prereqs[course_code] = cleaned
+    
+    # Clean other requirement trees
+    cleaned_others = {}
+    for course_code, tree in other_requirement_trees.items():
+        cleaned = remove_invalid_courses(tree, valid_courses)
+        if cleaned is not None:
+            cleaned_others[course_code] = cleaned
+    
+    return cleaned_prereqs, cleaned_others
+
+
 def process_course_row(
     row: Dict[str, str],
     equivalent_course_map: Dict[str, List[str]],
@@ -2106,6 +2174,12 @@ def main():
         except Exception:
             error_count += 1
             continue
+    
+    # Remove invalid courses from trees
+    courses_with_prereqs, courses_with_other_requirements = clean_prerequisite_trees(
+        courses_with_prereqs,
+        courses_with_other_requirements
+    )
     
     # Save results to JSON
     output_data = {
