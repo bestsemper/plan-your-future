@@ -12,6 +12,7 @@ type DropdownMenuProps = {
   disabled?: boolean;
   align?: 'left' | 'right';
   className?: string;
+  contentClassName?: string;
 };
 
 // DropdownMenuContent Props
@@ -41,6 +42,7 @@ export function DropdownMenu({
   disabled = false,
   align = 'left',
   className = '',
+  contentClassName = '',
 }: DropdownMenuProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -73,7 +75,7 @@ export function DropdownMenu({
       {isOpen && !disabled && (
         <div className={`absolute z-20 w-full mt-1.5 bg-panel-bg border border-panel-border rounded-xl shadow-lg overflow-hidden max-w-full ${
           align === 'right' ? 'right-0' : 'left-0'
-        }`}>
+        } ${contentClassName}`}>
           {children}
         </div>
       )}

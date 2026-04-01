@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, useRef } from "react";
 import { Icon } from "../components/Icon";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from "../components/DropdownMenu";
 
 interface TreeVisualizationProps {
   department: string;
@@ -37,7 +38,6 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
   const panStartRef = useRef<{ x: number; y: number; scrollX: number; scrollY: number } | null>(null);
   const svgContainerRef = useRef<HTMLDivElement>(null);
   const popupRef = useRef<HTMLDivElement>(null);
-  const courseSearchContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!department) return;
@@ -103,21 +103,6 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
 
     return () => {
       observer.disconnect();
-    };
-  }, []);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (!courseSearchContainerRef.current) return;
-      if (!courseSearchContainerRef.current.contains(event.target as Node)) {
-        setShowCourseSearchDropdown(false);
-        setCourseSearchText("");
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
 
@@ -752,57 +737,53 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
   return (
     <div className="w-full h-full flex flex-col bg-panel-bg absolute inset-0 overflow-hidden min-w-0 min-h-0">
       {/* Search Bar - Left Side */}
-      <div className="absolute top-4 left-4 right-40 z-10 bg-panel-bg/90 backdrop-blur p-0.5 rounded-xl border border-panel-border shadow-sm sm:right-44 md:right-40 lg:w-80 lg:right-auto">
-        <div
-          ref={courseSearchContainerRef}
-          className="relative"
-          onMouseDown={(e) => e.stopPropagation()}
-        >
-          <Icon
-            name="search"
-            color="currentColor"
-            width={16}
-            height={16}
-            className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-text-tertiary"
-          />
-          <input
-            type="text"
-            placeholder="Search courses in tree"
-            value={courseSearchText}
-            onChange={(e) => {
-              setCourseSearchText(e.target.value);
-              setShowCourseSearchDropdown(true);
-            }}
-            onFocus={() => setShowCourseSearchDropdown(true)}
-            className="w-full h-[40px] pl-10 pr-4 rounded-lg bg-input-bg text-text-primary outline-none"
-          />
-
-          {showSearchPanel && (
-            <div className="absolute -inset-x-0.75 mt-2 z-30 rounded-xl border border-panel-border bg-panel-bg shadow-lg overflow-hidden">
-              <div className="max-h-64 overflow-y-auto">
-                {visibleSearchMatches.length > 0 ? (
-                  visibleSearchMatches.map((course) => (
-                    <button
-                      key={course.id}
-                      onClick={() => handleSelectCourseFromSearch(course.id)}
-                      className={`block w-full text-left px-4 py-3 border-b border-panel-border last:border-b-0 hover:bg-hover-bg transition-colors ${
-                        clickedNodeId === course.id
-                          ? 'bg-badge-blue-bg text-badge-blue-text font-medium'
-                          : 'text-text-primary'
-                      }`}
-                    >
-                      <p className="text-sm font-semibold line-clamp-1">{course.label}</p>
-                      <p className="text-xs text-text-secondary mt-0.5 line-clamp-1">{course.title || course.id}</p>
-                    </button>
-                  ))
-                ) : (
-                  <div className="px-4 py-3 text-sm text-text-secondary">No matching courses found</div>
-                )}
-              </div>
-            </div>
+      <DropdownMenu
+        isOpen={showSearchPanel}
+        onOpenChange={setShowCourseSearchDropdown}
+        contentClassName="-inset-x-0.75"
+        className="absolute top-4 left-4 right-40 z-10 sm:right-44 md:right-40 lg:w-80 lg:right-auto"
+        trigger={
+          <div className="relative bg-panel-bg/90 backdrop-blur p-0.5 rounded-xl border border-panel-border shadow-sm">
+            <Icon
+              name="search"
+              color="currentColor"
+              width={16}
+              height={16}
+              className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-text-tertiary"
+            />
+            <input
+              type="text"
+              placeholder="Search courses in tree"
+              value={courseSearchText}
+              onChange={(e) => {
+                setCourseSearchText(e.target.value);
+                setShowCourseSearchDropdown(true);
+              }}
+              onClick={() => setShowCourseSearchDropdown(true)}
+              className="w-full h-[40px] pl-10 pr-4 rounded-lg bg-input-bg text-text-primary outline-none"
+            />
+          </div>
+        }
+      >
+        <DropdownMenuContent maxHeight="max-h-64">
+          {visibleSearchMatches.length > 0 ? (
+            visibleSearchMatches.map((course) => (
+              <DropdownMenuItem
+                key={course.id}
+                selected={clickedNodeId === course.id}
+                onClick={() => handleSelectCourseFromSearch(course.id)}
+                description={course.title || course.id}
+              >
+                {course.label}
+              </DropdownMenuItem>
+            ))
+          ) : (
+            <div className="px-3 py-2 text-sm text-text-secondary">No matching courses found</div>
           )}
-        </div>
-      </div>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      {/* Old outer container removed - styling moved to trigger */}
 
       {/* Zoom Controls - Right Side */}
       <div className="absolute top-4 right-4 z-10 bg-panel-bg/90 backdrop-blur p-0.5 rounded-xl border border-panel-border shadow-sm flex items-center">

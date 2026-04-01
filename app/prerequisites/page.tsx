@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { TreeVisualization } from "./TreeVisualization";
 import { Icon } from "../components/Icon";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from "../components/DropdownMenu";
 import { getCurrentUser } from "../actions";
 
 interface DepartmentInfo {
@@ -19,7 +20,6 @@ export default function PrerequisitesPage() {
   const [isDesktop, setIsDesktop] = useState(false);
   const [isHoveringInfo, setIsHoveringInfo] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const dropdownContainerRef = useRef<HTMLDivElement>(null);
   const infoButtonRef = useRef<HTMLButtonElement>(null);
 
   // Fetch departments on mount and auto-select user's major
@@ -47,30 +47,7 @@ export default function PrerequisitesPage() {
     fetchDepartmentsAndMajor();
   }, []);
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      const isClickInsideInput = searchInputRef.current && searchInputRef.current.contains(e.target as Node);
-      const isClickInsideDropdown = dropdownContainerRef.current && dropdownContainerRef.current.contains(e.target as Node);
-      
-      if (!isClickInsideInput && !isClickInsideDropdown) {
-        setShowDropdown(false);
-      }
-    };
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setShowDropdown(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, []);
 
   // Close info tooltip when clicking outside (mobile only) or when unhover (desktop)
   useEffect(() => {
@@ -170,7 +147,7 @@ export default function PrerequisitesPage() {
               className="w-5 h-5 flex items-center justify-center text-text-tertiary hover:text-text-secondary focus:text-text-secondary transition-colors cursor-help"
               aria-label="Information about the prerequisites tree"
             >
-              <Icon 
+              <Icon
                 name="info"
                 color="currentColor"
                 width={20}
@@ -185,51 +162,48 @@ export default function PrerequisitesPage() {
           </div>
         </div>
         <div className="relative w-full lg:flex-1 lg:max-w-xs">
-          <span className="sr-only">Search departments</span>
-          <Icon
-            name="search"
-            color="currentColor"
-            width={16}
-            height={16}
-            className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-text-tertiary"
-          />
-          <input
-            ref={searchInputRef}
-            type="text"
-            placeholder="Search departments..."
-            value={searchText}
-            onChange={(e) => {
-              setSearchText(e.target.value);
-              setShowDropdown(true);
-            }}
-            onFocus={() => setShowDropdown(true)}
-            suppressHydrationWarning
-            className="w-full h-[42px] pl-10 pr-4 border border-panel-border rounded-full bg-input-bg text-text-primary outline-none"
-          />
-          
-          {showDropdown && filteredDepartments.length > 0 && (
-            <div
-              ref={dropdownContainerRef}
-              className="absolute left-0 right-0 mt-2 z-30 rounded-xl border border-panel-border bg-panel-bg shadow-lg overflow-hidden"
-            >
-              <div className="max-h-64 overflow-y-auto">
-                {filteredDepartments.map((dept) => (
-                  <button
-                    key={dept.mnemonic}
-                    onClick={() => handleSelectDepartment(dept)}
-                    className={`block w-full text-left px-4 py-3 border-b border-panel-border last:border-b-0 hover:bg-hover-bg transition-colors ${
-                      selectedDepartment?.mnemonic === dept.mnemonic
-                        ? "bg-badge-blue-bg text-badge-blue-text font-medium"
-                        : "text-text-primary"
-                    }`}
-                  >
-                    <p className="text-sm font-semibold line-clamp-1">{dept.fullName}</p>
-                    <p className="text-xs text-text-secondary mt-0.5">{dept.mnemonic}</p>
-                  </button>
-                ))}
+          <DropdownMenu
+            isOpen={showDropdown && filteredDepartments.length > 0}
+            onOpenChange={setShowDropdown}
+            trigger={
+              <div className="relative">
+                <span className="sr-only">Search departments</span>
+                <Icon
+                  name="search"
+                  color="currentColor"
+                  width={16}
+                  height={16}
+                  className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-text-tertiary"
+                />
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  placeholder="Search departments..."
+                  value={searchText}
+                  onChange={(e) => {
+                    setSearchText(e.target.value);
+                    setShowDropdown(true);
+                  }}
+                  onClick={() => setShowDropdown(true)}
+                  suppressHydrationWarning
+                  className="w-full h-[42px] pl-10 pr-4 border border-panel-border rounded-full bg-input-bg text-text-primary outline-none"
+                />
               </div>
-            </div>
-          )}
+            }
+          >
+            <DropdownMenuContent maxHeight="max-h-64">
+              {filteredDepartments.map((dept) => (
+                <DropdownMenuItem
+                  key={dept.mnemonic}
+                  selected={selectedDepartment?.mnemonic === dept.mnemonic}
+                  onClick={() => handleSelectDepartment(dept)}
+                  description={dept.mnemonic}
+                >
+                  {dept.fullName}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
