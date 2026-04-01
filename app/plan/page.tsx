@@ -688,7 +688,10 @@ export default function PlanBuilderPage() {
       for (const [semesterId, courseMap] of Object.entries(res.problematicBySemester ?? {})) {
         const courseEntries = new Map<string, RequirementMissing[]>();
         for (const [courseCode, requirements] of Object.entries(courseMap ?? {})) {
-          courseEntries.set(courseCode, requirements as RequirementMissing[]);
+          // Only add courses with actual requirement violations, not empty arrays
+          if (requirements && Array.isArray(requirements) && requirements.length > 0) {
+            courseEntries.set(courseCode, requirements as RequirementMissing[]);
+          }
         }
         if (courseEntries.size > 0) {
           newProblematicCourses.set(semesterId, courseEntries);
