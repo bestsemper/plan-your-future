@@ -15,7 +15,7 @@ INVALID_SUBJECT_CODES = {
     'FIRST', 'SECOND', 'THIRD', 'FOURTH', 'FIFTH', 'LAST', 'NEXT', 'ANOTHER', 'SOME', 'ANY', 'ALL', 'MOST', 'LEAST'  # Ordinal/quantity words
 }
 RESTRICTION_TAIL_PATTERN = re.compile(
-    r"(?:can't\s+enroll\s+if|cannot\s+enroll\s+if|may\s+not\s+enroll\s+if|credit\s+not\s+granted|not\s+open\s+to|restricted\s+to)",
+    r"(?:can't\s+enroll\s+if|cannot\s+enroll\s+if|may\s+not\s+enroll\s+if|not\s+eligible\s+to\s+enroll|credit\s+not\s+granted|not\s+open\s+to|restricted\s+to)",
     re.IGNORECASE,
 )
 RECOMMENDATION_TAIL_PATTERN = re.compile(
@@ -828,13 +828,16 @@ def extract_requisite_sentences_from_description(description: str) -> List[str]:
 
 
 def classify_requisite_text(text: str) -> str:
-    """Classify requirement text as prerequisite/corequisite/other by content cues."""
+    """Classify requirement text as prerequisite/corequisite/exclusion/other by content cues."""
     restriction_language = bool(re.search(
-        r'\b(?:may\s+not\s+enroll\s+if|cannot\s+enroll\s+if|can\'t\s+enroll\s+if|credit\s+not\s+granted(?:\s+for)?|not\s+open\s+to|restricted\s+to)\b',
+        r'\b(?:may\s+not\s+enroll\s+if|cannot\s+enroll\s+if|can\'t\s+enroll\s+if|not\s+eligible\s+to\s+enroll|credit\s+not\s+granted(?:\s+for)?|not\s+open\s+to|restricted\s+to)\b',
         text,
         re.IGNORECASE,
     ))
     if restriction_language:
+        # Distinguish between exclusions (eligibility restrictions) and other restrictions
+        if re.search(r'\b(?:not\s+eligible|may\s+not\s+enroll|cannot\s+enroll)\b', text, re.IGNORECASE):
+            return 'exclusion'
         return 'other'
 
     concurrent_language = bool(re.search(
@@ -957,7 +960,43 @@ def extract_requirement_snippets(description: str, enrollment_requirements: str)
             
             if not description_has_courses:
                 continue
+            
+            # Check for restriction/exclusion clause
+            restriction_match = RESTRICTION_TAIL_PATTERN.search(sentence)
+            if restriction_match:
+                # Extract the exclusion clause (the part after "not eligible to enroll", etc.)
+                restrict_start = restriction_match.start()
+                pre_restriction_text = sentence[:restrict_start]
+                exclusion_text = sentence[restrict_start:]
                 
+                # Look for "; and students" pattern to find where the exclusion truly starts
+                conj_match = re.search(r';\s+and\s+students\b', pre_restriction_text, re.IGNORECASE)
+                if conj_match:
+                    # Truncate prior text at the semicolon before "and students"
+                    pre_restriction_text = pre_restriction_text[:conj_match.start()].strip()
+                    # The exclusion is everything from "and students" onward
+                    exclusion_text = sentence[conj_match.start():].strip('; ')
+                
+                # Process prerequisite part (before restriction)
+                if extract_course_codes(pre_restriction_text):
+                    normalized = normalize_requirement_text(pre_restriction_text)
+                    inferred_kind = 'prerequisite'
+                    key = (inferred_kind, normalized.lower())
+                    if key not in seen:
+                        seen.add(key)
+                        snippets.append((inferred_kind, normalized))
+                
+                # Process exclusion part (after "are not eligible")
+                if extract_course_codes(exclusion_text):
+                    normalized = normalize_requirement_text(exclusion_text)
+                    key = ('exclusion', normalized.lower())
+                    if key not in seen:
+                        seen.add(key)
+                        snippets.append(('exclusion', normalized))
+                
+                continue  # Skip normal processing for this sentence
+            
+            # Normal prerequisite processing (no restrictions)
             normalized = normalize_requirement_text(sentence)
             inferred_kind = classify_requisite_text(sentence)
             key = (inferred_kind, normalized.lower())
@@ -1864,11 +1903,13 @@ def process_course_requirements(
     categorized_snippets = extract_requirement_snippets(description, enrollment_requirements)
     prerequisite_snippets = [snippet for kind, snippet in categorized_snippets if kind == 'prerequisite']
     corequisite_snippets = [snippet for kind, snippet in categorized_snippets if kind == 'corequisite']
+    exclusion_snippets = [snippet for kind, snippet in categorized_snippets if kind == 'exclusion']
     
     # Deduplicate overlapping snippets: if multiple snippets describe the same requirement
     # but with different levels of completeness, keep only the most complete one.
     prerequisite_snippets = deduplicate_overlapping_snippets(prerequisite_snippets)
     corequisite_snippets = deduplicate_overlapping_snippets(corequisite_snippets)
+    exclusion_snippets = deduplicate_overlapping_snippets(exclusion_snippets)
     all_requirement_texts = []
     if enrollment_requirements.strip():
         all_requirement_texts.append(enrollment_requirements)
@@ -1888,6 +1929,22 @@ def process_course_requirements(
         equivalent_course_map,
     )
     corequisite_tree = build_course_requirement_tree(course_code, corequisite_snippets, equivalent_course_map)
+    
+    # Build exclusion tree with NOT operator and wrap into prerequisite tree if both exist
+    if exclusion_snippets:
+        exclusion_base_tree = build_course_requirement_tree(
+            course_code,
+            exclusion_snippets,
+            equivalent_course_map,
+        )
+        if exclusion_base_tree:
+            exclusion_tree = OperatorNode(type='NOT', children=[exclusion_base_tree])
+            # If there are prerequisites, combine them with exclusions using AND
+            if prerequisite_tree:
+                prerequisite_tree = OperatorNode(type='AND', children=[prerequisite_tree, exclusion_tree])
+            else:
+                # If no actual prerequisites, use just the NOT exclusion
+                prerequisite_tree = exclusion_tree
 
     # Prevent impossible duplication: a specific course should not be both
     # prerequisite and corequisite for the same catalog course.

@@ -41,7 +41,7 @@ type OtherRequirementNode = {
 };
 
 type OperatorNode = {
-  type: 'AND' | 'OR';
+  type: 'AND' | 'OR' | 'NOT';
   children: (CourseNode | OperatorNode | CountNode | MajorRequirementNode | ProgramRequirementNode | YearRequirementNode | SchoolRequirementNode | CreditRequirementNode | OtherRequirementNode)[];
 };
 
@@ -335,6 +335,11 @@ function formatInlineRequirement(tree: PrerequisiteTree): string {
 
   if (tree.type === 'count') {
     return `${tree.count} of: ${tree.children.map(formatInlineRequirement).join(', ')}`;
+  }
+
+  if (tree.type === 'NOT') {
+    const exclusions = tree.children.map(formatInlineRequirement).join(', ');
+    return `NOT (${exclusions})`;
   }
 
   if (tree.type === 'OR') {
