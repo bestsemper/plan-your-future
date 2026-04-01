@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { updateCurrentUserProfile } from '../actions';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from '../components/DropdownMenu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSearch } from '../components/DropdownMenu';
 import { Icon } from '../components/Icon';
 import { getDefaultGraduationYearForStanding, getDefaultStandingForGraduationYear } from '../utils/academicYear';
 import { PROFILE_SCHOOL_OPTIONS, PROFILE_MAJOR_OPTIONS, PROFILE_ADDITIONAL_PROGRAMS, MAJOR_TO_SCHOOL_MAP } from './profileOptions';
@@ -238,7 +238,7 @@ export default function EditProfileForm({
                 type="text"
                 value={formDisplayName}
                 onChange={(e) => setFormDisplayName(e.target.value)}
-                className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary outline-none focus:border-uva-blue focus:ring-2 focus:ring-uva-blue/20 transition-all"
+                className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary outline-none transition-all"
                 required
               />
             </div>
@@ -252,7 +252,7 @@ export default function EditProfileForm({
                   if (!open) setMajorSearch('');
                 }}
                 trigger={
-                  <button className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none focus:border-uva-blue focus:ring-2 focus:ring-uva-blue/20 hover:border-panel-border-strong transition-all">
+                  <button className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all">
                     <span className={formMajor ? 'truncate' : 'truncate text-text-tertiary'}>
                       {majorOptions.find(o => o.value === formMajor)?.label ?? 'Select your major'}
                     </span>
@@ -260,15 +260,11 @@ export default function EditProfileForm({
                   </button>
                 }
               >
-                <div className="p-2 border-b border-panel-border bg-panel-bg">
-                  <input
-                    type="text"
-                    value={majorSearch}
-                    onChange={(e) => setMajorSearch(e.target.value)}
-                    placeholder="Search majors"
-                    className="w-full px-3 py-2 border border-panel-border rounded-lg bg-input-bg text-text-primary text-sm outline-none focus:border-uva-blue focus:ring-2 focus:ring-uva-blue/20 transition-all"
-                  />
-                </div>
+                <DropdownMenuSearch
+                  value={majorSearch}
+                  onChange={setMajorSearch}
+                  placeholder="Search majors"
+                />
                 <DropdownMenuContent maxHeight="max-h-64">
                   <DropdownMenuItem
                     selected={formMajor === ''}
@@ -317,7 +313,7 @@ export default function EditProfileForm({
                   if (!open) setAdditionalProgramsSearch('');
                 }}
                 trigger={
-                  <button className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none focus:border-uva-blue focus:ring-2 focus:ring-uva-blue/20 hover:border-panel-border-strong transition-all">
+                  <button className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all">
                     <span className={formAdditionalPrograms.length > 0 ? 'truncate' : 'truncate text-text-tertiary'}>
                       {formAdditionalPrograms.length > 0 ? formAdditionalPrograms[0] : 'Select additional programs'}
                     </span>
@@ -325,15 +321,11 @@ export default function EditProfileForm({
                   </button>
                 }
               >
-                <div className="p-2 border-b border-panel-border bg-panel-bg">
-                  <input
-                    type="text"
-                    value={additionalProgramsSearch}
-                    onChange={(e) => setAdditionalProgramsSearch(e.target.value)}
-                    placeholder="Search programs"
-                    className="w-full px-3 py-2 border border-panel-border rounded-lg bg-input-bg text-text-primary text-sm outline-none focus:border-uva-blue focus:ring-2 focus:ring-uva-blue/20 transition-all"
-                  />
-                </div>
+                <DropdownMenuSearch
+                  value={additionalProgramsSearch}
+                  onChange={setAdditionalProgramsSearch}
+                  placeholder="Search programs"
+                />
                 <DropdownMenuContent maxHeight="max-h-64">
                   <DropdownMenuItem
                     selected={formAdditionalPrograms.length === 0}
@@ -371,7 +363,7 @@ export default function EditProfileForm({
                 isOpen={isAcademicYearOpen}
                 onOpenChange={setIsAcademicYearOpen}
                 trigger={
-                  <button className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none focus:border-uva-blue focus:ring-2 focus:ring-uva-blue/20 hover:border-panel-border-strong transition-all">
+                  <button className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all">
                     <span className={formCurrentAcademicYear ? 'truncate' : 'truncate text-text-tertiary'}>
                       {academicYearOptions.find(o => o.value === formCurrentAcademicYear)?.label ?? 'Select current academic year'}
                     </span>
@@ -409,12 +401,9 @@ export default function EditProfileForm({
               <label className="block text-sm font-semibold text-text-secondary mb-2">Graduation Year</label>
               <DropdownMenu
                 isOpen={isGradYearOpen}
-                onOpenChange={(open) => {
-                  setIsGradYearOpen(open);
-                  if (!open) setGradYearSearch('');
-                }}
+                onOpenChange={setIsGradYearOpen}
                 trigger={
-                  <button className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none focus:border-uva-blue focus:ring-2 focus:ring-uva-blue/20 hover:border-panel-border-strong transition-all">
+                  <button className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all">
                     <span className={formGradYear ? 'truncate' : 'truncate text-text-tertiary'}>
                       {gradYearOptions.find(o => o.value === formGradYear)?.label ?? 'Select graduation year'}
                     </span>
@@ -422,42 +411,28 @@ export default function EditProfileForm({
                   </button>
                 }
               >
-                <div className="p-2 border-b border-panel-border bg-panel-bg">
-                  <input
-                    type="text"
-                    value={gradYearSearch}
-                    onChange={(e) => setGradYearSearch(e.target.value)}
-                    placeholder="Search years"
-                    className="w-full px-3 py-2 border border-panel-border rounded-lg bg-input-bg text-text-primary text-sm outline-none focus:border-uva-blue focus:ring-2 focus:ring-uva-blue/20 transition-all"
-                  />
-                </div>
                 <DropdownMenuContent maxHeight="max-h-64">
                   <DropdownMenuItem
                     selected={formGradYear === ''}
                     onClick={() => {
                       setFormGradYear('');
                       setIsGradYearOpen(false);
-                      setGradYearSearch('');
                     }}
                   >
                     No graduation year selected
                   </DropdownMenuItem>
-                  {filteredGradYearOptions.map((option) => (
+                  {gradYearOptions.map((option) => (
                     <DropdownMenuItem
                       key={option.value}
                       selected={formGradYear === option.value}
                       onClick={() => {
                         handleGradYearChange(option.value);
                         setIsGradYearOpen(false);
-                        setGradYearSearch('');
                       }}
                     >
                       {option.label}
                     </DropdownMenuItem>
                   ))}
-                  {filteredGradYearOptions.length === 0 && (
-                    <div className="px-3 py-2 text-sm text-text-secondary">No years found.</div>
-                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -469,7 +444,7 @@ export default function EditProfileForm({
                 onChange={(e) => setFormBio(e.target.value)}
                 placeholder="Tell others about yourself..."
                 rows={5}
-                className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary outline-none focus:border-uva-blue focus:ring-2 focus:ring-uva-blue/20 transition-all resize-none"
+                className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary outline-none transition-all resize-none"
               />
             </div>
 
@@ -486,7 +461,7 @@ export default function EditProfileForm({
               type="button"
               onClick={handleCancel}
               disabled={isPending}
-              className="w-full sm:w-auto px-6 py-2.5 border border-panel-border-strong rounded-xl font-semibold text-text-primary hover:bg-hover-bg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full sm:w-auto px-4 py-2 border border-panel-border-strong rounded-xl font-semibold text-text-primary hover:bg-hover-bg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
@@ -494,7 +469,7 @@ export default function EditProfileForm({
               type="button"
               onClick={handleSave}
               disabled={isPending || !hasChanges}
-              className={`w-full sm:w-auto px-6 py-2.5 rounded-xl font-semibold transition-colors cursor-pointer ${
+              className={`w-full sm:w-auto px-4 py-2 rounded-xl font-semibold transition-colors cursor-pointer ${
                 hasChanges
                   ? 'bg-button-bg text-button-text hover:bg-button-hover disabled:opacity-50 disabled:cursor-not-allowed'
                   : 'border border-panel-border-strong text-text-primary hover:bg-hover-bg disabled:opacity-50 disabled:cursor-not-allowed'

@@ -204,7 +204,7 @@ export default function PrerequisitesPage() {
             }}
             onFocus={() => setShowDropdown(true)}
             suppressHydrationWarning
-            className="w-full h-[42px] pl-10 pr-4 border border-panel-border rounded-full bg-input-bg text-text-primary outline-none focus:border-uva-blue/40 focus:ring-2 focus:ring-uva-blue/15"
+            className="w-full h-[42px] pl-10 pr-4 border border-panel-border rounded-full bg-input-bg text-text-primary outline-none"
           />
           
           {showDropdown && filteredDepartments.length > 0 && (

@@ -65,8 +65,7 @@ export default function ForumPage() {
 
   const [search, setSearch] = useState('');
   const [appliedSearch, setAppliedSearch] = useState('');
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const searchContainerRef = useRef<HTMLDivElement | null>(null);
+  const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
 
   const loadData = async () => {
     const res = await getForumPageData();
@@ -115,7 +114,7 @@ export default function ForumPage() {
       .slice(0, 6);
   }, [posts, search]);
 
-  const showSuggestions = isSearchFocused && suggestedPosts.length > 0;
+  const showSuggestions = isSearchDropdownOpen && suggestedPosts.length > 0;
 
   const getOptimisticVoteUpdate = (currentVote: 1 | -1 | 0, clickedValue: 1 | -1) => {
     const nextVote: 1 | -1 | 0 = currentVote === clickedValue ? 0 : clickedValue;
@@ -213,54 +212,55 @@ export default function ForumPage() {
       <div className="mb-6 border-b border-panel-border pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h1 className="text-3xl font-bold text-heading">Forum</h1>
         <div className="flex items-center gap-3 w-full lg:w-auto lg:min-w-[460px]">
-          <div
-            ref={searchContainerRef}
-            className="relative flex-1"
-            onBlur={(e) => {
-              if (!searchContainerRef.current?.contains(e.relatedTarget as Node | null)) {
-                setIsSearchFocused(false);
+          <div className="relative flex-1">
+            <DropdownMenu
+              isOpen={showSuggestions}
+              onOpenChange={setIsSearchDropdownOpen}
+              trigger={
+                <div className="relative">
+                  <span className="sr-only">Search the forum</span>
+                  <Icon
+                    name="search"
+                    color="currentColor"
+                    width={16}
+                    height={16}
+                    className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-text-tertiary"
+                  />
+                  <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => {
+                      setSearch(e.target.value);
+                      setIsSearchDropdownOpen(true);
+                    }}
+                    onClick={() => setIsSearchDropdownOpen(true)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        setAppliedSearch(search);
+                        setIsSearchDropdownOpen(false);
+                      }
+                    }}
+                    placeholder="Search the forum"
+                    className="w-full h-[42px] pl-10 pr-4 border border-panel-border rounded-full bg-input-bg text-text-primary outline-none"
+                  />
+                </div>
               }
-            }}
-          >
-            <span className="sr-only">Search the forum</span>
-            <Icon
-              name="search"
-              color="currentColor"
-              width={16}
-              height={16}
-              className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-text-tertiary"
-            />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              onFocus={() => setIsSearchFocused(true)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  setAppliedSearch(search);
-                  setIsSearchFocused(false);
-                }
-              }}
-              placeholder="Search the forum"
-              className="w-full h-[42px] pl-10 pr-4 border border-panel-border rounded-full bg-input-bg text-text-primary outline-none"
-            />
-
-            {showSuggestions && (
-              <div className="absolute left-0 right-0 mt-2 z-30 rounded-xl border border-panel-border bg-panel-bg shadow-lg overflow-hidden">
+            >
+              <DropdownMenuContent maxHeight="max-h-64">
                 {suggestedPosts.map((post) => (
-                  <Link
+                  <DropdownMenuItem
                     key={post.id}
-                    href={getForumPostHref(post.postNumber, post.title)}
-                    className="block px-4 py-3 border-b border-panel-border last:border-b-0 hover:bg-hover-bg transition-colors"
+                    onClick={() => {
+                      router.push(getForumPostHref(post.postNumber, post.title));
+                      setIsSearchDropdownOpen(false);
+                    }}
+                    description={`by ${post.authorDisplayName}`}
                   >
-                    <p className="text-sm font-semibold text-heading line-clamp-1">{post.title}</p>
-                    <p className="text-xs text-text-secondary mt-0.5 line-clamp-1">
-                      by {post.authorDisplayName}
-                    </p>
-                  </Link>
+                    {post.title}
+                  </DropdownMenuItem>
                 ))}
-              </div>
-            )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           <Link

@@ -177,44 +177,52 @@ export default function CoursesPage() {
         <div className="lg:col-span-1">
           <div className="bg-panel-bg p-6 rounded-xl border border-panel-border">
             <label className="block text-sm font-semibold text-heading mb-3">Search Courses</label>
-            <div className="relative">
-              <input
-                ref={searchInputRef}
-                type="text"
-                placeholder="Enter course code or name..."
-                value={courseCode}
-                onChange={(e) => handleCourseSearchChange(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    void handleSearchSubmit();
-                  }
-                }}
-                onFocus={() => setShowDropdown(true)}
-                onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
-                className="w-full px-3 py-2.5 bg-panel-bg-alt border border-panel-border-strong rounded-xl text-sm text-text-primary focus:outline-none"
-              />
-              
-              {showDropdown && filteredCourses.length > 0 && (
-                <div className="absolute z-10 left-0 top-full w-full mt-1.5 bg-panel-bg border border-panel-border rounded-xl shadow-lg overflow-hidden">
-                  <div className="max-h-64 overflow-y-auto p-1.5 space-y-0.5">
-                    {filteredCourses.map((course) => (
-                      <div
-                        key={course.code}
-                        className="px-3 py-2 rounded-xl hover:bg-hover-bg transition-colors cursor-pointer"
-                        onMouseDown={(e) => e.preventDefault()}
-                        onClick={() => handleSelectCourse(course.code)}
-                      >
-                        <div className="text-sm font-medium text-text-primary">{course.code}</div>
-                        {course.title && (
-                          <div className="text-xs text-text-muted truncate">{course.title}</div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+            <DropdownMenu
+              isOpen={showDropdown && filteredCourses.length > 0 && courseCode.trim().length > 0}
+              onOpenChange={setShowDropdown}
+              className="w-full"
+              trigger={
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  placeholder="Enter course code or name..."
+                  value={courseCode}
+                  onChange={(e) => {
+                    handleCourseSearchChange(e.target.value);
+                    setShowDropdown(true);
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (filteredCourses.length > 0 && courseCode.trim().length > 0) {
+                      setShowDropdown(true);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      void handleSearchSubmit();
+                      setShowDropdown(false);
+                    }
+                  }}
+                  className="w-full px-3 py-2 bg-panel-bg-alt border border-panel-border-strong rounded-xl text-sm text-text-primary outline-none transition-colors"
+                />
+              }
+            >
+              <DropdownMenuContent maxHeight="max-h-64">
+                {filteredCourses.map((course) => (
+                  <DropdownMenuItem
+                    key={course.code}
+                    onClick={() => {
+                      handleSelectCourse(course.code);
+                      setShowDropdown(false);
+                    }}
+                    description={course.title}
+                  >
+                    {course.code}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 

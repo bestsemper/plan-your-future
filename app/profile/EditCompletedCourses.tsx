@@ -363,21 +363,21 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
                 <button
                   type="button"
                   onClick={() => setShowTransfer((prev) => !prev)}
-                  className={`px-3 py-1.5 text-xs font-semibold rounded-xl border transition-colors cursor-pointer ${showTransfer ? 'bg-badge-blue-bg text-badge-blue-text border-white/40' : 'border-panel-border-strong text-text-secondary hover:bg-hover-bg'}`}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-xl border transition-colors cursor-pointer ${showTransfer ? 'bg-hover-bg text-text-primary border-panel-border-strong' : 'border-panel-border-strong text-text-secondary hover:bg-hover-bg'}`}
                 >
                   Transfer
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowExtra((prev) => !prev)}
-                  className={`px-3 py-1.5 text-xs font-semibold rounded-xl border transition-colors cursor-pointer ${showExtra ? 'bg-badge-blue-bg text-badge-blue-text border-white/40' : 'border-panel-border-strong text-text-secondary hover:bg-hover-bg'}`}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-xl border transition-colors cursor-pointer ${showExtra ? 'bg-hover-bg text-text-primary border-panel-border-strong' : 'border-panel-border-strong text-text-secondary hover:bg-hover-bg'}`}
                 >
                   Extra
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowTaken((prev) => !prev)}
-                  className={`px-3 py-1.5 text-xs font-semibold rounded-xl border transition-colors cursor-pointer ${showTaken ? 'bg-badge-blue-bg text-badge-blue-text border-white/40' : 'border-panel-border-strong text-text-secondary hover:bg-hover-bg'}`}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-xl border transition-colors cursor-pointer ${showTaken ? 'bg-hover-bg text-text-primary border-panel-border-strong' : 'border-panel-border-strong text-text-secondary hover:bg-hover-bg'}`}
                 >
                   Taken
                 </button>
@@ -393,10 +393,10 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
                   {filteredListedCourses.map((course) => (
                     <div
                       key={course.id}
-                      className="flex items-center justify-between p-4 bg-input-bg border border-panel-border rounded-xl"
+                      className="flex items-center justify-between px-4 py-3 bg-input-bg border border-panel-border rounded-xl"
                     >
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-baseline gap-2 mb-1">
+                        <div className="flex items-baseline gap-2">
                           <div className="font-semibold text-text-primary">{course.courseCode}</div>
                           {course.semesterTaken && (
                             <div className="text-xs font-medium bg-badge-blue-bg text-badge-blue-text px-2 py-0.5 rounded-lg whitespace-nowrap">
@@ -409,7 +409,7 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
                       <button
                         onClick={() => handleDeleteCourse(course.id)}
                         disabled={isDeleting === course.id}
-                        className="ml-4 px-3 py-1.5 rounded-xl border border-red-400 text-red-500 hover:bg-red-500/10 text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                        className="ml-3 px-2.5 py-1.5 rounded-xl border border-red-400 text-red-500 hover:bg-red-500/10 text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
                       >
                         {isDeleting === course.id ? 'Deleting...' : 'Delete'}
                       </button>

@@ -27,6 +27,7 @@ type DropdownMenuItemProps = {
   selected?: boolean;
   children: ReactNode;
   icon?: ReactNode;
+  description?: ReactNode;
 };
 
 /**
@@ -89,8 +90,38 @@ export function DropdownMenuContent({
   className = '',
 }: DropdownMenuContentProps) {
   return (
-    <div className={`${maxHeight} overflow-y-auto overflow-x-hidden px-2 py-1.5 space-y-0.5 max-w-full ${className}`}>
+    <div className={`${maxHeight} flex flex-col overflow-y-auto overflow-x-hidden max-w-full ${className}`}>
       {children}
+    </div>
+  );
+}
+
+// DropdownMenuSearch Props
+type DropdownMenuSearchProps = {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  className?: string;
+};
+
+/**
+ * Embedded search input for dropdown menus
+ */
+export function DropdownMenuSearch({
+  value,
+  onChange,
+  placeholder = 'Search...',
+  className = '',
+}: DropdownMenuSearchProps) {
+  return (
+    <div className={`border-b border-panel-border bg-panel-bg ${className}`}>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full px-3 py-2.5 bg-transparent text-text-primary text-sm outline-none placeholder:text-text-tertiary"
+      />
     </div>
   );
 }
@@ -103,16 +134,24 @@ export function DropdownMenuItem({
   selected = false,
   children,
   icon,
+  description,
 }: DropdownMenuItemProps) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`w-full text-left px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors flex items-center justify-between ${
+      className={`w-full text-left px-3 py-2 text-sm cursor-pointer transition-colors flex items-center justify-between ${
         selected ? 'bg-hover-bg text-primary font-semibold' : 'text-text-primary hover:bg-hover-bg'
       }`}
     >
-      <span className="truncate min-w-0">{children}</span>
+      <div className="flex flex-col min-w-0 pr-2">
+        <span className="truncate">{children}</span>
+        {description && (
+          <span className={`text-xs truncate mt-0.5 ${selected ? 'text-primary/70' : 'text-text-muted'}`}>
+            {description}
+          </span>
+        )}
+      </div>
       {selected && icon ? (
         icon
       ) : selected ? (
