@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import type { RequirementMissing } from '../utils/prerequisiteChecker';
 import { Icon } from '../components/Icon';
 import { default as ConfirmModal } from '../components/ConfirmModal';
-import { CustomDropdown, CustomDropdownContent, CustomDropdownItem } from '../components/CustomDropdown';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from '../components/DropdownMenu';
 import {
   addSchoolYearToPlan,
   addSemesterToPlan,
@@ -256,7 +256,7 @@ function RequirementGroupBlock({
   }
 
   const toneClasses = {
-    blue: 'bg-uva-blue/10 text-uva-blue',
+    blue: 'bg-badge-blue-bg text-badge-blue-text',
     orange: 'bg-uva-orange/10 text-uva-orange',
     slate: 'bg-text-muted/10 text-text-secondary',
   } as const;
@@ -520,6 +520,12 @@ export default function PlanBuilderPage() {
   // Map of semesterId -> Map of courseCode -> missing prerequisite codes
   const [semestersProblematicCourses, setSemestersProblematicCourses] = useState<Map<string, Map<string, RequirementMissing[]>>>(new Map());
   
+  // Info tooltip for enrollment requirements
+  const [showInfoTooltip, setShowInfoTooltip] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
+  const [isHoveringInfo, setIsHoveringInfo] = useState(false);
+  const infoButtonRef = useRef<HTMLButtonElement | null>(null);
+  
   // Comparison plan display
   const [comparisonPlan, setComparisonPlan] = useState<any | null>(null);
 
@@ -538,6 +544,58 @@ export default function PlanBuilderPage() {
       }
     }
   }, [searchParams]);
+
+  // Close info tooltip when clicking outside (mobile only) or when unhover (desktop)
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const isClickInsideInfoButton = infoButtonRef.current && infoButtonRef.current.contains(e.target as Node);
+      
+      if (!isClickInsideInfoButton && !isDesktop) {
+        setShowInfoTooltip(false);
+      }
+    };
+
+    if (showInfoTooltip && !isDesktop) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }
+  }, [showInfoTooltip, isDesktop]);
+
+  // Detect if user is on desktop (lg breakpoint and above)
+  useEffect(() => {
+    const checkIsDesktop = () => {
+      setIsDesktop(window.innerWidth >= 1024);
+    };
+    
+    checkIsDesktop();
+    window.addEventListener("resize", checkIsDesktop);
+    return () => {
+      window.removeEventListener("resize", checkIsDesktop);
+    };
+  }, []);
+
+  // Handle info tooltip visibility based on device
+  const handleInfoMouseEnter = () => {
+    if (isDesktop) {
+      setIsHoveringInfo(true);
+      setShowInfoTooltip(true);
+    }
+  };
+
+  const handleInfoMouseLeave = () => {
+    if (isDesktop) {
+      setIsHoveringInfo(false);
+      setShowInfoTooltip(false);
+    }
+  };
+
+  const handleInfoClick = () => {
+    if (!isDesktop) {
+      setShowInfoTooltip(!showInfoTooltip);
+    }
+  };
 
   const loadData = async (preferredPlanId?: string) => {
     const res = await getPlanBuilderData();
@@ -1244,7 +1302,7 @@ export default function PlanBuilderPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <h1 className="text-3xl font-bold text-heading">Plan Builder</h1>
           <div className="flex w-full sm:w-auto sm:min-w-[320px] items-center gap-2">
-            <CustomDropdown
+            <DropdownMenu
               isOpen={isPlanDropdownOpen}
               onOpenChange={(open) => {
                 setIsPlanDropdownOpen(open);
@@ -1263,11 +1321,11 @@ export default function PlanBuilderPage() {
                 </button>
               }
             >
-              <CustomDropdownContent>
+              <DropdownMenuContent>
                 {optimisticPlans.map((p) => {
                   const isSelected = selectedPlanId === p.id;
                   return (
-                    <CustomDropdownItem
+                    <DropdownMenuItem
                       key={p.id}
                       selected={isSelected}
                       onClick={() => {
@@ -1277,11 +1335,11 @@ export default function PlanBuilderPage() {
                       }}
                     >
                       {p.title}
-                    </CustomDropdownItem>
+                    </DropdownMenuItem>
                   );
                 })}
-              </CustomDropdownContent>
-            </CustomDropdown>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             <div className="relative shrink-0">
               <button
@@ -1774,7 +1832,7 @@ export default function PlanBuilderPage() {
               )}
 
               {importMode === 'overwrite' && (
-                <CustomDropdown
+                <DropdownMenu
                   isOpen={isImportPlanDropdownOpen}
                   onOpenChange={setIsImportPlanDropdownOpen}
                   trigger={
@@ -1787,9 +1845,9 @@ export default function PlanBuilderPage() {
                     </button>
                   }
                 >
-                  <CustomDropdownContent maxHeight="max-h-40">
+                  <DropdownMenuContent maxHeight="max-h-40">
                     {optimisticPlans.map((plan) => (
-                      <CustomDropdownItem
+                      <DropdownMenuItem
                         key={plan.id}
                         selected={importOverwritePlanId === plan.id}
                         onClick={() => {
@@ -1798,10 +1856,10 @@ export default function PlanBuilderPage() {
                         }}
                       >
                         {plan.title}
-                      </CustomDropdownItem>
+                      </DropdownMenuItem>
                     ))}
-                  </CustomDropdownContent>
-                </CustomDropdown>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
 
               <input
@@ -1931,15 +1989,15 @@ export default function PlanBuilderPage() {
       {loadingInfo && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-panel-bg p-6 rounded-2xl flex items-center space-x-3">
-            <Icon name="loader" color="currentColor" width={20} height={20} className="animate-spin h-5 w-5 text-uva-blue" />
+            <Icon name="loader" color="currentColor" width={20} height={20} className="animate-spin h-5 w-5 text-white" />
             <span className="font-medium text-text-primary">Loading course info...</span>
           </div>
         </div>
       )}
 
       {selectedCourseInfo && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => { setSelectedCourseInfo(null); setSelectedCourseMissingRequirements([]); }}>
-          <div className="bg-panel-bg p-6 rounded-2xl max-w-md w-full max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed z-50 flex items-center justify-center lg:inset-0 lg:bg-black/50 lg:p-4 max-lg:inset-x-0 max-lg:top-14 max-lg:bottom-0 max-lg:p-3" onClick={() => { setSelectedCourseInfo(null); setSelectedCourseMissingRequirements([]); }}>
+          <div className="bg-panel-bg p-6 rounded-2xl shadow-xl max-lg:shadow-none max-w-md w-full max-h-[80dvh] overflow-y-auto max-lg:rounded-3xl max-lg:max-w-none max-lg:h-full max-lg:max-h-none" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h2 className="text-2xl font-bold text-heading">{selectedCourseInfo.courseCode}</h2>
@@ -1962,7 +2020,33 @@ export default function PlanBuilderPage() {
 
               {(selectedCourseInfo.prerequisites.length > 0 || selectedCourseInfo.corequisites.length > 0 || selectedCourseInfo.otherRequirements.length > 0) && (
                 <div>
-                  <h3 className="font-semibold text-text-primary mb-2 border-b border-panel-border pb-1">Enrollment Requirements</h3>
+                  <div className="mb-3 border-b border-panel-border pb-1">
+                    <div className="inline-flex items-start gap-1">
+                      <h3 className="font-semibold text-text-primary">Enrollment Requirements</h3>
+                      <div className="relative w-4 h-4 mt-0.5">
+                        <button
+                          ref={infoButtonRef}
+                          onClick={handleInfoClick}
+                          onMouseEnter={handleInfoMouseEnter}
+                          onMouseLeave={handleInfoMouseLeave}
+                          className="w-4 h-4 flex items-center justify-center text-text-tertiary hover:text-text-secondary focus:text-text-secondary transition-colors cursor-help flex-shrink-0"
+                          aria-label="Information about enrollment requirements data"
+                        >
+                          <Icon 
+                            name="info"
+                            color="currentColor"
+                            width={16}
+                            height={16}
+                          />
+                        </button>
+                        {showInfoTooltip && (
+                          <div className="absolute left-1/2 -translate-x-1/2 top-full w-52 mt-2 p-2 bg-panel-bg border border-panel-border rounded-lg text-xs text-text-secondary shadow-lg z-50 whitespace-normal">
+                            This data is parsed from SIS and may contain errors.
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                   <div className="space-y-4">
                     {selectedCourseInfo.prerequisites.length > 0 && (
                       <div>

@@ -4,9 +4,9 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Icon } from '@/app/components/Icon';
-import { CustomDropdown, CustomDropdownContent, CustomDropdownItem } from '@/app/components/CustomDropdown';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from '@/app/components/DropdownMenu';
 import { getForumPageData, voteOnForumPost } from '../actions';
-import { useAttachedPlanModal } from './AttachedPlanModalProvider';
+import { useAttachedPlanModal } from '../components/AttachedPlan';
 import { getForumPostHref } from './url';
 
 type ForumAnswerItem = {
@@ -174,10 +174,13 @@ export default function ForumPage() {
 
   if (!dataLoaded) {
     return (
-      <div className="w-full pt-0 pb-6 animate-pulse">
-        <div className="mb-6 border-b border-panel-border pb-4 flex items-center justify-between gap-3">
+      <div className="w-full pt-0 pb-6 animate-pulse overflow-x-hidden">
+        <div className="mb-6 border-b border-panel-border pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="h-9 w-64 rounded bg-input-disabled" />
-          <div className="h-[42px] w-28 rounded bg-input-disabled" />
+          <div className="flex items-center gap-3 w-full lg:w-auto lg:min-w-[460px]">
+            <div className="h-10 flex-1 rounded bg-input-disabled" />
+            <div className="h-[42px] w-28 shrink-0 rounded bg-input-disabled" />
+          </div>
         </div>
 
         <div className="mb-6">
@@ -206,7 +209,7 @@ export default function ForumPage() {
   }
 
   return (
-    <div className="w-full pt-0 pb-6">
+    <div className="w-full pt-0 pb-6 overflow-x-hidden">
       <div className="mb-6 border-b border-panel-border pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h1 className="text-3xl font-bold text-heading">Forum</h1>
         <div className="flex items-center gap-3 w-full lg:w-auto lg:min-w-[460px]">
@@ -239,7 +242,7 @@ export default function ForumPage() {
                 }
               }}
               placeholder="Search the forum"
-              className="w-full h-[42px] pl-10 pr-4 border border-panel-border rounded-full bg-input-bg text-text-primary outline-none focus:border-uva-blue/40 focus:ring-2 focus:ring-uva-blue/15"
+              className="w-full h-[42px] pl-10 pr-4 border border-panel-border rounded-full bg-input-bg text-text-primary outline-none"
             />
 
             {showSuggestions && (
@@ -262,7 +265,7 @@ export default function ForumPage() {
 
           <Link
             href="/forum/questions"
-            className="h-[42px] px-5 inline-flex items-center justify-center bg-uva-blue text-white rounded-full hover:bg-uva-blue-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-uva-blue/30 font-semibold transition-colors cursor-pointer whitespace-nowrap"
+            className="h-[42px] px-5 inline-flex items-center justify-center bg-button-bg text-button-text rounded-full hover:bg-button-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-button-bg/20 font-semibold transition-colors cursor-pointer whitespace-nowrap"
           >
             Ask Question
           </Link>
@@ -271,7 +274,7 @@ export default function ForumPage() {
 
       <div className="mb-4 flex items-center justify-end">
         <div className="text-sm">
-          <CustomDropdown
+          <DropdownMenu
             isOpen={isSortDropdownOpen}
             onOpenChange={setIsSortDropdownOpen}
             align="right"
@@ -285,8 +288,8 @@ export default function ForumPage() {
               </button>
             }
           >
-            <CustomDropdownContent className="w-48">
-              <CustomDropdownItem
+            <DropdownMenuContent className="w-48">
+              <DropdownMenuItem
                 selected={sortBy === 'recent'}
                 onClick={() => {
                   setSortBy('recent');
@@ -294,8 +297,8 @@ export default function ForumPage() {
                 }}
               >
                 Most Recent
-              </CustomDropdownItem>
-              <CustomDropdownItem
+              </DropdownMenuItem>
+              <DropdownMenuItem
                 selected={sortBy === 'upvoted'}
                 onClick={() => {
                   setSortBy('upvoted');
@@ -303,9 +306,9 @@ export default function ForumPage() {
                 }}
               >
                 Highest Upvoted
-              </CustomDropdownItem>
-            </CustomDropdownContent>
-          </CustomDropdown>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 

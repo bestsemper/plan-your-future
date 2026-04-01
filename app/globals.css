@@ -27,6 +27,10 @@
   --input-bg-disabled: #f3f4f6;
   
   /* semantic */
+  --button-bg: #232D4B;
+  --button-hover: #1b233a;
+  --button-text: #ffffff;
+  
   --danger-bg-hover: #fef2f2;
   --danger-text: rgba(239, 68, 68, 0.8);
   --danger-text-hover: #dc2626;
@@ -66,6 +70,10 @@
     --input-bg-disabled: #374151;
 
     /* semantic */
+    --button-bg: #ffffff;
+    --button-hover: #e5e7eb;
+    --button-text: #111827;
+    
     --danger-bg-hover: rgba(127, 29, 29, 0.3);
     --danger-text: #ef4444;
     --danger-text-hover: #f87171;
@@ -105,6 +113,10 @@
     --input-bg-disabled: #374151;
 
     /* semantic */
+    --button-bg: #ffffff;
+    --button-hover: #e5e7eb;
+    --button-text: #111827;
+
     --danger-bg-hover: rgba(127, 29, 29, 0.3);
     --danger-text: #ef4444;
     --danger-text-hover: #f87171;
@@ -142,6 +154,10 @@
   
   --color-success-text: var(--success-text);
   --color-success-text-hover: var(--success-text-hover);
+  
+  --color-button-bg: var(--button-bg);
+  --color-button-hover: var(--button-hover);
+  --color-button-text: var(--button-text);
   
   --color-uva-blue: #232D4B;
   --color-uva-orange: #E57200;

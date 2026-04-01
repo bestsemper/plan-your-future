@@ -3,10 +3,8 @@ import { redirect } from 'next/navigation';
 import ThemeToggle from './ThemeToggle';
 import EditProfileForm from './EditProfileForm';
 import EditCompletedCourses from './EditCompletedCourses';
-import { PrismaClient } from '@prisma/client';
+import prisma from '@/lib/prisma';
 import { Icon } from '../components/Icon';
-
-const prisma = new PrismaClient();
 
 export default async function Profile() {
   const user = await getCurrentUser();
@@ -25,7 +23,7 @@ export default async function Profile() {
   ].filter(Boolean).join(' • ');
 
   return (
-    <div className="max-w-5xl mx-auto py-4 md:py-8">
+    <div className="max-w-5xl mx-auto">
       <div className="bg-panel-bg p-4 md:p-8 rounded-2xl border border-panel-border mb-8 flex flex-col md:flex-row md:justify-between items-stretch md:items-start gap-6">
         <div className="min-w-0 flex-1">
           <div className="flex flex-col sm:flex-row items-center sm:items-center gap-4 md:gap-6 mb-6 text-center sm:text-left">

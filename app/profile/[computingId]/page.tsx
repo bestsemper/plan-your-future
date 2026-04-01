@@ -3,8 +3,17 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { Icon } from '../../components/Icon';
 
-export default async function UserProfilePage({ params }: { params: Promise<{ computingId: string }> }) {
+export default async function UserProfilePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ computingId: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   const { computingId } = await params;
+  const resolvedSearchParams = await searchParams;
+  const fromPath = typeof resolvedSearchParams.from === 'string' ? resolvedSearchParams.from : '/forum';
+  
   const profileData = await getUserProfile(computingId);
 
   if ('error' in profileData) {
@@ -20,9 +29,9 @@ export default async function UserProfilePage({ params }: { params: Promise<{ co
 
   return (
     <div className="max-w-5xl mx-auto py-4 md:py-8">
-      <Link href="/forum" className="inline-flex items-center gap-1.5 text-sm font-semibold text-uva-blue hover:text-uva-orange transition-colors mb-6">
+      <Link href={fromPath} className="inline-flex items-center gap-1.5 text-sm font-semibold text-text-primary hover:text-uva-orange transition-colors mb-6">
         <Icon name="arrow-left" color="currentColor" width={16} height={16} className="w-4 h-4" aria-hidden="true" />
-        Back to Forum
+        Go back
       </Link>
 
       <div className="bg-panel-bg p-4 md:p-8 rounded-2xl border border-panel-border mb-8">

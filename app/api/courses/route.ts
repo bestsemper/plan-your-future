@@ -31,7 +31,7 @@ function getCourses() {
 
       if (
         courseCode &&
-        /^[A-Z]{2,6}\s\d{4}$/.test(courseCode) &&
+        /^[A-Z]{2,6}\s\d{3,4}$/.test(courseCode) &&
         !isPlaceholderCourse(courseCode, description) &&
         !courseSet.has(courseCode)
       ) {

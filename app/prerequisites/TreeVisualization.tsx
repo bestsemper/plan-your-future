@@ -752,7 +752,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
   return (
     <div className="w-full h-full flex flex-col bg-panel-bg absolute inset-0 overflow-hidden min-w-0 min-h-0">
       {/* Search Bar - Left Side */}
-      <div className="absolute top-4 left-4 z-10 bg-panel-bg/90 backdrop-blur p-0.5 rounded-xl border border-panel-border shadow-sm w-80">
+      <div className="absolute top-4 left-4 right-40 z-10 bg-panel-bg/90 backdrop-blur p-0.5 rounded-xl border border-panel-border shadow-sm sm:right-44 md:right-40 lg:w-80 lg:right-auto">
         <div
           ref={courseSearchContainerRef}
           className="relative"
@@ -1111,9 +1111,9 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
       {(hoveredNodeId || clickedNodeId) && hoverPos && (
         <div
           ref={popupRef}
-          className="fixed bottom-5 right-5 z-[1000] min-w-[200px] max-w-[250px] bg-white border-2 border-uva-blue rounded-lg p-3 text-xs shadow-lg pointer-events-auto"
+          className="fixed bottom-5 right-5 z-[1000] min-w-[200px] max-w-[250px] bg-panel-bg border border-panel-border-strong rounded-lg p-3 text-xs shadow-lg pointer-events-auto"
         >
-          <div className="font-bold mb-2 text-sm text-uva-blue">
+          <div className="font-bold mb-2 text-sm text-primary">
             {clickedNodeId || hoveredNodeId}
           </div>
           <div className="text-xs mb-3 text-text-secondary italic max-h-20 overflow-y-auto">
@@ -1121,7 +1121,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
           </div>
           
           <div className="mb-2">
-            <div className="font-semibold text-uva-blue mb-1">
+            <div className="font-semibold text-primary mb-1">
               Prerequisites:
             </div>
             <div className="pl-2 text-text-muted">
@@ -1136,7 +1136,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
           </div>
           
           <div>
-            <div className="font-semibold text-uva-blue mb-1">
+            <div className="font-semibold text-primary mb-1">
               Required for:
             </div>
             <div className="pl-2 text-text-muted">

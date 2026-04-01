@@ -66,7 +66,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
 
   return (
     <>
-      <header className="lg:hidden fixed top-0 left-0 right-0 z-40 h-14 bg-uva-blue text-white border-b border-white/15 px-4 flex items-center justify-between">
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-40 h-14 bg-uva-blue text-white px-4 flex items-center justify-between">
         <Link href="/" className="min-w-0 block">
           <div className="w-[190px]">
             <img src="/uva-logo.svg" alt="University of Virginia Logo" className="h-6 w-full" />
@@ -80,7 +80,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
             type="button"
             onClick={() => setMobileNavOpen((prev) => !prev)}
             aria-label="Toggle navigation"
-            className="p-2 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+            className="w-10 h-10 flex items-center justify-center rounded-xl text-white/75 hover:text-white hover:bg-black/20 border border-transparent hover:border-white/10 transition-colors cursor-pointer"
           >
             <Icon 
               name={mobileNavOpen ? "x" : "menu"}
@@ -102,14 +102,14 @@ export default function Sidebar({ user }: { user: { computingId: string, display
             onTouchMove={(event) => event.preventDefault()}
             onClick={() => setMobileNavOpen(false)}
           />
-          <div className="pointer-events-none lg:hidden fixed top-[4.25rem] bottom-3 left-3 right-3 z-[60] rounded-3xl bg-black/35" />
+          <div className="pointer-events-none lg:hidden fixed top-14 bottom-3 left-3 right-3 z-[60] rounded-3xl bg-black/35" />
         </>
       )}
 
       {!isLoginPage && (
       <aside
         id="mobile-sidebar-panel"
-        className={`lg:hidden fixed top-14 bottom-0 left-0 z-[70] w-72 bg-uva-blue text-white px-6 py-6 flex flex-col justify-between transform transition-transform duration-200 ${
+        className={`lg:hidden fixed top-14 bottom-0 left-0 z-[70] w-72 bg-uva-blue text-white p-4 flex flex-col justify-between transform transition-transform duration-200 ${
           mobileNavOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -122,7 +122,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
                 onClick={() => setMobileNavOpen(false)}
                 className={`flex items-center gap-3 px-4 py-2.5 transition-colors font-medium rounded-xl border ${
                   isActive(link.href)
-                    ? "bg-white text-uva-blue border-black/15"
+                    ? "bg-white text-slate-900 border-black/15"
                     : "text-white/75 hover:text-white hover:bg-black/20 border-transparent hover:border-white/10"
                 }`}
               >
@@ -133,7 +133,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
           </nav>
         </div>
 
-        <div className="pt-4 flex flex-col gap-2 border-t border-white/20">
+        <div className={`pt-4 flex flex-col gap-2 ${menuOpen ? '' : 'border-t border-white/20'}`}>
           {user ? (
             <div className="relative" ref={mobileMenuRef}>
               <button
@@ -151,14 +151,14 @@ export default function Sidebar({ user }: { user: { computingId: string, display
               </button>
 
               {menuOpen && (
-                <div className="absolute left-0 right-0 bottom-full mb-2 rounded-xl border border-panel-border bg-panel-bg shadow-lg p-1.5 z-20">
+                <div className="absolute left-0 right-0 bottom-full mb-2 rounded-xl border border-white/10 bg-[#1c243c] shadow-lg p-1.5 z-20">
                   <Link
                     href="/profile"
                     onClick={() => {
                       setMenuOpen(false);
                       setMobileNavOpen(false);
                     }}
-                    className="block rounded-lg px-3 py-2 text-sm font-medium text-text-primary hover:bg-hover-bg"
+                    className="block rounded-lg px-3 py-2 text-sm font-medium text-white/75 hover:text-white hover:bg-white/10"
                   >
                     Profile
                   </Link>
@@ -169,7 +169,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
                         setMenuOpen(false);
                         setMobileNavOpen(false);
                       }}
-                      className="w-full text-left rounded-lg px-3 py-2 text-sm font-medium text-text-primary hover:bg-hover-bg cursor-pointer"
+                      className="w-full text-left rounded-lg px-3 py-2 text-sm font-medium text-white/75 hover:text-white hover:bg-white/10 cursor-pointer"
                     >
                       Sign Out
                     </button>
@@ -200,7 +200,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
                 href={link.href}
                 className={`flex items-center gap-3 px-4 py-2.5 transition-colors font-medium rounded-xl border ${
                   isActive(link.href)
-                    ? "bg-white text-uva-blue border-black/15"
+                    ? "bg-white text-slate-900 border-black/15"
                     : "text-white/75 hover:text-white hover:bg-black/20 border-transparent hover:border-white/10"
                 }`}
               >
@@ -211,7 +211,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
           </nav>
         </div>
 
-        <div className="pt-4 flex flex-col gap-2 border-t border-white/20">
+        <div className={`pt-4 flex flex-col gap-2 ${menuOpen ? '' : 'border-t border-white/20'}`}>
           {user ? (
             <div className="relative" ref={desktopMenuRef}>
               <button
@@ -229,18 +229,18 @@ export default function Sidebar({ user }: { user: { computingId: string, display
               </button>
 
               {menuOpen && (
-                <div className="absolute left-0 right-0 bottom-full mb-2 rounded-xl border border-panel-border bg-panel-bg shadow-lg p-1.5 z-20">
+                <div className="absolute left-0 right-0 bottom-full mb-2 rounded-xl border border-white/10 bg-[#1c243c] shadow-lg p-1.5 z-20">
                   <Link
                     href="/profile"
                     onClick={() => setMenuOpen(false)}
-                    className="block rounded-lg px-3 py-2 text-sm font-medium text-text-primary hover:bg-hover-bg"
+                    className="block rounded-lg px-3 py-2 text-sm font-medium text-white/75 hover:text-white hover:bg-white/10"
                   >
                     Profile
                   </Link>
                   <form action={logout} suppressHydrationWarning>
                     <button
                       type="submit"
-                      className="w-full text-left rounded-lg px-3 py-2 text-sm font-medium text-text-primary hover:bg-hover-bg cursor-pointer"
+                      className="w-full text-left rounded-lg px-3 py-2 text-sm font-medium text-white/75 hover:text-white hover:bg-white/10 cursor-pointer"
                     >
                       Sign Out
                     </button>
