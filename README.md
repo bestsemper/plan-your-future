@@ -6,6 +6,6 @@ Live website: https://hoosplan.vercel.app
 
 ### To-do:
 
-- [ ] Page for course prerequisite tree visualization
-- [ ] Course search page
+- [ ] Major requirements
 - [ ] Auto generate plan algorithm that takes major(s), number of semesters to graduate, and courses taken to satisfy major graduation requirements
+- [ ] Some way to contact the developers of the website, copyright information, useful links, etc. like HoosList' footer
