@@ -195,6 +195,14 @@ function formatEnrollmentRequirement(requirement: string): { label: string; valu
     };
   }
 
+  if (/^\(\d+ OF\)/.test(trimmed)) {
+    const match = trimmed.match(/^\((\d+) OF\)/);
+    return {
+      label: `${match?.[1] || ''} Of`,
+      value: trimmed.replace(/^\(\d+ OF\)\s*/, ''),
+    };
+  }
+
   if (trimmed.includes(' OR ')) {
     return {
       label: 'One Of',

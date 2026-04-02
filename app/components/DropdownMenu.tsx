@@ -143,13 +143,13 @@ export function DropdownMenuItem({
       type="button"
       onClick={onClick}
       className={`w-full text-left px-3 py-2 text-sm cursor-pointer transition-colors flex items-center justify-between ${
-        selected ? 'bg-hover-bg text-primary font-semibold' : 'text-text-primary hover:bg-hover-bg'
+        selected ? 'bg-hover-bg text-primary' : 'text-text-primary hover:bg-hover-bg'
       }`}
     >
       <div className="flex flex-col min-w-0 pr-2">
-        <span className="truncate">{children}</span>
+        <span className={`truncate ${selected ? 'font-semibold' : ''}`}>{children}</span>
         {description && (
-          <span className={`text-xs truncate mt-0.5 ${selected ? 'text-primary/70' : 'text-text-muted'}`}>
+          <span className={`text-xs truncate mt-0.5 ${selected ? 'text-primary/70 font-normal' : 'text-text-muted'}`}>
             {description}
           </span>
         )}

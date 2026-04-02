@@ -767,6 +767,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
     setHoveredNodeId(null);
     setHoverPos({ x: 0, y: 0 });
     setShowCourseSearchDropdown(false);
+    setCourseSearchText("");
     setTimeout(() => focusNodeInViewport(nodeId), 0);
   };
 
@@ -864,6 +865,37 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
       }
     }
     return node.id;
+  };
+
+  const formatPrerequisiteLabel = (requirement: string): { label: string; value: string } => {
+    const trimmed = requirement.trim();
+    
+    if (/^\(\d+ OF\)/.test(trimmed)) {
+      const match = trimmed.match(/^\((\d+) OF\)/);
+      return {
+        label: `${match?.[1] || ''} Of`,
+        value: trimmed.replace(/^\(\d+ OF\)\s*/, ''),
+      };
+    }
+    
+    if (trimmed.includes(' OR ')) {
+      return {
+        label: 'One Of',
+        value: trimmed,
+      };
+    }
+    
+    if (trimmed.includes(' AND ')) {
+      return {
+        label: 'All Of',
+        value: trimmed,
+      };
+    }
+    
+    return {
+      label: '',
+      value: trimmed,
+    };
   };
 
   return (
@@ -1049,107 +1081,121 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
           // Multi-waypoint path through gaps - create smooth Bezier segments with perfect continuity
           const waypoints = edge.waypoints;
           const numPoints = waypoints.length;
-          const p_prev = waypoints[numPoints - 2];
           const p_end = waypoints[numPoints - 1];
           
-          // Helper to calculate control points that never point upward (pass horizontal line test)
-          const calculateControlPoints = (p0: { x: number; y: number }, p1: { x: number; y: number }, p2?: { x: number; y: number } | null, p_1?: { x: number; y: number } | null) => {
-            // For curves that pass the horizontal line test, ensure all points are monotonic in y
-            // Keep horizontal offset minimal to avoid overshooting the bundled edge
-            
-            const dx = p1.x - p0.x;
-            const dy = p1.y - p0.y;
-            
-            const tension = dy * 0.5;
-            
-            // First control point - minimal horizontal offset, mostly vertical
-            const cp0x = p0.x; // Reduced from 0.15
-            const cp0y = p0.y + tension;
-            
-            // Second control point - minimal horizontal offset, mostly vertical
-            const cp1x = p1.x; // Reduced from 0.15
-            const cp1y = p1.y - tension;
-            
-            // Ensure monotonicity: cp0_y <= cp1_y
-            if (cp0y > cp1y) {
-              const midY = (p0.y + p1.y) / 2;
-              return { cp0x, cp0y: midY * 0.75 + p0.y * 0.25, cp1x, cp1y: p1.y * 0.75 + midY * 0.25 };
-            }
-            
-            return { cp0x, cp0y, cp1x, cp1y };
-          };
-          
-          // Get control points of the last segment to compute angle
-          let cp_prevX, cp_prevY, cp_endX, cp_endY;
-          if (numPoints === 2) {
-            const controls = calculateControlPoints(waypoints[0], p_end);
-            cp_prevX = controls.cp0x;
-            cp_prevY = controls.cp0y;
-            cp_endX = controls.cp1x;
-            cp_endY = controls.cp1y;
-          } else {
-            const controls = calculateControlPoints(p_prev, p_end, null, waypoints[numPoints - 3]);
-            cp_prevX = controls.cp0x;
-            cp_prevY = controls.cp0y;
-            cp_endX = controls.cp1x;
-            cp_endY = controls.cp1y;
-          }
-          
-          const t = 0.95;
-          const coef1 = 3 * Math.pow(1 - t, 2);
-          const coef2 = 6 * (1 - t) * t;
-          const coef3 = 3 * Math.pow(t, 2);
-          const dx = coef1 * (cp_prevX - p_prev.x) + coef2 * (cp_endX - cp_prevX) + coef3 * (p_end.x - cp_endX);
-          const dy = coef1 * (cp_prevY - p_prev.y) + coef2 * (cp_endY - cp_prevY) + coef3 * (p_end.y - cp_endY);
-          const angle = Math.atan2(dy, dx);
-          
-          // Calculate where the line stops (before the node) but arrow stays at node
-          const lineStopOffsetDist = arrowMarkerSize * 1.5;
-          const lineStopX = p_end.x - Math.cos(angle) * lineStopOffsetDist;
-          const lineStopY = p_end.y - Math.sin(angle) * lineStopOffsetDist;
-          
-          // Build path string with smooth Bezier curves, ending before the node
           let pathData = `M ${waypoints[0].x} ${waypoints[0].y}`;
           
-          // For 2 waypoints, use simple curve
           if (numPoints === 2) {
-            const controls = calculateControlPoints(waypoints[0], { x: lineStopX, y: lineStopY });
-            pathData = `M ${waypoints[0].x} ${waypoints[0].y} C ${controls.cp0x} ${controls.cp0y}, ${controls.cp1x} ${controls.cp1y}, ${lineStopX} ${lineStopY}`;
+            // Base case: 2 points
+            const dy = p_end.y - waypoints[0].y;
+            const tension = dy * 0.5;
+            let cp0x = waypoints[0].x;
+            let cp0y = waypoints[0].y + tension;
+            let cp1x = p_end.x;
+            let cp1y = p_end.y - tension;
+            
+            // Allow monotonicity
+            if (cp0y > cp1y) {
+              const midY = (waypoints[0].y + p_end.y) / 2;
+              cp0y = midY;
+              cp1y = midY;
+            }
+            
+            // Re-calculate line stop since angle changes depending on cp1
+            const dxEnd = p_end.x - cp1x;
+            const dyEnd = p_end.y - cp1y;
+            const angle = Math.atan2(dyEnd, dxEnd);
+            const lineStopOffsetDist = arrowMarkerSize * 1.5;
+            const lineStopX = p_end.x - Math.cos(angle) * lineStopOffsetDist;
+            const lineStopY = p_end.y - Math.sin(angle) * lineStopOffsetDist;
+            
+            pathData += ` C ${cp0x} ${cp0y}, ${cp1x} ${cp1y}, ${lineStopX} ${lineStopY}`;
+            
+            return (
+              <g key={`edge-${edge.parentId}-${edge.childId}`}>
+                <path
+                  d={pathData}
+                  fill="none"
+                  stroke={displayColor}
+                  strokeWidth={isConnectedToActive ? strokeWidth * 2 : strokeWidth}
+                  opacity={isConnectedToActive ? 1 : 0.7}
+                />
+                <polygon
+                  points={createArrowhead(p_end.x, p_end.y, angle, arrowMarkerSize)}
+                  fill={displayColor}
+                  opacity={isConnectedToActive ? 1 : 0.7}
+                />
+              </g>
+            );
           } else {
-            // For multiple waypoints, create smooth connecting segments with perfect continuity
-            // Connect all waypoints except the last, then curve to line stop point
+            // Complex case
+            // Create nice splines passing near the waypoints
+            // Waypoints are alternating top/bottom of gaps
             for (let i = 1; i < numPoints - 1; i++) {
               const p0 = waypoints[i - 1];
               const p1 = waypoints[i];
-              const p_prev = i > 1 ? waypoints[i - 2] : null;
-              const p_next = i < numPoints - 2 ? waypoints[i + 1] : null;
               
-              const controls = calculateControlPoints(p0, p1, p_next, p_prev);
+              const dy = p1.y - p0.y;
+              // If it's a tight gap constraint (e.g. going from top to bottom of a row), use strong tension to go straight down
+              const isGapInternal = Math.abs(p0.x - p1.x) < 5 && Math.abs(dy) <= nodeH + 20;
+              const curTension = isGapInternal ? dy * 0.2 : dy * 0.5;
               
-              pathData += ` C ${controls.cp0x} ${controls.cp0y}, ${controls.cp1x} ${controls.cp1y}, ${p1.x} ${p1.y}`;
+              let cp0x = p0.x;
+              let cp0y = p0.y + curTension;
+              let cp1x = p1.x;
+              let cp1y = p1.y - curTension;
+              
+              // Allow monotonicity
+              if (cp0y > cp1y && !isGapInternal) {
+                const midY = (p0.y + p1.y) / 2;
+                cp0y = midY;
+                cp1y = midY;
+              }
+              
+              pathData += ` C ${cp0x} ${cp0y}, ${cp1x} ${cp1y}, ${p1.x} ${p1.y}`;
             }
             
-            // Final segment to line stop point (not all the way to node)
-            const controls = calculateControlPoints(p_prev, { x: lineStopX, y: lineStopY }, null, waypoints[numPoints - 3]);
-            pathData += ` C ${controls.cp0x} ${controls.cp0y}, ${controls.cp1x} ${controls.cp1y}, ${lineStopX} ${lineStopY}`;
+            // Final leg
+            const p0 = waypoints[numPoints - 2];
+            const dyEndTension = p_end.y - p0.y;
+            const finalTension = dyEndTension * 0.5;
+            let cp0xFinal = p0.x;
+            let cp0yFinal = p0.y + finalTension;
+            let cp1xFinal = p_end.x;
+            let cp1yFinal = p_end.y - finalTension;
+            
+            if (cp0yFinal > cp1yFinal) {
+              const midY = (p0.y + p_end.y) / 2;
+              cp0yFinal = midY;
+              cp1yFinal = midY;
+            }
+            
+            const dxEnd = p_end.x - cp1xFinal;
+            const dyEnd = p_end.y - cp1yFinal;
+            const angle = Math.atan2(dyEnd, dxEnd);
+            const lineStopOffsetDist = arrowMarkerSize * 1.5;
+            const lineStopX = p_end.x - Math.cos(angle) * lineStopOffsetDist;
+            const lineStopY = p_end.y - Math.sin(angle) * lineStopOffsetDist;
+            
+            pathData += ` C ${cp0xFinal} ${cp0yFinal}, ${cp1xFinal} ${cp1yFinal}, ${lineStopX} ${lineStopY}`;
+            
+            return (
+              <g key={`edge-${edge.parentId}-${edge.childId}`}>
+                <path
+                  d={pathData}
+                  fill="none"
+                  stroke={displayColor}
+                  strokeWidth={isConnectedToActive ? strokeWidth * 2 : strokeWidth * 0.5}
+                  opacity={isConnectedToActive ? 1 : 0.7}
+                />
+                <polygon
+                  points={createArrowhead(p_end.x, p_end.y, angle, arrowMarkerSize)}
+                  fill={displayColor}
+                  opacity={isConnectedToActive ? 1 : 0.7}
+                />
+              </g>
+            );
           }
-
-          return (
-            <g key={`edge-${edge.parentId}-${edge.childId}`}>
-              <path
-                d={pathData}
-                fill="none"
-                stroke={displayColor}
-                strokeWidth={isConnectedToActive ? strokeWidth * 2 : strokeWidth}
-                opacity={isConnectedToActive ? 1 : 0.7}
-              />
-              <polygon
-                points={createArrowhead(p_end.x, p_end.y, angle, isConnectedToActive ? arrowMarkerSize * 1.5 : arrowMarkerSize)}
-                fill={displayColor}
-                opacity={isConnectedToActive ? 1 : 0.7}
-              />
-            </g>
-          );
         })}
 
         {/* Draw corequisite edges (dashed) */}
@@ -1181,7 +1227,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
                 d={pathData}
                 fill="none"
                 stroke={displayColor}
-                strokeWidth={isConnectedToActive ? strokeWidth * 2 : strokeWidth}
+                strokeWidth={isConnectedToActive ? strokeWidth * 2 : strokeWidth * 0.6}
                 strokeDasharray="4,4"
                 opacity={isConnectedToActive ? 1 : 0.5}
               />
@@ -1194,6 +1240,25 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
           const isOrNode = type === 'or';
           const isAndNode = type === 'and';
           const isLogicNode = isOrNode || isAndNode;
+          
+          const getTargetCourse = (startId: string): string => {
+            let curr = startId;
+            const visited = new Set<string>();
+            while (true) {
+              if (visited.has(curr)) return curr;
+              visited.add(curr);
+              const node = dagData?.nodes.find(n => n.id === curr);
+              if (node && node.type !== 'or' && node.type !== 'and') {
+                return curr;
+              }
+              const children = Array.from(edgesMap?.get(curr) || []);
+              if (children.length > 0) {
+                curr = children[0] as string;
+              } else {
+                return curr;
+              }
+            }
+          };
           
           const prereqs = dagData?.nodes.find(n => n.id === id)?.prereqs || [];
           const postreqs = Array.from(edgesMap?.get(id) || new Set());
@@ -1209,7 +1274,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
                   cx={x}
                   cy={y}
                   r={16}
-                  fill={isDark ? (activeNodeId === id ? "#4b5563" : isDirectlyConnected ? "#374151" : "#1f2937") : (activeNodeId === id ? "#e5e7eb" : isDirectlyConnected ? "#f3f4f6" : "#f9fafb")}
+                  fill={isDark ? (activeNodeId === id ? "#7b8a97" : isDirectlyConnected ? "#4b5563" : "#1f2937") : (activeNodeId === id ? "#e5e7eb" : isDirectlyConnected ? "#ececf1" : "#ffffff")}
                   stroke={isDark ? "#d97706" : "#f59e0b"}
                   strokeWidth={2}
                   onMouseEnter={(e) => {
@@ -1226,12 +1291,13 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
                   }}
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (clickedNodeId === id) {
+                    const targetId = getTargetCourse(id);
+                    if (clickedNodeId === targetId) {
                       setClickedNodeId(null);
                       setHoveredNodeId(null);
                       setHoverPos(null);
                     } else {
-                      setClickedNodeId(id);
+                      setClickedNodeId(targetId);
                       setHoveredNodeId(null);
                       setHoverPos({ x: 0, y: 0 });
                     }
@@ -1261,7 +1327,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
                 y={y - nodeH / 2}
                 width={nodeW}
                 height={nodeH}
-                fill={isDark ? (activeNodeId === id ? "#4b5563" : isDirectlyConnected ? "#374151" : "#374151") : (activeNodeId === id ? "#e5e7eb" : isDirectlyConnected ? "#f3f4f6" : "#ffffff")}
+                fill={isDark ? (activeNodeId === id ? "#7b8a97" : isDirectlyConnected ? "#4b5563" : "#1f2937") : (activeNodeId === id ? "#e5e7eb" : isDirectlyConnected ? "#ececf1" : "#ffffff")}
                 stroke={isDark ? (activeNodeId === id ? "#6b7280" : isDirectlyConnected ? "#6b7280" : "#6b7280") : (activeNodeId === id ? "#9ca3af" : isDirectlyConnected ? "#d1d5db" : "#d1d5db")}
                 strokeWidth={activeNodeId === id ? 2.5 : isDirectlyConnected ? 2 : strokeWidth}
                 rx={strokeWidth * 2}
@@ -1314,64 +1380,82 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
       </div>
       </div>
 
-      {(hoveredNodeId || clickedNodeId) && hoverPos && !dagData?.nodes.find(n => n.id === (clickedNodeId || hoveredNodeId))?.type && (
-        <div
-          ref={popupRef}
-          className="fixed bottom-5 right-5 z-[1000] min-w-[200px] max-w-[250px] bg-panel-bg border border-panel-border-strong rounded-lg p-3 text-xs shadow-lg pointer-events-auto"
-        >
-          <div className="font-bold mb-2 text-sm text-primary">
-            {clickedNodeId || hoveredNodeId}
-          </div>
-          <div className="text-xs mb-3 text-text-secondary italic max-h-20 overflow-y-auto">
-            {dagData?.nodes.find(n => n.id === (clickedNodeId || hoveredNodeId))?.title || dagData?.nodes.find(n => n.id === (clickedNodeId || hoveredNodeId))?.label}
-          </div>
-          
-          <div className="mb-2">
-            <div className="font-semibold text-primary mb-1">
-              Prerequisites:
-            </div>
-            <div className="pl-2 text-text-muted">
-              {(reverseEdgesMap?.get((clickedNodeId || hoveredNodeId)!) as Set<string> | undefined)?.size === 0 ? (
-                <span>None</span>
-              ) : (
-                Array.from(reverseEdgesMap?.get((clickedNodeId || hoveredNodeId)!) as Set<string> | Set<unknown>).map((prereq: string | unknown) => (
-                  <div key={prereq as string}>• {formatNodeLabel(String(prereq), false, 0)}</div>
-                ))
-              )}
-            </div>
-          </div>
+      {(hoveredNodeId || clickedNodeId) && hoverPos && !dagData?.nodes.find(n => n.id === (clickedNodeId || hoveredNodeId))?.type && (() => {
+        const targetId = clickedNodeId || hoveredNodeId;
+        const targetNode = dagData?.nodes.find(n => n.id === targetId);
+        
+        let allPrereqsList: string[] = [];
+        const rawPrereqs = Array.from(reverseEdgesMap?.get(targetId!) || new Set<string>());
+        const depOrs: string[] = (targetNode as any)?.departmentOrs || [];
+        
 
-          <div className="mb-2">
-            <div className="font-semibold text-primary mb-1">
-              Corequisites:
+        
+        // Filter out rawPrereqs that are part of a count node group
+        const standalonePrereqs = rawPrereqs.filter(prereq => {
+          return !depOrs.some(orStatement => {
+            // Check if this course is mentioned in any (N OF) group
+            const codes = (orStatement.match(/[A-Z]{2,6}\s*\d{3,4}[A-Z]?/g) || []).map(c => c.toUpperCase().replace(/\s+/g, ' '));
+            return codes.includes(String(prereq).toUpperCase().replace(/\s+/g, ' '));
+          });
+        });
+        
+        allPrereqsList = [...standalonePrereqs.map(p => formatNodeLabel(String(p), false, 0)), ...depOrs];
+
+        return (
+          <div
+            ref={popupRef}
+            className="fixed bottom-5 right-5 z-[1000] min-w-[200px] max-w-[250px] bg-panel-bg border border-panel-border-strong rounded-lg p-3 text-xs shadow-lg pointer-events-auto"
+          >
+            <div className="font-bold mb-2 text-sm text-primary">
+              {targetId}
             </div>
-            <div className="pl-2 text-text-muted">
-              {(coreqMap?.get((clickedNodeId || hoveredNodeId)!) as Set<string> | undefined)?.size === 0 ? (
-                <span>None</span>
-              ) : (
-                Array.from(coreqMap?.get((clickedNodeId || hoveredNodeId)!) as Set<string> | Set<unknown>).map((coreq: string | unknown) => (
-                  <div key={coreq as string}>• {String(coreq)}</div>
-                ))
+            <div className="text-xs mb-3 text-text-secondary italic max-h-20 overflow-y-auto">
+              {targetNode?.title || targetNode?.label}
+            </div>
+            
+            <div className="flex flex-col gap-2">
+              {allPrereqsList.length > 0 && (
+                <div>
+                  <div className="font-semibold text-primary mb-1">
+                    Prerequisites:
+                  </div>
+                  <div className="pl-2 text-text-muted">
+                    {allPrereqsList.map((item, i) => (
+                      <div key={i}>• {item}</div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {((coreqMap?.get(targetId!) as Set<string> | undefined)?.size || 0) > 0 && (
+                <div>
+                  <div className="font-semibold text-primary mb-1">
+                    Corequisites:
+                  </div>
+                  <div className="pl-2 text-text-muted">
+                    {Array.from(coreqMap?.get(targetId!) as Set<string> | Set<unknown>).map((coreq: string | unknown) => (
+                      <div key={coreq as string}>• {String(coreq)}</div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {((edgesMap?.get(targetId!) as Set<string> | undefined)?.size || 0) > 0 && (
+                <div>
+                  <div className="font-semibold text-primary mb-1">
+                    Required for:
+                  </div>
+                  <div className="pl-2 text-text-muted">
+                    {Array.from(edgesMap?.get(targetId!) as Set<string> | Set<unknown>).map((postreq: string | unknown) => (
+                      <div key={postreq as string}>• {formatNodeLabel(String(postreq), true, 0)}</div>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
           </div>
-          
-          <div>
-            <div className="font-semibold text-primary mb-1">
-              Required for:
-            </div>
-            <div className="pl-2 text-text-muted">
-              {(edgesMap?.get((clickedNodeId || hoveredNodeId)!) as Set<string> | undefined)?.size === 0 ? (
-                <span>None</span>
-              ) : (
-                Array.from(edgesMap?.get((clickedNodeId || hoveredNodeId)!) as Set<string> | Set<unknown>).map((postreq: string | unknown) => (
-                  <div key={postreq as string}>• {formatNodeLabel(String(postreq), true, 0)}</div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 };

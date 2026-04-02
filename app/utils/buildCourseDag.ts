@@ -5,9 +5,11 @@ export interface SimpleCourse {
   id: string;
   label: string;
   title?: string;
+  description?: string;
   type?: string;
   prereqs: string[];
   coreqs?: string[];
+  departmentOrs?: string[];
 }
 
 export interface CourseDAG {
@@ -21,6 +23,10 @@ function extractCoursesFromPrereq(prereqObj: any): string[] {
   
   if (prereqObj.type === 'course') {
     return [prereqObj.code];
+  }
+  if (prereqObj.type === 'COREQ') {
+    // Skip COREQ nodes - they should be handled separately by extractCoursesFromCoreq
+    return [];
   }
   if (prereqObj.type === 'AND' || prereqObj.type === 'OR') {
     return (prereqObj.children || []).flatMap(extractCoursesFromPrereq);
@@ -210,12 +216,12 @@ export function buildCourseDag(department: string): CourseDAG {
   const dataPath = path.join(process.cwd(), 'data', 'uva_prerequisites.json');
   const data = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
   
-  // Load course details with titles
+  // Load course details with titles and descriptions
   const courseDetailsPath = path.join(process.cwd(), 'data', 'uva_course_details.json');
-  const courseDetailsArray = JSON.parse(fs.readFileSync(courseDetailsPath, 'utf-8')) as Array<{ course_code: string; title: string }>;
-  const courseDetails = new Map<string, { title: string }>();
+  const courseDetailsArray = JSON.parse(fs.readFileSync(courseDetailsPath, 'utf-8')) as Array<{ course_code: string; title: string; description?: string }>;
+  const courseDetails = new Map<string, { title: string; description?: string }>();
   courseDetailsArray.forEach(course => {
-    courseDetails.set(course.course_code, { title: course.title });
+    courseDetails.set(course.course_code, { title: course.title, description: course.description });
   });
   
   // Ensure department has the space (e.g., "CS " instead of just "CS")
@@ -238,30 +244,32 @@ export function buildCourseDag(department: string): CourseDAG {
     // Exclude special topics courses
     if (specialTopicsCourses.has(courseCode)) return;
     
-    // Only include courses that exist in course_details with non-empty terms
-    if (validCourses.size > 0 && !validCourses.has(courseCode)) return;
-    
-    // Only include recently offered courses
-    if (recentCourses.size > 0 && !recentCourses.has(courseCode)) return;
-    
     const prereqs = extractCoursesFromPrereq(prereqData);
     const coreqs = extractCoursesFromCoreq(prereqData);
+    
+    if (courseCode === 'SYS 4055') {
+      console.log('DEBUG: Processing SYS 4055, extracted prereqs:', prereqs);
+    }
     
     // Only keep prerequisites from the SAME department (not group codes or cross-department equivalents)
     const filteredPrereqs = prereqs.filter(p => p.startsWith(deptPrefix));
     const filteredCoreqs = coreqs.filter(p => p.startsWith(deptPrefix));
     
+    if (courseCode === 'SYS 4055') {
+      console.log('DEBUG: After filtering, filtered prereqs:', filteredPrereqs);
+    }
+    
     // DON'T map to equivalence groups for same-department prerequisites - keep them as-is
-    // Only include valid and recently offered prerequisites
+    // Include all valid prerequisites (don't filter by validCourses or recency)
     const validRecentPrereqs = filteredPrereqs.filter(p => 
-      (validCourses.size === 0 || validCourses.has(p)) && 
-      (recentCourses.size === 0 || recentCourses.has(p)) &&
       !specialTopicsCourses.has(p)
     );
     
+    if (courseCode === 'SYS 4055') {
+      console.log('DEBUG: After special topics filter, validRecentPrereqs:', validRecentPrereqs);
+    }
+    
     const validRecentCoreqs = filteredCoreqs.filter(p => 
-      (validCourses.size === 0 || validCourses.has(p)) && 
-      (recentCourses.size === 0 || recentCourses.has(p)) &&
       !specialTopicsCourses.has(p)
     );
     
@@ -273,6 +281,10 @@ export function buildCourseDag(department: string): CourseDAG {
     validRecentPrereqs.forEach(prereq => relevantCourses.add(prereq));
     validRecentCoreqs.forEach(coreq => relevantCourses.add(coreq));
   });
+  
+  if (department === 'SYS') {
+    console.log('DEBUG: relevantCourses after step 1:', Array.from(relevantCourses));
+  }
   
   // Step 2: Group equivalent courses
   // Map from group representative to list of courses in that group
@@ -290,7 +302,7 @@ export function buildCourseDag(department: string): CourseDAG {
       groupMembers.set(finalGroupRep, []);
     }
     groupMembers.get(finalGroupRep)!.push(courseId);
-  });
+  });  
   
   // Step 3: Build nodes for groups
   const nodes = new Map<string, SimpleCourse>();
@@ -299,20 +311,23 @@ export function buildCourseDag(department: string): CourseDAG {
   
   groupMembers.forEach((members, groupId) => {
     const label = createGroupLabel(groupId, members, courseToGroup);
-    const title = courseDetails.get(members[0])?.title;
+    const details = courseDetails.get(members[0]);
     nodes.set(groupId, {
       id: groupId,
       label,
-      title,
+      title: details?.title,
+      description: details?.description,
       prereqs: [],
       coreqs: [],
     });
     edges.set(groupId, new Set<string>());
     coreqEdges.set(groupId, new Set<string>());
+
   });
   
   // Step 4: Build edges between groups (avoiding duplicates)
   const edgeSet = new Set<string>();
+  const protectedEdges = new Set<string>(); // Edges from direct AND prerequisites - should not be removed as redundant
   
   // Helper function to extract course level (e.g., "CS 3100" -> 3)
   const getCourseLevel = (courseId: string): number => {
@@ -328,6 +343,11 @@ export function buildCourseDag(department: string): CourseDAG {
   const buildLogicTree = (node: any, targetGroup: string, targetLevel: number, isInOr: boolean): string[] => {
     if (!node) return [];
     
+    if (node.type === 'COREQ') {
+      // Skip COREQ nodes - they should be handled separately by coreqEdges extraction
+      return [];
+    }
+
     if (node.type === 'course') {
       const prereq = node.code;
       if (!relevantCourses.has(prereq)) return [];
@@ -345,47 +365,12 @@ export function buildCourseDag(department: string): CourseDAG {
       return [prereqGroup];
     }
     
-    if (node.type === 'AND') {
+    if (node.type === 'AND' || node.type === 'OR' || node.type === 'count') {
       const childIds: string[] = (node.children || []).flatMap((c: any) => buildLogicTree(c, targetGroup, targetLevel, isInOr));
       // Deduplicate
       return Array.from(new Set<string>(childIds));
     }
     
-    if (node.type === 'OR' || node.type === 'count') {
-      const childIds: string[] = (node.children || []).flatMap((c: any) => buildLogicTree(c, targetGroup, targetLevel, true));
-      const uniqueChildIds = Array.from(new Set<string>(childIds));
-      
-      if (uniqueChildIds.length <= 1) return uniqueChildIds;
-      
-      logicNodeCounter++;
-      // Give it the targetGroup prefix for level detection
-      const nodeType = node.type === 'count' && node.count ? `${node.count} of` : 'OR';
-      const orId = `${targetGroup}-${nodeType.toUpperCase().replace(/\s/g, '')}-${logicNodeCounter}`;
-      
-      nodes.set(orId, {
-        id: orId,
-        label: nodeType,
-        type: 'or',
-        prereqs: [],
-        coreqs: []
-      });
-      if (!edges.has(orId)) edges.set(orId, new Set<string>());
-      
-      // Connect children to this OR node
-      uniqueChildIds.forEach(child => {
-        if (!edges.has(child)) edges.set(child, new Set<string>());
-        const edgeKey = `${child}->${orId}`;
-        if (!edgeSet.has(edgeKey)) {
-          edgeSet.add(edgeKey);
-          edges.get(child)?.add(orId);
-        }
-      });
-      
-      return [orId];
-    }
-    
-    // COREQ or other types? Treat them like nothing or flat list?
-    // Let's recurse if it's COREQ? No, COREQ extraction handles it.
     if (node.children) {
       return (node.children || []).flatMap((c: any) => buildLogicTree(c, targetGroup, targetLevel, isInOr)) as string[];
     }
@@ -396,10 +381,53 @@ export function buildCourseDag(department: string): CourseDAG {
     const courseData = allCourses.get(courseId);
     if (!courseData) return;
     
-    const courseGroup = courseToGroupRep.get(courseId)!;
+    const courseGroup = courseToGroupRep.get(courseId);
+    if (!courseGroup) {
+      // Course exists but isn't in courseToGroupRep mapping - shouldn't happen but handle gracefully
+      console.warn(`Course ${courseId} in relevantCourses but not in courseToGroupRep`);
+      return;
+    }
     const courseLevel = getCourseLevel(courseId);
     
     if (courseData.rawPrereq) {
+      // Helper to extract corequisites from anywhere in the tree
+      const extractAllCoreqs = (node: any): string[] => {
+        if (!node) return [];
+        if (node.type === 'COREQ') {
+          // Extract all courses from COREQ node and its children
+          return extractCoursesFromCoreq(node);
+        }
+        if (node.type === 'AND' || node.type === 'OR') {
+          // Recursively search for COREQ nodes in children
+          return (node.children || []).flatMap(extractAllCoreqs);
+        }
+        return [];
+      };
+      
+      // Extract and add corequisite edges
+      const coreqCourses = extractAllCoreqs(courseData.rawPrereq)
+        .filter(c => c.startsWith(deptPrefix) && relevantCourses.has(c));
+      
+      coreqCourses.forEach(coreqCode => {
+        const coreqGroup = courseToGroupRep.get(coreqCode);
+        if (coreqGroup && coreqGroup !== courseGroup) {
+          if (!coreqEdges.has(courseGroup)) coreqEdges.set(courseGroup, new Set<string>());
+          coreqEdges.get(courseGroup)?.add(coreqGroup);
+        }
+      });
+      
+      // Extract direct AND children to mark their edges as protected from redundant removal
+      if (courseData.rawPrereq.type === 'AND') {
+        (courseData.rawPrereq.children || []).forEach((child: any) => {
+          if (child.type === 'course' && child.code.startsWith(deptPrefix)) {
+            const prereqGroup = courseToGroupRep.get(child.code) || child.code;
+            const edgeKey = `${prereqGroup}->${courseGroup}`;
+            protectedEdges.add(edgeKey);
+          }
+        });
+      }
+      
+      // Extract prerequisites for layout (COREQ nodes are now skipped by buildLogicTree)
       const rootPrereqs = buildLogicTree(courseData.rawPrereq, courseGroup, courseLevel, false);
       const uniqueRootPrereqs = Array.from(new Set(rootPrereqs));
       
@@ -413,26 +441,114 @@ export function buildCourseDag(department: string): CourseDAG {
           }
         }
       });
+
+      // Extract local ORs for the tooltip
+      const extractLocalOrs = (n: any): string[] => {
+        if (!n) return [];
+        const results: string[] = [];
+        function traverse(node: any, depth = 0) {
+          if (!node) return;
+          
+          if (node.type === 'COREQ') {
+            const coursesStr = extractCoursesFromPrereq(node)
+              .filter(c => c.startsWith(deptPrefix))
+              .map(c => courseToGroupRep.get(c) || c);
+            const uniqueCourses = Array.from(new Set(coursesStr));
+            if (uniqueCourses.length > 0) {
+              results.push(`(COREQ) ${uniqueCourses.join(', ')}`);
+            }
+            return;
+          }
+          
+          if (node.type === 'count') {
+            const coursesStr = extractCoursesFromPrereq(node)
+              .filter(c => c.startsWith(deptPrefix))
+              .map(c => courseToGroupRep.get(c) || c);
+            const uniqueCourses = Array.from(new Set(coursesStr));
+            if (uniqueCourses.length > 0) {
+              results.push(`(${node.count} OF) ${uniqueCourses.join(', ')}`);
+            }
+            return; // don't traverse children further
+          }
+          
+          if (node.type === 'AND') {
+            // For AND nodes, extract direct course children and traverse for nested structures
+            const directCourses: string[] = [];
+            (node.children || []).forEach((child: any) => {
+              if (child.type === 'course') {
+                const courseCode = child.code;
+                if (courseCode.startsWith(deptPrefix)) {
+                  const mapped = courseToGroupRep.get(courseCode) || courseCode;
+                  directCourses.push(mapped);
+                }
+              } else {
+                // Traverse nested nodes (count, OR, etc.)
+                traverse(child, depth + 1);
+              }
+            });
+            // Add each direct course as a separate item
+            directCourses.forEach(course => results.push(course));
+            return;
+          }
+          
+          if (node.type === 'OR') {
+            const branches: string[] = [];
+            (node.children || []).forEach((child: any) => {
+              // For AND children, group courses with "AND"
+              // For single courses or OR children, handle normally
+              if (child.type === 'AND') {
+                const coursesStr = extractCoursesFromPrereq(child)
+                  .filter(c => c.startsWith(deptPrefix))
+                  .map(c => courseToGroupRep.get(c) || c);
+                const uniqueCourses = Array.from(new Set(coursesStr));
+                if (uniqueCourses.length > 0) {
+                  branches.push(`(${uniqueCourses.join(' AND ')})`);
+                }
+              } else {
+                const coursesStr = extractCoursesFromPrereq(child)
+                  .filter(c => c.startsWith(deptPrefix))
+                  .map(c => courseToGroupRep.get(c) || c);
+                const uniqueCourses = Array.from(new Set(coursesStr));
+                if (uniqueCourses.length > 0) {
+                  branches.push(uniqueCourses.length > 1 ? `(${uniqueCourses.join(' AND ')})` : uniqueCourses[0]);
+                }
+              }
+            });
+            const uniqueBranches = Array.from(new Set(branches));
+            if (uniqueBranches.length > 1) {
+              results.push(uniqueBranches.join(' OR '));
+            } else if (uniqueBranches.length === 1) {
+              // Single branch, just add it
+              results.push(uniqueBranches[0]);
+            }
+            return; // don't traverse further after processing OR
+          }
+          
+          // Traverse children for other node types
+          if (node.children) {
+            (node.children || []).forEach((child: any) => traverse(child, depth + 1));
+          }
+        }
+        traverse(n);
+        return Array.from(new Set(results));
+      };
+
+      const localOrs = extractLocalOrs(courseData.rawPrereq);
+      if (localOrs.length > 0) {
+        const nodeData = nodes.get(courseGroup);
+        if (nodeData) {
+          nodeData.departmentOrs = localOrs;
+
+        }
+      }
     }
     
     courseData.coreqs.forEach(coreq => {
-      if (!relevantCourses.has(coreq)) return;
-      
-      const coreqGroup = courseToGroupRep.get(coreq)!;
-      
-      if (courseGroup !== coreqGroup) {
-        const edgeKey = `${courseGroup}<->${coreqGroup}`;
-        if (!edgeSet.has(edgeKey)) {
-          edgeSet.add(edgeKey);
-          coreqEdges.get(courseGroup)?.add(coreqGroup);
-          // Also add reverse edge for bidirectional coreq relationship
-          coreqEdges.get(coreqGroup)?.add(courseGroup);
-        }
-      }
+      // Intentionally omitting coreq edges from visualization per user request
     });
   });
   
-  // Step 5: Resolve circular/bidirectional edges and asymmetric circular refs
+  // Step 5: Resolve circular/bidirectional edges and all general cycles
   // Helper to get numeric suffix from course code (e.g., "CS 3100" -> 3100)
   const getCourseNumber = (courseId: string): number => {
     const match = courseId.match(/\d+$/);
@@ -442,35 +558,48 @@ export function buildCourseDag(department: string): CourseDAG {
     return 0;
   };
   
-  const edgesToRemove: [string, string][] = [];
+  // Create a proper directed acyclic graph by breaking ALL cycles
+  const visited = new Set<string>();
+  const recStack = new Set<string>();
+  const edgesToRemoveAll: [string, string][] = [];
   
-  // Check for bidirectional edges
+  // Sort the outgoing edges to prefer keeping edges to larger course numbers
   edges.forEach((children, parentId) => {
-    children.forEach(childId => {
-      const childEdges = edges.get(childId);
-      if (childEdges && childEdges.has(parentId)) {
-        // Bidirectional edge found: parentId <-> childId
-        // Keep only the edge from lower number to higher number
-        const parentNum = getCourseNumber(parentId);
-        const childNum = getCourseNumber(childId);
-        
-        if (parentNum > childNum) {
-          // parentId > childId, so we should have childId -> parentId instead
-          edgesToRemove.push([parentId, childId]);
-        } else if (parentNum < childNum) {
-          // parentId < childId, which is correct, remove the reverse
-          edgesToRemove.push([childId, parentId]);
-        } else {
-          // Same number, remove one arbitrarily (keep forward)
-          edgesToRemove.push([childId, parentId]);
-        }
-      }
-    });
+    const sorted = Array.from(children).sort((a, b) => getCourseNumber(a) - getCourseNumber(b));
+    edges.set(parentId, new Set(sorted));
   });
   
-  // Remove the identified edges
-  edgesToRemove.forEach(([parentId, childId]) => {
-    edges.get(parentId)?.delete(childId);
+  // Start DFS traversal from numerically lower courses to higher courses
+  const sortedNodes = Array.from(nodes.keys()).sort((a, b) => getCourseNumber(a) - getCourseNumber(b));
+  
+  function dfsBreakCycles(nodeId: string) {
+    visited.add(nodeId);
+    recStack.add(nodeId);
+    
+    const children = edges.get(nodeId);
+    if (children) {
+      const childrenArray = Array.from(children);
+      for (const childId of childrenArray) {
+        if (!visited.has(childId)) {
+          dfsBreakCycles(childId);
+        } else if (recStack.has(childId)) {
+          // Cycle detected! The edge nodeId -> childId is a back-edge
+          // Rather than keeping a backwards edge, we remove it.
+          edgesToRemoveAll.push([nodeId, childId]);
+        }
+      }
+    }
+    recStack.delete(nodeId);
+  }
+  
+  sortedNodes.forEach(nodeId => {
+    if (!visited.has(nodeId)) {
+      dfsBreakCycles(nodeId);
+    }
+  });
+  
+  edgesToRemoveAll.forEach(([from, to]) => {
+    edges.get(from)?.delete(to);
   });
   
   // Step 5b: Remove redundant edges
@@ -482,7 +611,14 @@ export function buildCourseDag(department: string): CourseDAG {
     
     childArray.forEach(childId => {
       childArray.forEach(otherChildId => {
-        if (childId !== otherChildId && hasPath(childId, otherChildId, edges)) {
+        // Skip removing edges to logic nodes, as that breaks explicit AND/OR requirements
+        const isLogicNode = nodes.get(otherChildId)?.type === 'or' || nodes.get(otherChildId)?.type === 'and';
+        
+        // Skip if this edge is from a direct AND prerequisite - these should never be removed
+        const edgeKey = `${parentId}->${otherChildId}`;
+        const isProtected = protectedEdges.has(edgeKey);
+        
+        if (!isLogicNode && !isProtected && childId !== otherChildId && hasPath(childId, otherChildId, edges)) {
           redundantEdges.push([parentId, otherChildId]);
         }
       });
@@ -523,11 +659,15 @@ export function buildCourseDag(department: string): CourseDAG {
   });
   
   // Remove isolated nodes
+  const removedNodes: string[] = [];
   nodes.forEach((_, nodeId) => {
     if (!nodesWithEdges.has(nodeId)) {
       nodes.delete(nodeId);
+      removedNodes.push(nodeId);
     }
   });
+  
+
   
   return { nodes, edges, coreqEdges };
 }
