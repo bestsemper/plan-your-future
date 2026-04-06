@@ -29,6 +29,7 @@ const forumPostDetailInclude = {
       id: true,
       displayName: true,
       computingId: true,
+      profileVisibility: true,
     },
   },
   answers: {
@@ -45,6 +46,7 @@ const forumPostDetailInclude = {
           id: true,
           displayName: true,
           computingId: true,
+          profileVisibility: true,
         },
       },
       votes: {
@@ -316,6 +318,23 @@ function verifyPassword(password: string, hash: string): boolean {
   }
 }
 
+// Helper: Get display author name for forum content.
+// Per-post/reply anonymity is the source of truth: if isAnonymous is false,
+// show the real author name even when profileVisibility is hidden.
+function getDisplayAuthor(
+  authorDisplayName: string,
+  isAnonymous: boolean,
+  profileVisibility: string
+): string {
+  // If post is anonymous, show "Anonymous User"
+  if (isAnonymous) {
+    return "Anonymous User";
+  }
+
+  // Otherwise, show real name
+  return authorDisplayName;
+}
+
 // MOCK AUTH: In a real app, this would integrate with NetBadge/SSO
 // For MVP, we'll just find or create a user by computingId
 export async function mockLogin(computingId: string, password: string) {
@@ -475,7 +494,36 @@ export async function logout() {
   redirect('/login');
 }
 
-export async function createForumPost(title: string, body: string, attachedPlanId?: string) {
+export async function updateProfileVisibility(profileVisibility: 'hidden' | 'public') {
+  const user = await getCurrentUser();
+  if (!user) {
+    return { error: 'Not authenticated.' };
+  }
+
+  if (profileVisibility !== 'hidden' && profileVisibility !== 'public') {
+    return { error: 'Invalid profile visibility setting.' };
+  }
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      profileVisibility: profileVisibility,
+    },
+  });
+
+  revalidatePath('/profile');
+  revalidatePath(`/profile/${user.computingId}`);
+
+  return { success: true };
+}
+
+export async function createForumPost(
+  title: string,
+  body: string,
+  attachedPlanId?: string,
+  isAnonymous: boolean = true,
+  tags: string[] = []
+) {
   const user = await getCurrentUser();
   if (!user) {
     return { error: 'You must be logged in to post.' };
@@ -536,6 +584,9 @@ export async function createForumPost(title: string, body: string, attachedPlanI
     };
   }
 
+  // Validate and deduplicate tags
+  const validatedTags = Array.from(new Set(tags.filter(tag => tag && tag.trim())));
+
   const post = await prisma.forumPost.create({
     data: {
       authorId: user.id,
@@ -543,6 +594,8 @@ export async function createForumPost(title: string, body: string, attachedPlanI
       body: trimmedBody,
       attachedPlanId: validatedPlanId,
       planSnapshot: planSnapshot,
+      isAnonymous: isAnonymous,
+      tags: validatedTags,
     },
   });
 
@@ -588,7 +641,13 @@ export async function deleteForumPost(postId: string) {
   return { success: true };
 }
 
-export async function addForumReply(postId: string, body: string, parentReplyId?: string, attachedPlanId?: string) {
+export async function addForumReply(
+  postId: string,
+  body: string,
+  parentReplyId?: string,
+  attachedPlanId?: string,
+  isAnonymous: boolean = true
+) {
   const user = await getCurrentUser();
   if (!user) {
     return { error: 'You must be logged in to reply.' };
@@ -666,6 +725,7 @@ export async function addForumReply(postId: string, body: string, parentReplyId?
       body: trimmedBody,
       attachedPlanId: validatedPlanId,
       planSnapshot: planSnapshot,
+      isAnonymous: isAnonymous,
     },
   });
 
@@ -828,6 +888,7 @@ export async function getForumPageData() {
           id: true,
           displayName: true,
           computingId: true,
+          profileVisibility: true,
         },
       },
       answers: {
@@ -844,6 +905,7 @@ export async function getForumPageData() {
               id: true,
               displayName: true,
               computingId: true,
+              profileVisibility: true,
             },
           },
           votes: {
@@ -857,44 +919,63 @@ export async function getForumPageData() {
     },
   });
 
-  const normalizedPosts = posts.map((post) => ({
-    currentUserPostVote: (() => {
-      const userVote = post.votes.find((vote) => vote.userId === currentUser?.id)?.value;
-      return userVote === 1 ? 1 : userVote === -1 ? -1 : 0;
-    })() as 1 | -1 | 0,
-    id: post.id,
-    postNumber: post.postNumber,
-    title: post.title,
-    body: post.body,
-    voteScore: post.votes.reduce((sum, vote) => sum + vote.value, 0),
-    voteCount: post.votes.length,
-    viewCount: post.viewCount,
-    createdAt: post.createdAt.toISOString(),
-    authorDisplayName: post.author.displayName,
-    authorId: post.author.id,
-    authorComputingId: post.author.computingId,
-    canDelete: currentUser?.id === post.authorId,
-    attachedPlan: post.attachedPlan,
-    answers: post.answers.map((answer) => {
-      const userVote = answer.votes.find((vote) => vote.userId === currentUser?.id)?.value;
-      const currentUserVote: 1 | -1 | 0 = userVote === 1 ? 1 : userVote === -1 ? -1 : 0;
+  const normalizedPosts = posts.map((post) => {
+    const displayAuthor = getDisplayAuthor(
+      post.author.displayName,
+      post.isAnonymous,
+      post.author.profileVisibility
+    );
 
-      return {
-        id: answer.id,
-        parentId: answer.parentId,
-        body: answer.body,
-        attachedPlan: answer.attachedPlan,
-        isDeleted: Boolean(answer.deletedAt),
-        canDelete: currentUser?.id === answer.authorId && !answer.deletedAt,
-        createdAt: answer.createdAt.toISOString(),
-        authorDisplayName: answer.author.displayName,
-        authorId: answer.author.id,
-        authorComputingId: answer.author.computingId,
-        voteScore: answer.votes.reduce((sum, vote) => sum + vote.value, 0),
-        currentUserVote,
-      };
-    }),
-  }));
+    return {
+      currentUserPostVote: (() => {
+        const userVote = post.votes.find((vote) => vote.userId === currentUser?.id)?.value;
+        return userVote === 1 ? 1 : userVote === -1 ? -1 : 0;
+      })() as 1 | -1 | 0,
+      id: post.id,
+      postNumber: post.postNumber,
+      title: post.title,
+      body: post.body,
+      voteScore: post.votes.reduce((sum, vote) => sum + vote.value, 0),
+      voteCount: post.votes.length,
+      viewCount: post.viewCount,
+      createdAt: post.createdAt.toISOString(),
+      authorDisplayName: displayAuthor,
+      authorId: post.author.id,
+      authorComputingId: post.author.computingId,
+      isAnonymous: post.isAnonymous,
+      profileVisibility: post.author.profileVisibility,
+      tags: post.tags,
+      canDelete: currentUser?.id === post.authorId,
+      attachedPlan: post.attachedPlan,
+      answers: post.answers.map((answer) => {
+        const userVote = answer.votes.find((vote) => vote.userId === currentUser?.id)?.value;
+        const currentUserVote: 1 | -1 | 0 = userVote === 1 ? 1 : userVote === -1 ? -1 : 0;
+        
+        const displayAnswerAuthor = getDisplayAuthor(
+          answer.author.displayName,
+          answer.isAnonymous,
+          answer.author.profileVisibility
+        );
+
+        return {
+          id: answer.id,
+          parentId: answer.parentId,
+          body: answer.body,
+          attachedPlan: answer.attachedPlan,
+          isDeleted: Boolean(answer.deletedAt),
+          canDelete: currentUser?.id === answer.authorId && !answer.deletedAt,
+          createdAt: answer.createdAt.toISOString(),
+          authorDisplayName: displayAnswerAuthor,
+          authorId: answer.author.id,
+          authorComputingId: answer.author.computingId,
+          isAnonymous: answer.isAnonymous,
+          profileVisibility: answer.author.profileVisibility,
+          voteScore: answer.votes.reduce((sum, vote) => sum + vote.value, 0),
+          currentUserVote,
+        };
+      }),
+    };
+  });
 
   return {
     posts: normalizedPosts,
@@ -1023,6 +1104,12 @@ export async function getForumPostPageData(postNumber: number) {
   const postUserVote = post.votes.find((vote) => vote.userId === currentUser?.id)?.value;
   const currentUserPostVote: 1 | -1 | 0 = postUserVote === 1 ? 1 : postUserVote === -1 ? -1 : 0;
 
+  const displayPostAuthor = getDisplayAuthor(
+    post.author.displayName,
+    post.isAnonymous,
+    post.author.profileVisibility
+  );
+
   const normalizedPost = {
     id: post.id,
     postNumber: post.postNumber,
@@ -1032,14 +1119,23 @@ export async function getForumPostPageData(postNumber: number) {
     currentUserVote: currentUserPostVote,
     viewCount: post.viewCount,
     createdAt: post.createdAt.toISOString(),
-    authorDisplayName: post.author.displayName,
+    authorDisplayName: displayPostAuthor,
     authorId: post.author.id,
     authorComputingId: post.author.computingId,
+    isAnonymous: post.isAnonymous,
+    profileVisibility: post.author.profileVisibility,
+    tags: post.tags,
     canDelete: currentUser?.id === post.authorId,
     attachedPlan: post.attachedPlan,
     answers: post.answers.map((answer) => {
       const userVote = answer.votes.find((vote) => vote.userId === currentUser?.id)?.value;
       const currentUserVote: 1 | -1 | 0 = userVote === 1 ? 1 : userVote === -1 ? -1 : 0;
+
+      const displayAnswerAuthor = getDisplayAuthor(
+        answer.author.displayName,
+        answer.isAnonymous,
+        answer.author.profileVisibility
+      );
 
       return {
         id: answer.id,
@@ -1049,9 +1145,11 @@ export async function getForumPostPageData(postNumber: number) {
         isDeleted: Boolean(answer.deletedAt),
         canDelete: currentUser?.id === answer.authorId && !answer.deletedAt,
         createdAt: answer.createdAt.toISOString(),
-        authorDisplayName: answer.author.displayName,
+        authorDisplayName: displayAnswerAuthor,
         authorId: answer.author.id,
         authorComputingId: answer.author.computingId,
+        isAnonymous: answer.isAnonymous,
+        profileVisibility: answer.author.profileVisibility,
         voteScore: answer.votes.reduce((sum, vote) => sum + vote.value, 0),
         currentUserVote,
       };
@@ -1289,11 +1387,13 @@ export async function getAttachedPlanViewData(planId: string): Promise<AttachedP
     where: { attachedPlanId: planId },
     select: { 
       id: true,
+      isAnonymous: true,
       planSnapshot: true,
       author: {
         select: {
           displayName: true,
           computingId: true,
+          profileVisibility: true,
         },
       },
     },
@@ -1304,11 +1404,13 @@ export async function getAttachedPlanViewData(planId: string): Promise<AttachedP
     where: { attachedPlanId: planId },
     select: {
       id: true,
+      isAnonymous: true,
       planSnapshot: true,
       author: {
         select: {
           displayName: true,
           computingId: true,
+          profileVisibility: true,
         },
       },
     },
@@ -1317,6 +1419,12 @@ export async function getAttachedPlanViewData(planId: string): Promise<AttachedP
   // If there's a snapshot, use that instead of the live plan
   if (attachedPost?.planSnapshot) {
     const snapshot = attachedPost.planSnapshot as AttachedPlanSnapshot;
+    const ownerDisplayName = getDisplayAuthor(
+      attachedPost.author.displayName,
+      attachedPost.isAnonymous,
+      attachedPost.author.profileVisibility
+    );
+    const ownerComputingId = ownerDisplayName === 'Anonymous User' ? '' : attachedPost.author.computingId;
     const semestersWithTitles = snapshot.semesters.map(sem => ({
       ...sem,
       courses: sem.courses.map(course => ({
@@ -1328,8 +1436,8 @@ export async function getAttachedPlanViewData(planId: string): Promise<AttachedP
       plan: {
         id: planId,
         title: snapshot.title,
-        ownerDisplayName: attachedPost.author.displayName,
-        ownerComputingId: attachedPost.author.computingId,
+        ownerDisplayName,
+        ownerComputingId,
         semesters: semestersWithTitles,
       },
     };
@@ -1337,6 +1445,12 @@ export async function getAttachedPlanViewData(planId: string): Promise<AttachedP
 
   if (attachedAnswer?.planSnapshot) {
     const snapshot = attachedAnswer.planSnapshot as AttachedPlanSnapshot;
+    const ownerDisplayName = getDisplayAuthor(
+      attachedAnswer.author.displayName,
+      attachedAnswer.isAnonymous,
+      attachedAnswer.author.profileVisibility
+    );
+    const ownerComputingId = ownerDisplayName === 'Anonymous User' ? '' : attachedAnswer.author.computingId;
     const semestersWithTitles = snapshot.semesters.map(sem => ({
       ...sem,
       courses: sem.courses.map(course => ({
@@ -1348,8 +1462,8 @@ export async function getAttachedPlanViewData(planId: string): Promise<AttachedP
       plan: {
         id: planId,
         title: snapshot.title,
-        ownerDisplayName: attachedAnswer.author.displayName,
-        ownerComputingId: attachedAnswer.author.computingId,
+        ownerDisplayName,
+        ownerComputingId,
         semesters: semestersWithTitles,
       },
     };
@@ -1365,6 +1479,7 @@ export async function getAttachedPlanViewData(planId: string): Promise<AttachedP
         select: {
           displayName: true,
           computingId: true,
+          profileVisibility: true,
         },
       },
       semesters: {
@@ -1411,12 +1526,34 @@ export async function getAttachedPlanViewData(planId: string): Promise<AttachedP
     })),
   }));
 
+  const attachedSourceDisplay = attachedPost
+    ? getDisplayAuthor(
+        attachedPost.author.displayName,
+        attachedPost.isAnonymous,
+        attachedPost.author.profileVisibility
+      )
+    : attachedAnswer
+      ? getDisplayAuthor(
+          attachedAnswer.author.displayName,
+          attachedAnswer.isAnonymous,
+          attachedAnswer.author.profileVisibility
+        )
+      : getDisplayAuthor(plan.user.displayName, false, plan.user.profileVisibility);
+
+  const attachedSourceComputingId = attachedSourceDisplay === 'Anonymous User'
+    ? ''
+    : attachedPost
+      ? attachedPost.author.computingId
+      : attachedAnswer
+        ? attachedAnswer.author.computingId
+        : plan.user.computingId;
+
   return {
     plan: {
       id: plan.id,
       title: plan.title,
-      ownerDisplayName: plan.user.displayName,
-      ownerComputingId: plan.user.computingId,
+      ownerDisplayName: attachedSourceDisplay,
+      ownerComputingId: attachedSourceComputingId,
       semesters: semestersWithTitles,
     },
   };
@@ -2552,6 +2689,7 @@ export async function getUserProfile(computingId: string) {
         currentAcademicYear: true,
         gradYear: true,
         bio: true,
+        profileVisibility: true,
       },
     });
 

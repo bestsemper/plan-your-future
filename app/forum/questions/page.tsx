@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState, useTransition } from 'react';
 import { Icon } from '../../components/Icon';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from '../../components/DropdownMenu';
-import { createForumPost, getForumPageData } from '../../actions';
+import { createForumPost, getForumPageData, getCurrentUser } from '../../actions';
 import { getForumPostHref } from '../url';
+import { FORUM_TAG_OPTIONS, filterTagsByQuery } from '@/app/utils/forumTags';
 
 export default function ForumQuestionsPage() {
   const router = useRouter();
@@ -14,6 +15,7 @@ export default function ForumQuestionsPage() {
   const [plans, setPlans] = useState<Array<{ id: string; title: string }>>([]);
   const [canPost, setCanPost] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
+  const [userMajor, setUserMajor] = useState<string | null>(null);
 
   const [questionTitle, setQuestionTitle] = useState('');
   const [questionBody, setQuestionBody] = useState('');
@@ -21,12 +23,24 @@ export default function ForumQuestionsPage() {
   const [isPlanDropdownOpen, setIsPlanDropdownOpen] = useState(false);
   const [hoveredPlanId, setHoveredPlanId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  
+  // Anonymity and tags state
+  const [isAnonymous, setIsAnonymous] = useState(true);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [tagSearchQuery, setTagSearchQuery] = useState('');
+  const [isTagDropdownOpen, setIsTagDropdownOpen] = useState(false);
 
   useEffect(() => {
     void (async () => {
       const res = await getForumPageData();
+      const user = await getCurrentUser();
       setPlans(res.plans);
       setCanPost(res.canPost);
+      setUserMajor(user?.major ?? null);
+      // Auto-add user's major to tags if they have one
+      if (user?.major && !selectedTags.includes(user.major)) {
+        setSelectedTags([user.major]);
+      }
       setDataLoaded(true);
     })();
   }, []);
@@ -35,11 +49,33 @@ export default function ForumQuestionsPage() {
     ? plans.find((plan) => plan.id === attachedPlanId)?.title || 'Attach plan'
     : 'No plan attached';
 
+  // Filter available tags (exclude already selected ones)
+  const availableTags = FORUM_TAG_OPTIONS.filter(tag => !selectedTags.includes(tag));
+  const filteredTags = filterTagsByQuery(availableTags, tagSearchQuery);
+
+  const handleAddTag = (tag: string) => {
+    if (!selectedTags.includes(tag)) {
+      setSelectedTags([...selectedTags, tag]);
+    }
+    setTagSearchQuery('');
+    setIsTagDropdownOpen(false);
+  };
+
+  const handleRemoveTag = (tag: string) => {
+    setSelectedTags(selectedTags.filter(t => t !== tag));
+  };
+
   const handleCreateQuestion = () => {
     setError(null);
 
     startTransition(async () => {
-      const res = await createForumPost(questionTitle, questionBody, attachedPlanId || undefined);
+      const res = await createForumPost(
+        questionTitle,
+        questionBody,
+        attachedPlanId || undefined,
+        isAnonymous,
+        selectedTags
+      );
       if (res?.error) {
         setError(res.error);
         return;
@@ -116,6 +152,81 @@ export default function ForumQuestionsPage() {
             className="w-full p-3 border border-panel-border rounded-xl bg-input-bg text-text-primary outline-none"
             disabled={!canPost || isPending}
           />
+
+          {/* Anonymity Checkbox */}
+          <div className="flex items-center gap-2.5 pt-2">
+            <input
+              type="checkbox"
+              id="anonymous-checkbox"
+              checked={isAnonymous}
+              onChange={(e) => setIsAnonymous(e.target.checked)}
+              disabled={!canPost || isPending}
+              className="w-4 h-4 rounded cursor-pointer"
+            />
+            <label htmlFor="anonymous-checkbox" className="text-sm font-medium text-text-primary cursor-pointer">
+              Post anonymously
+            </label>
+          </div>
+
+          {/* Tags Section */}
+          <div className="pt-1">
+            <label className="block text-sm font-medium text-text-primary mb-2">Tags</label>
+            
+            {/* Selected tags */}
+            {selectedTags.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-2">
+                {selectedTags.map((tag) => (
+                  <div
+                    key={tag}
+                    className="inline-flex items-center gap-2 bg-uva-orange/15 text-uva-orange px-3 py-1.5 rounded-lg text-sm font-medium"
+                  >
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveTag(tag)}
+                      className="ml-1 hover:opacity-70 transition-opacity"
+                      disabled={!canPost || isPending}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Tag search and dropdown */}
+            <div className="relative">
+              <input
+                type="text"
+                value={tagSearchQuery}
+                onChange={(e) => {
+                  setTagSearchQuery(e.target.value);
+                  setIsTagDropdownOpen(true);
+                }}
+                onFocus={() => setIsTagDropdownOpen(true)}
+                placeholder="Search majors, minors, and topic tags"
+                className="w-full p-3 border border-panel-border rounded-xl bg-input-bg text-text-primary outline-none text-sm"
+                disabled={!canPost || isPending}
+              />
+              
+              {/* Tag suggestions dropdown */}
+              {isTagDropdownOpen && filteredTags.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-panel-bg border border-panel-border rounded-xl shadow-lg z-50 max-h-48 overflow-y-auto">
+                  {filteredTags.map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => handleAddTag(tag)}
+                      className="w-full text-left px-4 py-2.5 hover:bg-input-bg text-sm text-text-primary transition-colors"
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
           <DropdownMenu
             isOpen={isPlanDropdownOpen}
             onOpenChange={(open) => {

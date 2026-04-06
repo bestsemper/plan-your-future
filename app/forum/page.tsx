@@ -16,6 +16,8 @@ type ForumAnswerItem = {
   authorDisplayName: string;
   authorId: string;
   authorComputingId: string;
+  isAnonymous: boolean;
+  profileVisibility: string;
   voteScore: number;
   currentUserVote: 1 | -1 | 0;
 };
@@ -33,6 +35,9 @@ type ForumPostItem = {
   authorDisplayName: string;
   authorId: string;
   authorComputingId: string;
+  isAnonymous: boolean;
+  profileVisibility: string;
+  tags: string[];
   attachedPlan: { id: string; title: string } | null;
   answers: ForumAnswerItem[];
 };
@@ -383,6 +388,20 @@ export default function ForumPage() {
                   </div>
 
                   <p className="text-sm text-text-secondary break-words line-clamp-2">{post.body}</p>
+
+                  {/* Tags display */}
+                  {post.tags.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      {post.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="inline-flex items-center gap-1 bg-uva-orange/15 text-uva-orange px-2.5 py-1 rounded-lg text-xs font-medium"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
 
                   <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
                     <div className="flex flex-wrap items-center gap-3 text-sm text-text-secondary">
