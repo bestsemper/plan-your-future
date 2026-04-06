@@ -13,6 +13,8 @@ type DropdownMenuProps = {
   align?: 'left' | 'right';
   className?: string;
   contentClassName?: string;
+  onClear?: () => void;
+  showClearButton?: boolean;
 };
 
 // DropdownMenuContent Props
@@ -43,6 +45,8 @@ export function DropdownMenu({
   align = 'left',
   className = '',
   contentClassName = '',
+  onClear,
+  showClearButton = false,
 }: DropdownMenuProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -68,8 +72,27 @@ export function DropdownMenu({
 
   return (
     <div className={`relative ${className}`} ref={containerRef}>
-      <div onClick={() => !disabled && onOpenChange(!isOpen)}>
+      <div className="relative" onClick={() => !disabled && onOpenChange(!isOpen)}>
         {trigger}
+        {showClearButton && onClear && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onClear();
+            }}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-danger-text p-2 cursor-pointer flex items-center justify-center transition-all"
+            aria-label="Clear selection"
+          >
+            <Icon
+              name="x"
+              color="currentColor"
+              width={16}
+              height={16}
+              className="w-4 h-4"
+            />
+          </button>
+        )}
       </div>
 
       {isOpen && !disabled && (
