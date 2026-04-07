@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import ThemeToggle from './ThemeToggle';
 import EditProfileForm from './EditProfileForm';
 import EditCompletedCourses from './EditCompletedCourses';
+import PrivacySettings from './PrivacySettings';
 import prisma from '@/lib/prisma';
 import { Icon } from '../components/Icon';
 
@@ -78,6 +79,8 @@ export default async function Profile() {
             </div>
           </div>
         </div>
+
+        <PrivacySettings currentProfileVisibility={user.profileVisibility} />
 
         <div className="bg-panel-bg p-6 rounded-xl border border-panel-border">
            <h2 className="text-xl font-bold mb-5 text-heading">Badges</h2>

@@ -27,6 +27,8 @@ type ForumAnswerItem = {
   authorDisplayName: string;
   authorId: string;
   authorComputingId: string;
+  isAnonymous: boolean;
+  profileVisibility: string;
   voteScore: number;
   currentUserVote: 1 | -1 | 0;
 };
@@ -43,6 +45,9 @@ type ForumPostItem = {
   authorDisplayName: string;
   authorId: string;
   authorComputingId: string;
+  isAnonymous: boolean;
+  profileVisibility: string;
+  tags: string[];
   canDelete: boolean;
   attachedPlan: { id: string; title: string } | null;
   answers: ForumAnswerItem[];
@@ -87,6 +92,8 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [activeReplyEditorId, setActiveReplyEditorId] = useState<string | null>(null);
   const [inlineReplyDraft, setInlineReplyDraft] = useState('');
+  const [isReplyAnonymous, setIsReplyAnonymous] = useState(true);
+  const [isInlineReplyAnonymous, setIsInlineReplyAnonymous] = useState(true);
 
   const loadData = async () => {
     const parsedPostNumber = Number.parseInt(postNumber, 10);
@@ -128,6 +135,8 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
     authorDisplayName: 'You',
     authorId: 'temp-user-id',
     authorComputingId: '',
+    isAnonymous: true,
+    profileVisibility: 'hidden',
     voteScore: 1,
     currentUserVote: 1,
   });
@@ -157,7 +166,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
     setAttachedPlanId('');
 
     startTransition(async () => {
-      const res = await addForumReply(postData.post.id, trimmed, undefined, attachedPlanId || undefined);
+      const res = await addForumReply(postData.post.id, trimmed, undefined, attachedPlanId || undefined, isReplyAnonymous);
       if (res?.error) {
         setPostData((prev) => {
           if (!prev) return prev;
@@ -203,7 +212,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
     setActiveReplyEditorId(null);
 
     (async () => {
-      const res = await addForumReply(postData.post.id, trimmed, parentReplyId, inlineAttachedPlanId || undefined);
+      const res = await addForumReply(postData.post.id, trimmed, parentReplyId, inlineAttachedPlanId || undefined, isInlineReplyAnonymous);
       if (res?.error) {
         setPostData((prev) => {
           if (!prev) return prev;
@@ -462,7 +471,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                 <p className="text-xs text-text-tertiary mb-2">
                   {answer.isDeleted ? (
                     <>deleted {formatRelativeTime(answer.createdAt)}</>
-                  ) : answer.authorComputingId ? (
+                  ) : answer.authorComputingId && answer.authorDisplayName !== 'Anonymous User' ? (
                     <><Link href={`/profile/${answer.authorComputingId}`} className="text-text-primary font-semibold hover:underline">{answer.authorDisplayName}</Link> replied {formatRelativeTime(answer.createdAt)}</>
                   ) : (
                     <><span className="text-text-primary font-semibold">{answer.authorDisplayName}</span> replied {formatRelativeTime(answer.createdAt)}</>
@@ -525,6 +534,19 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                       className="w-full p-2.5 border border-panel-border rounded-lg bg-input-bg text-text-primary outline-none"
                       disabled={!canPost || isPending}
                     />
+                    <div className="flex items-center gap-2.5">
+                      <input
+                        type="checkbox"
+                        id={`inline-reply-anonymous-${answer.id}`}
+                        checked={isInlineReplyAnonymous}
+                        onChange={(e) => setIsInlineReplyAnonymous(e.target.checked)}
+                        disabled={!canPost || isPending}
+                        className="w-4 h-4 rounded cursor-pointer"
+                      />
+                      <label htmlFor={`inline-reply-anonymous-${answer.id}`} className="text-sm font-medium text-text-primary cursor-pointer">
+                        Reply anonymously
+                      </label>
+                    </div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <DropdownMenu
                         isOpen={isInlinePlanDropdownOpen}
@@ -629,7 +651,15 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
             </div>
 
             <p className="text-xs text-text-tertiary mb-4">
-              <Link href={`/profile/${post.authorComputingId}`} className="text-text-primary font-semibold hover:underline">{post.authorDisplayName}</Link> asked {formatRelativeTime(post.createdAt)} | {post.viewCount} views
+              {post.authorDisplayName !== 'Anonymous User' ? (
+                <>
+                  <Link href={`/profile/${post.authorComputingId}`} className="text-text-primary font-semibold hover:underline">{post.authorDisplayName}</Link> asked {formatRelativeTime(post.createdAt)} | {post.viewCount} views
+                </>
+              ) : (
+                <>
+                  <span className="text-text-primary font-semibold">{post.authorDisplayName}</span> asked {formatRelativeTime(post.createdAt)} | {post.viewCount} views
+                </>
+              )}
             </p>
 
             <div className="border-t border-panel-border pt-5">
@@ -684,6 +714,20 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                   </div>
 
                   <p className="text-text-primary whitespace-pre-wrap leading-relaxed">{post.body}</p>
+
+                  {/* Tags display */}
+                  {post.tags.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      {post.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="inline-flex items-center gap-1 bg-uva-orange/15 text-uva-orange px-2.5 py-1 rounded-lg text-xs font-medium"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -749,6 +793,19 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
                 className="w-full p-3 border border-panel-border rounded-xl bg-input-bg text-text-primary outline-none"
                 disabled={!canPost || isPending}
               />
+              <div className="flex items-center gap-2.5 pt-2">
+                <input
+                  type="checkbox"
+                  id="main-reply-anonymous-checkbox"
+                  checked={isReplyAnonymous}
+                  onChange={(e) => setIsReplyAnonymous(e.target.checked)}
+                  disabled={!canPost || isPending}
+                  className="w-4 h-4 rounded cursor-pointer"
+                />
+                <label htmlFor="main-reply-anonymous-checkbox" className="text-sm font-medium text-text-primary cursor-pointer">
+                  Reply anonymously
+                </label>
+              </div>
               <div className="mt-3 flex items-center justify-between gap-3 flex-wrap">
                 <DropdownMenu
                   isOpen={isPlanDropdownOpen}

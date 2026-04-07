@@ -18,6 +18,7 @@ model User {
   currentAcademicYear Int?
   gradYear    Int?
   bio         String?
+  profileVisibility String       @default("hidden") // "hidden" or "public"
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
   courses     CompletedCourse[]
@@ -95,6 +96,8 @@ model ForumPost {
   attachedPlanId String?
   planSnapshot   Json?         // Snapshot of attached plan at time of posting
   viewCount      Int           @default(0)
+  isAnonymous    Boolean       @default(true)
+  tags           String[]      @default([])
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   answers        ForumAnswer[]
@@ -128,6 +131,7 @@ model ForumAnswer {
   body           String
   attachedPlanId String?
   planSnapshot   Json?     // Snapshot of attached plan at time of posting
+  isAnonymous    Boolean   @default(true)
   deletedAt      DateTime?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { TreeVisualization } from "./TreeVisualization";
 import { Icon } from "../components/Icon";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from "../components/DropdownMenu";
@@ -19,6 +19,7 @@ export default function PrerequisitesPage() {
   const [showInfoTooltip, setShowInfoTooltip] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
   const [isHoveringInfo, setIsHoveringInfo] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const infoButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -46,8 +47,6 @@ export default function PrerequisitesPage() {
     }
     fetchDepartmentsAndMajor();
   }, []);
-
-
 
   // Close info tooltip when clicking outside (mobile only) or when unhover (desktop)
   useEffect(() => {
@@ -102,35 +101,55 @@ export default function PrerequisitesPage() {
   };
 
   // Filter departments based on search text
-  const filteredDepartments = departments
-    .filter(
-      (dept) =>
-        dept.fullName.toLowerCase().includes(searchText.toLowerCase()) ||
-        dept.mnemonic.toLowerCase().includes(searchText.toLowerCase())
-    )
-    .sort((a, b) => {
-      const lowerSearch = searchText.toLowerCase();
-      const aStartsFullName = a.fullName.toLowerCase().startsWith(lowerSearch);
-      const bStartsFullName = b.fullName.toLowerCase().startsWith(lowerSearch);
-      const aStartsMnemonic = a.mnemonic.toLowerCase().startsWith(lowerSearch);
-      const bStartsMnemonic = b.mnemonic.toLowerCase().startsWith(lowerSearch);
+  const filteredDepartments = useMemo(() => {
+    return departments
+      .filter(
+        (dept) =>
+          dept.fullName.toLowerCase().includes(searchText.toLowerCase()) ||
+          dept.mnemonic.toLowerCase().includes(searchText.toLowerCase())
+      )
+      .sort((a, b) => {
+        const lowerSearch = searchText.toLowerCase();
+        const aStartsFullName = a.fullName.toLowerCase().startsWith(lowerSearch);
+        const bStartsFullName = b.fullName.toLowerCase().startsWith(lowerSearch);
+        const aStartsMnemonic = a.mnemonic.toLowerCase().startsWith(lowerSearch);
+        const bStartsMnemonic = b.mnemonic.toLowerCase().startsWith(lowerSearch);
 
-      // Prioritize prefix matches on mnemonic first, then fullName
-      if (aStartsMnemonic && !bStartsMnemonic) return -1;
-      if (!aStartsMnemonic && bStartsMnemonic) return 1;
-      if (aStartsFullName && !bStartsFullName) return -1;
-      if (!aStartsFullName && bStartsFullName) return 1;
+        // Prioritize prefix matches on mnemonic first, then fullName
+        if (aStartsMnemonic && !bStartsMnemonic) return -1;
+        if (!aStartsMnemonic && bStartsMnemonic) return 1;
+        if (aStartsFullName && !bStartsFullName) return -1;
+        if (!aStartsFullName && bStartsFullName) return 1;
 
-      return a.mnemonic.localeCompare(b.mnemonic);
-    });
+        return a.mnemonic.localeCompare(b.mnemonic);
+      });
+  }, [departments, searchText]);
 
   const handleSelectDepartment = (dept: DepartmentInfo) => {
     setSelectedDepartment(dept);
     setSearchText("");
     setShowDropdown(false);
+    setIsSearching(false);
   };
 
+  const handleClearDepartment = () => {
+    setSelectedDepartment(null);
+    setSearchText("");
+    setShowDropdown(false);
+    setIsSearching(false);
+  };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      // Select the first item in the filtered list
+      if (filteredDepartments.length > 0) {
+        handleSelectDepartment(filteredDepartments[0]);
+      } else {
+        setShowDropdown(false);
+      }
+    }
+  };
 
   return (
     <div className="w-full h-full pt-0 flex flex-col min-w-0">
@@ -179,14 +198,22 @@ export default function PrerequisitesPage() {
                   ref={searchInputRef}
                   type="text"
                   placeholder="Search departments..."
-                  value={searchText}
+                  value={selectedDepartment && !isSearching ? selectedDepartment.fullName : searchText}
                   onChange={(e) => {
+                    setIsSearching(true);
                     setSearchText(e.target.value);
                     setShowDropdown(true);
                   }}
-                  onClick={() => setShowDropdown(true)}
+                  onKeyDown={handleKeyDown}
+                  onClick={() => setIsSearching(true)}
+                  onBlur={() => {
+                    setTimeout(() => {
+                      if (!searchText) setIsSearching(false);
+                      setShowDropdown(false);
+                    }, 100);
+                  }}
                   suppressHydrationWarning
-                  className="w-full h-[42px] pl-10 pr-4 border border-panel-border rounded-full bg-input-bg text-text-primary outline-none"
+                  className="w-full h-[42px] pl-10 pr-10 border border-panel-border rounded-full bg-input-bg text-text-primary outline-none transition-colors"
                 />
               </div>
             }
@@ -195,9 +222,9 @@ export default function PrerequisitesPage() {
               {filteredDepartments.map((dept) => (
                 <DropdownMenuItem
                   key={dept.mnemonic}
-                  selected={selectedDepartment?.mnemonic === dept.mnemonic}
                   onClick={() => handleSelectDepartment(dept)}
                   description={dept.mnemonic}
+                  selected={selectedDepartment?.mnemonic === dept.mnemonic}
                 >
                   {dept.fullName}
                 </DropdownMenuItem>

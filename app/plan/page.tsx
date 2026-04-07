@@ -195,6 +195,14 @@ function formatEnrollmentRequirement(requirement: string): { label: string; valu
     };
   }
 
+  if (/^\(\d+ OF\)/.test(trimmed)) {
+    const match = trimmed.match(/^\((\d+) OF\)/);
+    return {
+      label: `${match?.[1] || ''} Of`,
+      value: trimmed.replace(/^\(\d+ OF\)\s*/, ''),
+    };
+  }
+
   if (trimmed.includes(' OR ')) {
     return {
       label: 'One Of',
@@ -376,80 +384,81 @@ function AddCourseInline({
   return (
     <div className="flex space-x-2 mt-2 relative h-[46px] items-stretch">
       <div className="flex-1 relative h-full">
-        <div className="h-full px-3 bg-panel-bg-alt border border-panel-border-strong rounded-xl text-sm flex items-center justify-between gap-2">
-          <div className="flex-1 h-full">
-            <input
-              ref={inputRef}
-              type="text"
-              placeholder="Course Code"
-              value={courseCode}
-              onChange={(e) => {
-                const newValue = e.target.value;
-                setCourseCode(newValue);
-                setShowDropdown(true);
-                // Only clear warning if user is actively typing (not on programmatic clear)
-                if (newValue.length > 0) {
-                  onClearWarning();
-                }
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  void submitCourse();
-                }
-              }}
-              onFocus={() => setShowDropdown(true)}
-              onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
-              className="w-full h-full bg-transparent text-text-primary focus:outline-none"
-              autoFocus
-            />
-          </div>
-          {creditsMin && creditsMax && creditsMin !== creditsMax ? (
-            <select
-              value={credits}
-              onChange={(e) => setCredits(e.target.value)}
-              className="bg-panel-bg-alt text-text-primary border-none focus:outline-none font-semibold px-1 py-1 rounded text-sm"
-            >
-              {Array.from({ length: creditsMax - creditsMin + 1 }, (_, i) => creditsMin + i).map((val) => (
-                <option key={val} value={val.toString()}>
-                  {val} cr
-                </option>
-              ))}
-            </select>
-          ) : (
-            <span className="text-gray-500 font-semibold whitespace-nowrap">{credits} cr</span>
-          )}
-        </div>
-        {showDropdown && filteredCourses.length > 0 && (
-          <div className="absolute z-10 left-0 top-full w-full mt-1.5 bg-panel-bg border border-panel-border rounded-xl shadow-lg overflow-hidden">
-            <div className="max-h-48 overflow-y-auto p-1.5 space-y-0.5">
-              {filteredCourses.map((course) => (
-                <div
-                  key={course.code}
-                  className="px-3 py-2 rounded-lg hover:bg-hover-bg transition-colors cursor-pointer"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => {
-                    setCourseCode(course.code);
-                    getCourseCreditsInfoFromJSON(course.code).then((res) => {
-                      setCredits(res.credits.toString());
-                      setCreditsMin(res.creditsMin);
-                      setCreditsMax(res.creditsMax);
-                    });
-                    setShowDropdown(false);
-                    requestAnimationFrame(() => {
-                      inputRef.current?.focus();
-                    });
+        <DropdownMenu
+          isOpen={showDropdown && filteredCourses.length > 0}
+          onOpenChange={setShowDropdown}
+          className="w-full"
+          trigger={
+            <div className="h-[46px] w-full px-3 bg-panel-bg-alt border border-panel-border-strong rounded-xl text-sm flex items-center justify-between gap-2">
+              <div className="flex-1 h-full">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  placeholder="Course Code"
+                  value={courseCode}
+                  onChange={(e) => {
+                    const newValue = e.target.value;
+                    setCourseCode(newValue);
+                    setShowDropdown(true);
+                    // Only clear warning if user is actively typing (not on programmatic clear)
+                    if (newValue.length > 0) {
+                      onClearWarning();
+                    }
                   }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      void submitCourse();
+                    }
+                  }}
+                  onFocus={() => setShowDropdown(true)}
+                  onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
+                  className="w-full h-full bg-transparent text-text-primary focus:outline-none"
+                  autoFocus
+                />
+              </div>
+              {creditsMin && creditsMax && creditsMin !== creditsMax ? (
+                <select
+                  value={credits}
+                  onChange={(e) => setCredits(e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
+                  className="bg-panel-bg-alt text-text-primary border-none focus:outline-none font-semibold px-1 py-1 rounded text-sm z-10 relative cursor-pointer"
                 >
-                  <div className="text-sm font-medium text-text-primary">{course.code}</div>
-                  {course.title && (
-                    <div className="text-xs text-text-muted truncate">{course.title}</div>
-                  )}
-                </div>
-              ))}
+                  {Array.from({ length: creditsMax - creditsMin + 1 }, (_, i) => creditsMin + i).map((val) => (
+                    <option key={val} value={val.toString()}>
+                      {val} cr
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <span className="text-gray-500 font-semibold whitespace-nowrap">{credits} cr</span>
+              )}
             </div>
-          </div>
-        )}
+          }
+        >
+          <DropdownMenuContent maxHeight="max-h-64">
+            {filteredCourses.map((course) => (
+              <DropdownMenuItem
+                key={course.code}
+                onClick={() => {
+                  setCourseCode(course.code);
+                  getCourseCreditsInfoFromJSON(course.code).then((res) => {
+                    setCredits(res.credits.toString());
+                    setCreditsMin(res.creditsMin);
+                    setCreditsMax(res.creditsMax);
+                  });
+                  setShowDropdown(false);
+                  requestAnimationFrame(() => {
+                    inputRef.current?.focus();
+                  });
+                }}
+                description={course.title || ''}
+              >
+                {course.code}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
       <div className="ml-auto flex items-center justify-end space-x-1 px-1">
         <button onClick={() => void submitCourse()} className="text-success-text hover:text-success-text-hover p-2 cursor-pointer disabled:cursor-not-allowed flex items-center justify-center transition-all hover:scale-110">
