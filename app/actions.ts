@@ -2313,9 +2313,13 @@ type CourseDetailsJsonRecord = {
 type AggregatedCourseDetails = {
   title: string | null;
   credits: string;
+  creditsMin?: number;
+  creditsMax?: number;
   description: string | null;
   prerequisites: string[];
   terms: string[];
+  department: string;
+  career: string;
 };
 
 let cachedCourseDetailsData:
@@ -2412,6 +2416,39 @@ function formatTermLabel(term: string): string {
   }[match[2]];
 
   return season ? `${season} ${year}` : cleaned;
+}
+
+function parseCreditsFromString(creditsStr: string): { min?: number; max?: number } {
+  const trimmed = creditsStr.trim();
+  if (!trimmed) {
+    return {};
+  }
+
+  // Check if it's a range like "1-3"
+  if (trimmed.includes('-')) {
+    const parts = trimmed.split('-').map((p) => Number.parseInt(p.trim(), 10));
+    if (parts.length === 2 && !Number.isNaN(parts[0]) && !Number.isNaN(parts[1])) {
+      return { min: parts[0], max: parts[1] };
+    }
+  }
+
+  // Single number
+  const single = Number.parseInt(trimmed, 10);
+  if (!Number.isNaN(single)) {
+    return { min: single, max: single };
+  }
+
+  return {};
+}
+
+function getCourseCareerLevel(courseCode: string): string {
+  // Extract course number from code like "CS 1110" -> "1110"
+  const match = courseCode.match(/\d{4}/);
+  if (!match) return 'UGRD';
+  
+  const courseNumber = Number.parseInt(match[0], 10);
+  // 1000-4999 = Undergrad, 5000+ = Graduate
+  return courseNumber >= 5000 ? 'GRAD' : 'UGRD';
 }
 
 function parseTermLabels(rawTerms: string): string[] {
@@ -2513,15 +2550,28 @@ function loadCourseDetailsFromJSON(): {
 
   const courseDetailsByCode = new Map<string, AggregatedCourseDetails>();
   for (const [code, detail] of detailsMap.entries()) {
+    // Extract department from course code (e.g., "CS" from "CS 1010")
+    const department = code.split(' ')[0];
+    
+    // Derive career level from course number
+    const career = getCourseCareerLevel(code);
+    
+    // Parse credits into min/max
+    const { min: creditsMin, max: creditsMax } = parseCreditsFromString(detail.credits);
+    
     courseDetailsByCode.set(code, {
       title: detail.title,
       credits: detail.credits,
+      creditsMin,
+      creditsMax,
       description: detail.description,
       prerequisites: Array.from(detail.prerequisites),
       terms: Array.from(detail.terms).sort((left, right) => {
         const keyDiff = getTermSortKey(left) - getTermSortKey(right);
         return keyDiff !== 0 ? keyDiff : left.localeCompare(right);
       }),
+      department,
+      career,
     });
   }
 

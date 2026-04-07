@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Icon } from '../components/Icon';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from '../components/DropdownMenu';
 import { getCourseInfoFromJSON } from '../actions';
@@ -15,11 +15,20 @@ interface CourseInfo {
   notRestrictions?: string[];
   enrollmentRestrictions?: string[];
   terms: string[];
+  credits?: string;
+  creditsMin?: number;
+  creditsMax?: number;
 }
 
 type CourseOption = {
   code: string;
   title: string | null;
+  credits?: string;
+  creditsMin?: number;
+  creditsMax?: number;
+  department?: string;
+  career?: string;
+  terms?: string[];
 };
 
 export default function CoursesPage() {
@@ -33,15 +42,62 @@ export default function CoursesPage() {
   const [isHoveringInfo, setIsHoveringInfo] = useState(false);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const infoButtonRef = useRef<HTMLButtonElement | null>(null);
+  
+  // Department mapping state
+  const [departmentMap, setDepartmentMap] = useState<Map<string, string>>(new Map());
+  
+  // Filter states
+  const [filterDepartment, setFilterDepartment] = useState<string>('');
+  const [filterMinCredits, setFilterMinCredits] = useState<number | ''>('');
+  const [filterMaxCredits, setFilterMaxCredits] = useState<number | ''>('');
+  const [filterTerm, setFilterTerm] = useState<string>('');
+  const [filterCareer, setFilterCareer] = useState<string>('');
+  
+  // Filter dropdown open states
+  const [isDepartmentOpen, setIsDepartmentOpen] = useState(false);
+  const [isDepartmentSearching, setIsDepartmentSearching] = useState(false);
+  const [isTermOpen, setIsTermOpen] = useState(false);
+  const [isCareerOpen, setIsCareerOpen] = useState(false);
+  const [departmentSearch, setDepartmentSearch] = useState('');
+
+  // Get unique departments from courses
+  const uniqueDepartments = useMemo(() => {
+    return Array.from(
+      new Set(allCourses
+        .map(c => c.department)
+        .filter((dept): dept is string => Boolean(dept))
+      )
+    ).sort();
+  }, [allCourses]);
+
+  // Filter departments for search
+  const filteredDepartmentsForSearch = useMemo(() => {
+    return uniqueDepartments.filter(dept =>
+      !departmentSearch || dept.toLowerCase().includes(departmentSearch.toLowerCase()) || (departmentMap.get(dept) || '').toLowerCase().includes(departmentSearch.toLowerCase())
+    );
+  }, [uniqueDepartments, departmentSearch, departmentMap]);
 
   useEffect(() => {
-    const loadCourses = async () => {
+    const loadCoursesAndDepartments = async () => {
       try {
+        // Load department mappings
+        const deptsResponse = await fetch('/api/tree/departments');
+        const depts = await deptsResponse.json();
+        const deptMap = new Map<string, string>(depts.map((d: any) => [d.mnemonic as string, d.fullName as string]));
+        setDepartmentMap(deptMap);
+
+        // Load courses
         const response = await fetch('/api/courses');
         const courses = await response.json();
-        setAllCourses(courses.map((c: { id: string; title: string }) => ({
+        setAllCourses(courses.map((c: any) => ({
           code: c.id,
           title: c.title,
+          credits: c.credits,
+          creditsMin: c.creditsMin,
+          creditsMax: c.creditsMax,
+          department: c.department,
+          career: c.career,
+          terms: c.terms,
         })));
       } catch (error) {
         console.error('Failed to load courses:', error);
@@ -50,7 +106,7 @@ export default function CoursesPage() {
       }
     };
 
-    loadCourses();
+    loadCoursesAndDepartments();
   }, []);
 
   // Close info tooltip when clicking outside (mobile only) or when unhover (desktop)
@@ -84,23 +140,55 @@ export default function CoursesPage() {
     };
   }, []);
 
-  const filteredCourses = courseCode
-    ? allCourses
-        .filter((course) =>
-          course.code.toLowerCase().includes(courseCode.toLowerCase()) ||
-          (course.title ?? '').toLowerCase().includes(courseCode.toLowerCase())
-        )
-        .sort((a, b) => {
-          const lowerSearch = courseCode.toLowerCase();
-          const aStartsWith = a.code.toLowerCase().startsWith(lowerSearch);
-          const bStartsWith = b.code.toLowerCase().startsWith(lowerSearch);
+  const filteredCourses = allCourses
+    .filter((course) => {
+      if (!course.code) return false;
+      
+      // Search filter
+      if (courseCode) {
+        const matchesSearch = course.code.toLowerCase().includes(courseCode.toLowerCase()) ||
+          (course.title ?? '').toLowerCase().includes(courseCode.toLowerCase());
+        if (!matchesSearch) return false;
+      }
 
-          if (aStartsWith && !bStartsWith) return -1;
-          if (!aStartsWith && bStartsWith) return 1;
+      // Department filter
+      if (filterDepartment && course.department !== filterDepartment) {
+        return false;
+      }
 
-          return a.code.localeCompare(b.code);
-        })
-    : [];
+      // Credits filters
+      if (filterMinCredits !== '' && course.creditsMax && course.creditsMax < filterMinCredits) {
+        return false;
+      }
+      if (filterMaxCredits !== '' && course.creditsMin && course.creditsMin > filterMaxCredits) {
+        return false;
+      }
+
+      // Term filter
+      if (filterTerm && course.terms && !course.terms.some(t => t.includes(filterTerm))) {
+        return false;
+      }
+
+      // Career level filter
+      if (filterCareer && course.career !== filterCareer) {
+        return false;
+      }
+
+      return true;
+    })
+    .sort((a, b) => {
+      // Sort by search relevance on code first, then alphabetically
+      if (courseCode) {
+        const lowerSearch = courseCode.toLowerCase();
+        const aStartsWith = (a.code || '').toLowerCase().startsWith(lowerSearch);
+        const bStartsWith = (b.code || '').toLowerCase().startsWith(lowerSearch);
+
+        if (aStartsWith && !bStartsWith) return -1;
+        if (!aStartsWith && bStartsWith) return 1;
+      }
+
+      return (a.code || '').localeCompare(b.code || '');
+    });
 
   const handleCourseSearchChange = (value: string) => {
     setCourseCode(value);
@@ -112,7 +200,22 @@ export default function CoursesPage() {
     setShowDropdown(false);
     
     try {
-      const info = await getCourseInfoFromJSON(code);
+      const baseInfo = await getCourseInfoFromJSON(code);
+      const info: CourseInfo = {
+        ...baseInfo,
+        credits: undefined,
+        creditsMin: undefined,
+        creditsMax: undefined,
+      };
+      
+      // Enrich with credits and other metadata from allCourses
+      const courseData = allCourses.find(c => c.code === code);
+      if (courseData) {
+        info.credits = courseData.credits;
+        info.creditsMin = courseData.creditsMin;
+        info.creditsMax = courseData.creditsMax;
+      }
+      
       setSelectedCourseInfo(info);
     } catch (error) {
       console.error('Failed to get course info:', error);
@@ -178,7 +281,7 @@ export default function CoursesPage() {
           <div className="bg-panel-bg p-6 rounded-xl border border-panel-border">
             <label className="block text-sm font-semibold text-heading mb-3">Search Courses</label>
             <DropdownMenu
-              isOpen={showDropdown && filteredCourses.length > 0 && courseCode.trim().length > 0}
+              isOpen={showDropdown && filteredCourses.length > 0 && (courseCode.trim().length > 0 || filterDepartment !== '' || filterMinCredits !== '' || filterMaxCredits !== '' || filterTerm !== '' || filterCareer !== '')}
               onOpenChange={setShowDropdown}
               className="w-full"
               trigger={
@@ -204,7 +307,7 @@ export default function CoursesPage() {
                       setShowDropdown(false);
                     }
                   }}
-                  className="w-full px-3 py-2 bg-panel-bg-alt border border-panel-border-strong rounded-xl text-sm text-text-primary outline-none transition-colors"
+                  className="w-full h-10 px-3 py-2 bg-input-bg border border-panel-border rounded-xl text-sm text-text-primary outline-none transition-colors"
                 />
               }
             >
@@ -216,13 +319,213 @@ export default function CoursesPage() {
                       handleSelectCourse(course.code);
                       setShowDropdown(false);
                     }}
-                    description={course.title}
+                    description={course.title || ''}
                   >
                     {course.code}
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
+          </div>
+
+          {/* Filters Panel */}
+          <div className="bg-panel-bg p-6 rounded-xl border border-panel-border mt-4 space-y-4">
+            <label className="block text-sm font-semibold text-heading">Filters</label>
+            
+            {/* Department Filter */}
+            <div>
+              <label className="block text-sm font-semibold text-text-secondary mb-2">Department</label>
+              {!isDepartmentSearching && filterDepartment ? (
+                // Show selected department with clear button
+                <div className="w-full h-10 px-4 py-2 border border-panel-border rounded-xl bg-input-bg text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all relative"
+                  onClick={() => setIsDepartmentSearching(true)}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <span className="truncate flex-1 text-text-primary">{departmentMap.get(filterDepartment) || filterDepartment}</span>
+                  <div
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setFilterDepartment('');
+                      setDepartmentSearch('');
+                      setIsDepartmentSearching(false);
+                    }}
+                    className="text-text-secondary hover:text-danger-text cursor-pointer flex items-center justify-center transition-all"
+                    role="button"
+                    tabIndex={-1}
+                  >
+                    <Icon
+                      name="x"
+                      color="currentColor"
+                      width={16}
+                      height={16}
+                      className="w-4 h-4"
+                    />
+                  </div>
+                </div>
+              ) : isDepartmentSearching ? (
+                // Show search input
+                <DropdownMenu
+                  isOpen={isDepartmentOpen && filteredDepartmentsForSearch.length > 0}
+                  onOpenChange={setIsDepartmentOpen}
+                  className="w-full"
+                  trigger={
+                    <input
+                      type="text"
+                      autoFocus
+                      placeholder="Search departments..."
+                      value={departmentSearch}
+                      onChange={(e) => {
+                        setDepartmentSearch(e.target.value);
+                        setIsDepartmentOpen(true);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          if (filteredDepartmentsForSearch.length > 0) {
+                            setFilterDepartment(filteredDepartmentsForSearch[0]);
+                            setIsDepartmentOpen(false);
+                            setDepartmentSearch('');
+                            setIsDepartmentSearching(false);
+                          }
+                        }
+                      }}
+                      onClick={() => setIsDepartmentOpen(true)}
+                      onBlur={() => {
+                        setTimeout(() => {
+                          if (!departmentSearch) {
+                            setIsDepartmentSearching(false);
+                          }
+                          setIsDepartmentOpen(false);
+                        }, 100);
+                      }}
+                      className="w-full h-10 px-3 py-2 bg-input-bg border border-panel-border rounded-xl text-sm text-text-primary placeholder:text-text-tertiary placeholder:text-sm outline-none transition-colors"
+                    />
+                  }
+                >
+                  <DropdownMenuContent maxHeight="max-h-64">
+                    {filteredDepartmentsForSearch.map((dept) => (
+                      <DropdownMenuItem
+                        key={dept}
+                        onClick={() => {
+                          setFilterDepartment(dept);
+                          setIsDepartmentOpen(false);
+                          setDepartmentSearch('');
+                          setIsDepartmentSearching(false);
+                        }}
+                        selected={filterDepartment === dept}
+                        description={dept}
+                      >
+                        {departmentMap.get(dept) || dept}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                // Show select button
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsDepartmentSearching(true);
+                    setIsDepartmentOpen(true);
+                  }}
+                  className="w-full h-10 px-4 py-2 border border-panel-border rounded-xl bg-input-bg text-text-tertiary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all"
+                >
+                  <span className="truncate text-sm">Select Department</span>
+                  <Icon name="chevron-down" color="currentColor" width={16} height={16} className="w-4 h-4 shrink-0 text-text-secondary" />
+                </button>
+              )}
+            </div>
+
+            {/* Term Filter */}
+            <div>
+              <label className="block text-sm font-semibold text-text-secondary mb-2">Term</label>
+              <DropdownMenu
+                isOpen={isTermOpen}
+                onOpenChange={setIsTermOpen}
+                className="w-full"
+                trigger={
+                  <button type="button" className="w-full h-10 px-4 py-2 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all">
+                    <span className={filterTerm ? 'truncate' : 'truncate text-text-tertiary text-sm'}>
+                      {filterTerm || 'All Terms'}
+                    </span>
+                    <Icon name="chevron-down" color="currentColor" width={16} height={16} className="w-4 h-4 shrink-0 text-text-secondary" />
+                  </button>
+                }
+              >
+                <DropdownMenuContent maxHeight="max-h-64">
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setFilterTerm('');
+                      setIsTermOpen(false);
+                    }}
+                    selected={filterTerm === ''}
+                  >
+                    All Terms
+                  </DropdownMenuItem>
+                  {['Fall', 'Winter', 'Spring', 'Summer'].map((term) => (
+                    <DropdownMenuItem
+                      key={term}
+                      onClick={() => {
+                        setFilterTerm(term);
+                        setIsTermOpen(false);
+                      }}
+                      selected={filterTerm === term}
+                    >
+                      {term}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            {/* Career Level Filter */}
+            <div>
+              <label className="block text-sm font-semibold text-text-secondary mb-2">Level</label>
+              <DropdownMenu
+                isOpen={isCareerOpen}
+                onOpenChange={setIsCareerOpen}
+                className="w-full"
+                trigger={
+                  <button type="button" className="w-full h-10 px-4 py-2 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all">
+                    <span className={filterCareer ? 'truncate' : 'truncate text-text-tertiary text-sm'}>
+                      {filterCareer === 'UGRD' ? 'Undergraduate' : filterCareer === 'GRAD' ? 'Graduate' : 'All Levels'}
+                    </span>
+                    <Icon name="chevron-down" color="currentColor" width={16} height={16} className="w-4 h-4 shrink-0 text-text-secondary" />
+                  </button>
+                }
+              >
+                <DropdownMenuContent maxHeight="max-h-64">
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setFilterCareer('');
+                      setIsCareerOpen(false);
+                    }}
+                    selected={filterCareer === ''}
+                  >
+                    All Levels
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setFilterCareer('UGRD');
+                      setIsCareerOpen(false);
+                    }}
+                    selected={filterCareer === 'UGRD'}
+                  >
+                    Undergraduate
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setFilterCareer('GRAD');
+                      setIsCareerOpen(false);
+                    }}
+                    selected={filterCareer === 'GRAD'}
+                  >
+                    Graduate
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </div>
 
@@ -295,6 +598,14 @@ function formatEnrollmentRequirement(requirement: string): { label: string; valu
     };
   }
 
+  if (/^\(\d+ OF\)/.test(trimmed)) {
+    const match = trimmed.match(/^\((\d+) OF\)/);
+    return {
+      label: `${match?.[1] || ''} Of`,
+      value: trimmed.replace(/^\(\d+ OF\)\s*/, ''),
+    };
+  }
+
   if (trimmed.includes(' OR ')) {
     return {
       label: 'One Of',
@@ -348,121 +659,128 @@ function CourseDescriptionContent({
   };
 
   return (
-    <div className="bg-panel-bg p-6 rounded-xl border border-panel-border space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-heading">{courseInfo.courseCode}</h2>
-        {courseInfo.title && (
-          <p className="mt-1 text-sm text-text-secondary">{courseInfo.title}</p>
-        )}
-      </div>
-
-      {courseInfo.description && (
+    <div className="bg-panel-bg rounded-xl border border-panel-border flex flex-col h-[calc(100vh-200px)]">
+      <div className="flex-1 overflow-y-auto p-6 space-y-6">
         <div>
-          <h3 className="font-semibold text-text-primary mb-2 border-b border-panel-border pb-2">
-            Description
-          </h3>
-          <p className="text-sm text-text-secondary leading-6">{courseInfo.description}</p>
+          <h2 className="text-2xl font-bold text-heading">{courseInfo.courseCode}</h2>
+          {courseInfo.title && (
+            <p className="mt-1 text-sm text-text-secondary">{courseInfo.title}</p>
+          )}
+          {courseInfo.credits && (
+            <p className="mt-2 text-sm font-medium text-text-primary">
+              Credits: <span className="font-semibold">{courseInfo.credits}</span>
+            </p>
+          )}
         </div>
-      )}
 
-      {(courseInfo.prerequisites.length > 0 ||
-        courseInfo.corequisites.length > 0 ||
-        courseInfo.otherRequirements.length > 0) && (
-        <div>
-          <div className="mb-3 border-b border-panel-border pb-2">
-            <div className="inline-flex items-start gap-1">
-              <h3 className="font-semibold text-text-primary">
-                Enrollment Requirements
-              </h3>
-              <div className="relative w-4 h-4 mt-0.5">
-                <button
-                  ref={infoButtonRef}
-                  onClick={onInfoClick}
-                  onMouseEnter={onInfoMouseEnter}
-                  onMouseLeave={onInfoMouseLeave}
-                  className="w-4 h-4 flex items-center justify-center text-text-tertiary hover:text-text-secondary focus:text-text-secondary transition-colors cursor-help flex-shrink-0"
-                  aria-label="Information about enrollment requirements data"
-                >
-                  <Icon 
-                    name="info"
-                    color="currentColor"
-                    width={16}
-                    height={16}
-                  />
-                </button>
-                {showInfoTooltip && (
-                  <div className="absolute left-1/2 -translate-x-1/2 top-full w-52 mt-2 p-2 bg-panel-bg border border-panel-border rounded-lg text-xs text-text-secondary shadow-lg z-50 whitespace-normal">
-                    This data is parsed from SIS and may contain errors.
-                  </div>
-                )}
+        {courseInfo.description && (
+          <div>
+            <h3 className="font-semibold text-text-primary mb-2 border-b border-panel-border pb-2">
+              Description
+            </h3>
+            <p className="text-sm text-text-secondary leading-6">{courseInfo.description}</p>
+          </div>
+        )}
+
+        {(courseInfo.prerequisites.length > 0 ||
+          courseInfo.corequisites.length > 0 ||
+          courseInfo.otherRequirements.length > 0) && (
+          <div>
+            <div className="mb-3 border-b border-panel-border pb-2">
+              <div className="inline-flex items-start gap-1">
+                <h3 className="font-semibold text-text-primary">
+                  Enrollment Requirements
+                </h3>
+                <div className="relative w-4 h-4 mt-0.5">
+                  <button
+                    ref={infoButtonRef}
+                    onClick={onInfoClick}
+                    onMouseEnter={onInfoMouseEnter}
+                    onMouseLeave={onInfoMouseLeave}
+                    className="w-4 h-4 flex items-center justify-center text-text-tertiary hover:text-text-secondary focus:text-text-secondary transition-colors cursor-help flex-shrink-0"
+                    aria-label="Information about enrollment requirements data"
+                  >
+                    <Icon 
+                      name="info"
+                      color="currentColor"
+                      width={16}
+                      height={16}
+                    />
+                  </button>
+                  {showInfoTooltip && (
+                    <div className="absolute left-1/2 -translate-x-1/2 top-full w-52 mt-2 p-2 bg-panel-bg border border-panel-border rounded-lg text-xs text-text-secondary shadow-lg z-50 whitespace-normal">
+                      This data is parsed from SIS and may contain errors.
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-          <div className="space-y-4">
-            {courseInfo.prerequisites.length > 0 && (
-              <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">Prerequisites</h4>
-                <div className="space-y-2">
-                  {courseInfo.prerequisites.map((requirement, i) => (
-                    <RequirementCard key={`prerequisite-${i}`} requirement={requirement} />
-                  ))}
+            <div className="space-y-4">
+              {courseInfo.prerequisites.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">Prerequisites</h4>
+                  <div className="space-y-2">
+                    {courseInfo.prerequisites.map((requirement, i) => (
+                      <RequirementCard key={`prerequisite-${i}`} requirement={requirement} />
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {courseInfo.corequisites.length > 0 && (
-              <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">Corequisites</h4>
-                <div className="space-y-2">
-                  {courseInfo.corequisites.map((requirement, i) => (
-                    <RequirementCard key={`corequisite-${i}`} requirement={requirement} />
-                  ))}
+              {courseInfo.corequisites.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">Corequisites</h4>
+                  <div className="space-y-2">
+                    {courseInfo.corequisites.map((requirement, i) => (
+                      <RequirementCard key={`corequisite-${i}`} requirement={requirement} />
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {courseInfo.otherRequirements.length > 0 && (
-              <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">Other Requirements</h4>
-                <div className="space-y-2">
-                  {courseInfo.otherRequirements.map((requirement, i) => (
-                    <RequirementCard key={`other-requirement-${i}`} requirement={requirement} />
-                  ))}
+              {courseInfo.otherRequirements.length > 0 && (
+                <div>
+                  <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">Other Requirements</h4>
+                  <div className="space-y-2">
+                    {courseInfo.otherRequirements.map((requirement, i) => (
+                      <RequirementCard key={`other-requirement-${i}`} requirement={requirement} />
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
-      )}
-
-      {courseInfo.terms.length > 0 && (
-        <div>
-          <h3 className="font-semibold text-text-primary mb-2 border-b border-panel-border pb-2">
-            Available Terms
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {courseInfo.terms.map((term, i) => (
-              <span
-                key={i}
-                className="inline-flex items-center rounded-full border border-panel-border-strong px-2.5 py-1 text-xs font-medium text-text-secondary"
-              >
-                {term}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {!courseInfo.title &&
-        !courseInfo.description &&
-        courseInfo.prerequisites.length === 0 &&
-        courseInfo.corequisites.length === 0 &&
-        courseInfo.otherRequirements.length === 0 &&
-        courseInfo.terms.length === 0 && (
-          <p className="text-gray-500 italic text-sm">
-            No course details were found for this course in the current catalog data.
-          </p>
         )}
+
+        {courseInfo.terms.length > 0 && (
+          <div>
+            <h3 className="font-semibold text-text-primary mb-2 border-b border-panel-border pb-2">
+              Available Terms
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {courseInfo.terms.map((term, i) => (
+                <span
+                  key={i}
+                  className="inline-flex items-center rounded-full border border-panel-border-strong px-2.5 py-1 text-xs font-medium text-text-secondary"
+                >
+                  {term}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {!courseInfo.title &&
+          !courseInfo.description &&
+          courseInfo.prerequisites.length === 0 &&
+          courseInfo.corequisites.length === 0 &&
+          courseInfo.otherRequirements.length === 0 &&
+          courseInfo.terms.length === 0 && (
+            <p className="text-gray-500 italic text-sm">
+              No course details were found for this course in the current catalog data.
+            </p>
+          )}
+      </div>
     </div>
   );
 }

@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { updateCurrentUserProfile } from '../actions';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSearch } from '../components/DropdownMenu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from '../components/DropdownMenu';
 import { Icon } from '../components/Icon';
 import { getDefaultGraduationYearForStanding, getDefaultStandingForGraduationYear } from '../utils/academicYear';
 import { PROFILE_SCHOOL_OPTIONS, PROFILE_MAJOR_OPTIONS, PROFILE_ADDITIONAL_PROGRAMS, MAJOR_TO_SCHOOL_MAP } from './profileOptions';
@@ -31,8 +31,10 @@ export default function EditProfileForm({
   const [error, setError] = useState<string | null>(null);
   
   const [isMajorOpen, setIsMajorOpen] = useState(false);
+  const [isMajorSearching, setIsMajorSearching] = useState(false);
   const [isSchoolOpen, setIsSchoolOpen] = useState(false);
   const [isAdditionalProgramsOpen, setIsAdditionalProgramsOpen] = useState(false);
+  const [isAdditionalProgramsSearching, setIsAdditionalProgramsSearching] = useState(false);
   const [isAcademicYearOpen, setIsAcademicYearOpen] = useState(false);
   const [isGradYearOpen, setIsGradYearOpen] = useState(false);
   
@@ -245,55 +247,109 @@ export default function EditProfileForm({
 
             <div>
               <label className="block text-sm font-semibold text-text-secondary mb-2">Major</label>
-              <DropdownMenu
-                isOpen={isMajorOpen}
-                onOpenChange={(open) => {
-                  setIsMajorOpen(open);
-                  if (!open) setMajorSearch('');
-                }}
-                trigger={
-                  <button className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all">
-                    <span className={formMajor ? 'truncate' : 'truncate text-text-tertiary'}>
-                      {majorOptions.find(o => o.value === formMajor)?.label ?? 'Select your major'}
-                    </span>
-                    <Icon name="chevron-down" color="currentColor" width={16} height={16} className="w-4 h-4 shrink-0 text-text-secondary" />
-                  </button>
-                }
-              >
-                <DropdownMenuSearch
-                  value={majorSearch}
-                  onChange={setMajorSearch}
-                  placeholder="Search majors"
-                />
-                <DropdownMenuContent maxHeight="max-h-64">
-                  <DropdownMenuItem
-                    selected={formMajor === ''}
-                    onClick={() => {
+              {!isMajorSearching && formMajor ? (
+                // Show selected major with clear button
+                <div className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all relative"
+                  onClick={() => setIsMajorSearching(true)}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <span className="truncate flex-1">{majorOptions.find(o => o.value === formMajor)?.label ?? formMajor}</span>
+                  <div
+                    onClick={(e) => {
+                      e.stopPropagation();
                       setFormMajor('');
-                      setIsMajorOpen(false);
                       setMajorSearch('');
+                      setIsMajorSearching(false);
                     }}
+                    className="text-text-secondary hover:text-danger-text cursor-pointer flex items-center justify-center transition-all"
+                    role="button"
+                    tabIndex={-1}
                   >
-                    Select your major
-                  </DropdownMenuItem>
-                  {filteredMajorOptions.map((option) => (
-                    <DropdownMenuItem
-                      key={option.value}
-                      selected={formMajor === option.value}
+                    <Icon
+                      name="x"
+                      color="currentColor"
+                      width={16}
+                      height={16}
+                      className="w-4 h-4"
+                    />
+                  </div>
+                </div>
+              ) : isMajorSearching ? (
+                // Show search input
+                <DropdownMenu
+                  isOpen={isMajorOpen}
+                  onOpenChange={setIsMajorOpen}
+                  trigger={
+                    <input
+                      type="text"
+                      autoFocus
+                      placeholder="Search majors..."
+                      value={majorSearch}
+                      onChange={(e) => {
+                        setMajorSearch(e.target.value);
+                        setIsMajorOpen(true);
+                      }}
                       onClick={() => {
-                        handleMajorChange(option.value);
+                        setIsMajorOpen(true);
+                      }}
+                      onBlur={() => {
+                        setTimeout(() => {
+                          if (majorSearch === '') {
+                            setIsMajorSearching(false);
+                            setIsMajorOpen(false);
+                          }
+                        }, 100);
+                      }}
+                      className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary placeholder:text-text-tertiary outline-none transition-all"
+                    />
+                  }
+                >
+                  <DropdownMenuContent maxHeight="max-h-64">
+                    <DropdownMenuItem
+                      selected={formMajor === ''}
+                      onClick={() => {
+                        setFormMajor('');
                         setIsMajorOpen(false);
                         setMajorSearch('');
+                        setIsMajorSearching(false);
                       }}
                     >
-                      {option.label}
+                      Select your major
                     </DropdownMenuItem>
-                  ))}
-                  {filteredMajorOptions.length === 0 && (
-                    <div className="px-3 py-2 text-sm text-text-secondary">No majors found.</div>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
+                    {filteredMajorOptions.map((option) => (
+                      <DropdownMenuItem
+                        key={option.value}
+                        selected={formMajor === option.value}
+                        onClick={() => {
+                          handleMajorChange(option.value);
+                          setIsMajorOpen(false);
+                          setMajorSearch('');
+                          setIsMajorSearching(false);
+                        }}
+                      >
+                        {option.label}
+                      </DropdownMenuItem>
+                    ))}
+                    {filteredMajorOptions.length === 0 && (
+                      <div className="px-3 py-2 text-sm text-text-secondary">No majors found.</div>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                // Show select button
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMajorSearching(true);
+                    setIsMajorOpen(true);
+                  }}
+                  className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all"
+                >
+                  <span className="truncate text-text-tertiary">Select your major</span>
+                  <Icon name="chevron-down" color="currentColor" width={16} height={16} className="w-4 h-4 shrink-0 text-text-secondary" />
+                </button>
+              )}
             </div>
 
             <div>
@@ -306,55 +362,109 @@ export default function EditProfileForm({
             <div>
               <label className="block text-sm font-semibold text-text-secondary mb-2">Additional Programs</label>
               <p className="text-xs text-text-tertiary mb-3">Select certificates, ROTC, honors programs, and other academic opportunities</p>
-              <DropdownMenu
-                isOpen={isAdditionalProgramsOpen}
-                onOpenChange={(open) => {
-                  setIsAdditionalProgramsOpen(open);
-                  if (!open) setAdditionalProgramsSearch('');
-                }}
-                trigger={
-                  <button className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all">
-                    <span className={formAdditionalPrograms.length > 0 ? 'truncate' : 'truncate text-text-tertiary'}>
-                      {formAdditionalPrograms.length > 0 ? formAdditionalPrograms[0] : 'Select additional programs'}
-                    </span>
-                    <Icon name="chevron-down" color="currentColor" width={16} height={16} className="w-4 h-4 shrink-0 text-text-secondary" />
-                  </button>
-                }
-              >
-                <DropdownMenuSearch
-                  value={additionalProgramsSearch}
-                  onChange={setAdditionalProgramsSearch}
-                  placeholder="Search programs"
-                />
-                <DropdownMenuContent maxHeight="max-h-64">
-                  <DropdownMenuItem
-                    selected={formAdditionalPrograms.length === 0}
-                    onClick={() => {
+              {!isAdditionalProgramsSearching && formAdditionalPrograms.length > 0 ? (
+                // Show selected program with clear button
+                <div className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all relative"
+                  onClick={() => setIsAdditionalProgramsSearching(true)}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <span className="truncate flex-1">{formAdditionalPrograms[0]}</span>
+                  <div
+                    onClick={(e) => {
+                      e.stopPropagation();
                       setFormAdditionalPrograms([]);
-                      setIsAdditionalProgramsOpen(false);
                       setAdditionalProgramsSearch('');
+                      setIsAdditionalProgramsSearching(false);
                     }}
+                    className="text-text-secondary hover:text-danger-text cursor-pointer flex items-center justify-center transition-all"
+                    role="button"
+                    tabIndex={-1}
                   >
-                    No programs selected
-                  </DropdownMenuItem>
-                  {filteredAdditionalPrograms.map((program) => (
-                    <DropdownMenuItem
-                      key={program}
-                      selected={formAdditionalPrograms[0] === program}
+                    <Icon
+                      name="x"
+                      color="currentColor"
+                      width={16}
+                      height={16}
+                      className="w-4 h-4"
+                    />
+                  </div>
+                </div>
+              ) : isAdditionalProgramsSearching ? (
+                // Show search input
+                <DropdownMenu
+                  isOpen={isAdditionalProgramsOpen}
+                  onOpenChange={setIsAdditionalProgramsOpen}
+                  trigger={
+                    <input
+                      type="text"
+                      autoFocus
+                      placeholder="Search programs..."
+                      value={additionalProgramsSearch}
+                      onChange={(e) => {
+                        setAdditionalProgramsSearch(e.target.value);
+                        setIsAdditionalProgramsOpen(true);
+                      }}
                       onClick={() => {
-                        setFormAdditionalPrograms([program]);
+                        setIsAdditionalProgramsOpen(true);
+                      }}
+                      onBlur={() => {
+                        setTimeout(() => {
+                          if (additionalProgramsSearch === '') {
+                            setIsAdditionalProgramsSearching(false);
+                            setIsAdditionalProgramsOpen(false);
+                          }
+                        }, 100);
+                      }}
+                      className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary placeholder:text-text-tertiary outline-none transition-all"
+                    />
+                  }
+                >
+                  <DropdownMenuContent maxHeight="max-h-64">
+                    <DropdownMenuItem
+                      selected={formAdditionalPrograms.length === 0}
+                      onClick={() => {
+                        setFormAdditionalPrograms([]);
                         setIsAdditionalProgramsOpen(false);
                         setAdditionalProgramsSearch('');
+                        setIsAdditionalProgramsSearching(false);
                       }}
                     >
-                      {program}
+                      No programs selected
                     </DropdownMenuItem>
-                  ))}
-                  {filteredAdditionalPrograms.length === 0 && (
-                    <div className="px-3 py-2 text-sm text-text-secondary">No programs found.</div>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
+                    {filteredAdditionalPrograms.map((program) => (
+                      <DropdownMenuItem
+                        key={program}
+                        selected={formAdditionalPrograms[0] === program}
+                        onClick={() => {
+                          setFormAdditionalPrograms([program]);
+                          setIsAdditionalProgramsOpen(false);
+                          setAdditionalProgramsSearch('');
+                          setIsAdditionalProgramsSearching(false);
+                        }}
+                      >
+                        {program}
+                      </DropdownMenuItem>
+                    ))}
+                    {filteredAdditionalPrograms.length === 0 && (
+                      <div className="px-3 py-2 text-sm text-text-secondary">No programs found.</div>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                // Show select button
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsAdditionalProgramsSearching(true);
+                    setIsAdditionalProgramsOpen(true);
+                  }}
+                  className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all"
+                >
+                  <span className="truncate text-text-tertiary">Select additional programs</span>
+                  <Icon name="chevron-down" color="currentColor" width={16} height={16} className="w-4 h-4 shrink-0 text-text-secondary" />
+                </button>
+              )}
             </div>
 
             <div>
