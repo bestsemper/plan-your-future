@@ -10,6 +10,7 @@ export interface SimpleCourse {
   prereqs: string[];
   coreqs?: string[];
   departmentOrs?: string[];
+  coreqOrs?: string[];
 }
 
 export interface CourseDAG {
@@ -406,13 +407,36 @@ export function buildCourseDag(department: string): CourseDAG {
       
       // Extract and add corequisite edges
       const coreqCourses = extractAllCoreqs(courseData.rawPrereq)
-        .filter(c => c.startsWith(deptPrefix) && relevantCourses.has(c));
+        .filter(c => c.startsWith(deptPrefix));
       
       coreqCourses.forEach(coreqCode => {
+        // Ensure coreq course has a group representation even if not in main tree
+        if (!courseToGroupRep.has(coreqCode)) {
+          const groupRep = courseToGroup.get(coreqCode) || coreqCode;
+          const finalGroupRep = groupRep.startsWith(deptPrefix) ? groupRep : coreqCode;
+          courseToGroupRep.set(coreqCode, finalGroupRep);
+          
+          // Also create a node for the coreq if needed
+          if (!nodes.has(finalGroupRep)) {
+            nodes.set(finalGroupRep, {
+              id: finalGroupRep,
+              label: coreqCode,
+              type: 'course-node',
+              prereqs: [],
+              coreqs: [],
+              coreqOrs: [],
+            });
+          }
+        }
+        
         const coreqGroup = courseToGroupRep.get(coreqCode);
         if (coreqGroup && coreqGroup !== courseGroup) {
           if (!coreqEdges.has(courseGroup)) coreqEdges.set(courseGroup, new Set<string>());
           coreqEdges.get(courseGroup)?.add(coreqGroup);
+          
+          // Remove from prerequisite edges if it exists there (coreqs shouldn't also be prereqs)
+          edges.get(coreqGroup)?.delete(courseGroup);
+          edges.get(courseGroup)?.delete(coreqGroup);
         }
       });
       
@@ -538,7 +562,80 @@ export function buildCourseDag(department: string): CourseDAG {
         const nodeData = nodes.get(courseGroup);
         if (nodeData) {
           nodeData.departmentOrs = localOrs;
+        }
+      }
 
+      // Extract OR logic from corequisites
+      const extractLocalCoreqOrs = (node: any): string[] => {
+        const results: string[] = [];
+        const traverse = (n: any, depth: number) => {
+          if (depth > 10) return; // Prevent infinite recursion
+          
+          if (n.type === 'COREQ') {
+            // Process children of COREQ to find OR patterns
+            const coreqChildren = n.children || [];
+            
+            // Look for OR patterns within COREQ
+            const processChild = (child: any): string[] => {
+              if (child.type === 'OR') {
+                const branches: string[] = [];
+                (child.children || []).forEach((c: any) => {
+                  if (c.type === 'course') {
+                    const code = c.code;
+                    if (code.startsWith(deptPrefix)) {
+                      const mapped = courseToGroupRep.get(code) || code;
+                      branches.push(mapped);
+                    }
+                  } else if (c.type === 'AND') {
+                    const coursesStr = extractCoursesFromPrereq(c)
+                      .filter((cc: string) => cc.startsWith(deptPrefix))
+                      .map((cc: string) => courseToGroupRep.get(cc) || cc);
+                    const uniqueCourses = Array.from(new Set(coursesStr));
+                    if (uniqueCourses.length > 0) {
+                      branches.push(`(${uniqueCourses.join(' AND ')})`);
+                    }
+                  }
+                });
+                const uniqueBranches = Array.from(new Set(branches));
+                if (uniqueBranches.length > 1) {
+                  return [uniqueBranches.join(' OR ')];
+                } else if (uniqueBranches.length === 1) {
+                  return [uniqueBranches[0]];
+                }
+              } else if (child.type === 'AND') {
+                const coursesStr = extractCoursesFromPrereq(child)
+                  .filter((cc: string) => cc.startsWith(deptPrefix))
+                  .map((cc: string) => courseToGroupRep.get(cc) || cc);
+                const uniqueCourses = Array.from(new Set(coursesStr));
+                if (uniqueCourses.length > 0) {
+                  return [uniqueCourses.length > 1 ? `(${uniqueCourses.join(' AND ')})` : uniqueCourses[0]];
+                }
+              } else if (child.type === 'course') {
+                const code = child.code;
+                if (code.startsWith(deptPrefix)) {
+                  const mapped = courseToGroupRep.get(code) || code;
+                  return [mapped];
+                }
+              }
+              return [];
+            };
+            
+            coreqChildren.forEach((child: any) => {
+              results.push(...processChild(child));
+            });
+          } else if (n.type === 'AND' || n.type === 'OR') {
+            (n.children || []).forEach((child: any) => traverse(child, depth + 1));
+          }
+        };
+        traverse(node, 0);
+        return Array.from(new Set(results));
+      };
+
+      const coreqOrs = extractLocalCoreqOrs(courseData.rawPrereq);
+      if (coreqOrs.length > 0) {
+        const nodeData = nodes.get(courseGroup);
+        if (nodeData) {
+          nodeData.coreqOrs = coreqOrs;
         }
       }
     }
@@ -627,6 +724,15 @@ export function buildCourseDag(department: string): CourseDAG {
   
   redundantEdges.forEach(([from, to]) => {
     edges.get(from)?.delete(to);
+  });
+
+  // Final cleanup: ensure no edge appears in both edges and coreqEdges
+  coreqEdges.forEach((coreqChildren, parent) => {
+    coreqChildren.forEach(child => {
+      // Remove this coreq relationship from prerequisite edges (both directions)
+      edges.get(parent)?.delete(child);
+      edges.get(child)?.delete(parent);
+    });
   });
   
   // Step 7: Remove isolated nodes (nodes with no incoming or outgoing edges)

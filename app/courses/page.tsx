@@ -70,6 +70,13 @@ export default function CoursesPage() {
     ).sort();
   }, [allCourses]);
 
+  // Filter departments for search
+  const filteredDepartmentsForSearch = useMemo(() => {
+    return uniqueDepartments.filter(dept =>
+      !departmentSearch || dept.toLowerCase().includes(departmentSearch.toLowerCase()) || (departmentMap.get(dept) || '').toLowerCase().includes(departmentSearch.toLowerCase())
+    );
+  }, [uniqueDepartments, departmentSearch, departmentMap]);
+
   useEffect(() => {
     const loadCoursesAndDepartments = async () => {
       try {
@@ -330,12 +337,12 @@ export default function CoursesPage() {
               <label className="block text-sm font-semibold text-text-secondary mb-2">Department</label>
               {!isDepartmentSearching && filterDepartment ? (
                 // Show selected department with clear button
-                <div className="w-full h-10 px-4 py-2 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all relative"
+                <div className="w-full h-10 px-4 py-2 border border-panel-border rounded-xl bg-input-bg text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all relative"
                   onClick={() => setIsDepartmentSearching(true)}
                   role="button"
                   tabIndex={0}
                 >
-                  <span className="truncate flex-1">{departmentMap.get(filterDepartment) || filterDepartment}</span>
+                  <span className="truncate flex-1 text-text-primary">{departmentMap.get(filterDepartment) || filterDepartment}</span>
                   <div
                     onClick={(e) => {
                       e.stopPropagation();
@@ -359,9 +366,7 @@ export default function CoursesPage() {
               ) : isDepartmentSearching ? (
                 // Show search input
                 <DropdownMenu
-                  isOpen={isDepartmentOpen && uniqueDepartments.filter(dept =>
-                    !departmentSearch || dept.toLowerCase().includes(departmentSearch.toLowerCase()) || (departmentMap.get(dept) || '').toLowerCase().includes(departmentSearch.toLowerCase())
-                  ).length > 0}
+                  isOpen={isDepartmentOpen && filteredDepartmentsForSearch.length > 0}
                   onOpenChange={setIsDepartmentOpen}
                   className="w-full"
                   trigger={
@@ -374,15 +379,24 @@ export default function CoursesPage() {
                         setDepartmentSearch(e.target.value);
                         setIsDepartmentOpen(true);
                       }}
-                      onClick={() => {
-                        setIsDepartmentOpen(true);
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          if (filteredDepartmentsForSearch.length > 0) {
+                            setFilterDepartment(filteredDepartmentsForSearch[0]);
+                            setIsDepartmentOpen(false);
+                            setDepartmentSearch('');
+                            setIsDepartmentSearching(false);
+                          }
+                        }
                       }}
+                      onClick={() => setIsDepartmentOpen(true)}
                       onBlur={() => {
                         setTimeout(() => {
-                          if (departmentSearch === '') {
+                          if (!departmentSearch) {
                             setIsDepartmentSearching(false);
-                            setIsDepartmentOpen(false);
                           }
+                          setIsDepartmentOpen(false);
                         }, 100);
                       }}
                       className="w-full h-10 px-3 py-2 bg-input-bg border border-panel-border rounded-xl text-sm text-text-primary placeholder:text-text-tertiary placeholder:text-sm outline-none transition-colors"
@@ -390,25 +404,21 @@ export default function CoursesPage() {
                   }
                 >
                   <DropdownMenuContent maxHeight="max-h-64">
-                    {uniqueDepartments
-                      .filter(dept =>
-                        !departmentSearch || dept.toLowerCase().includes(departmentSearch.toLowerCase()) || (departmentMap.get(dept) || '').toLowerCase().includes(departmentSearch.toLowerCase())
-                      )
-                      .map((dept) => (
-                        <DropdownMenuItem
-                          key={dept}
-                          onClick={() => {
-                            setFilterDepartment(dept);
-                            setIsDepartmentOpen(false);
-                            setDepartmentSearch('');
-                            setIsDepartmentSearching(false);
-                          }}
-                          selected={filterDepartment === dept}
-                          description={dept}
-                        >
-                          {departmentMap.get(dept) || dept}
-                        </DropdownMenuItem>
-                      ))}
+                    {filteredDepartmentsForSearch.map((dept) => (
+                      <DropdownMenuItem
+                        key={dept}
+                        onClick={() => {
+                          setFilterDepartment(dept);
+                          setIsDepartmentOpen(false);
+                          setDepartmentSearch('');
+                          setIsDepartmentSearching(false);
+                        }}
+                        selected={filterDepartment === dept}
+                        description={dept}
+                      >
+                        {departmentMap.get(dept) || dept}
+                      </DropdownMenuItem>
+                    ))}
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
@@ -419,9 +429,9 @@ export default function CoursesPage() {
                     setIsDepartmentSearching(true);
                     setIsDepartmentOpen(true);
                   }}
-                  className="w-full h-10 px-4 py-2 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all"
+                  className="w-full h-10 px-4 py-2 border border-panel-border rounded-xl bg-input-bg text-text-tertiary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all"
                 >
-                  <span className="truncate text-text-tertiary text-sm">Select Department</span>
+                  <span className="truncate text-sm">Select Department</span>
                   <Icon name="chevron-down" color="currentColor" width={16} height={16} className="w-4 h-4 shrink-0 text-text-secondary" />
                 </button>
               )}
@@ -453,7 +463,7 @@ export default function CoursesPage() {
                   >
                     All Terms
                   </DropdownMenuItem>
-                  {['Fall', 'Spring', 'Summer', 'Winter'].map((term) => (
+                  {['Fall', 'Winter', 'Spring', 'Summer'].map((term) => (
                     <DropdownMenuItem
                       key={term}
                       onClick={() => {

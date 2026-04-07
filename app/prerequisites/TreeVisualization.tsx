@@ -139,10 +139,12 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
       });
     });
     
-    // Build coreq map
-    if (dagData.coreqEdges) {
+    // Build coreq map (directional - parent has child as coreq)
+    // dagData.coreqEdges is an array from the API
+    if (dagData.coreqEdges && dagData.coreqEdges.length > 0) {
       dagData.coreqEdges.forEach((edge) => {
         edge.children.forEach((child) => {
+          // Only add in the direction specified: parent requires child
           coreqMap.get(edge.parent)?.add(child);
         });
       });
@@ -250,7 +252,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
       sortedCourseLevels.set(level, sorted);
     }
 
-    // Build coreq groups - track which courses are corequisites of each other
+    // Build coreq groups - track which courses are corequisites of each other (directional: parent -> child only)
     const coreqGroup = new Map<string, Set<string>>();
     dagData.nodes.forEach(course => {
       coreqGroup.set(course.id, new Set());
@@ -258,8 +260,8 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
     if (dagData.coreqEdges) {
       dagData.coreqEdges.forEach((edge) => {
         edge.children.forEach((child) => {
+          // Only add in the direction specified: parent requires child
           coreqGroup.get(edge.parent)?.add(child);
-          coreqGroup.get(child)?.add(edge.parent); // bidirectional
         });
       });
     }
@@ -291,17 +293,29 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
         const depth = Math.floor(depthMap.get(courseId) || 0);
         
         // Get corequisites for this course that are also in this level
+        // BUT exclude any that have prerequisite relationships with this course
         const coreqs = Array.from(coreqGroup.get(courseId) || []).filter(
-          c => coursesAtLevel.includes(c) && !placedCourses.has(c)
+          c => coursesAtLevel.includes(c) && !placedCourses.has(c) &&
+               !edgesMap.get(courseId)?.has(c) && // No prereq FROM courseId TO c
+               !edgesMap.get(c)?.has(courseId)     // No prereq FROM c TO courseId
         );
         
         // Check if adding this course and its coreqs would exceed row size
         const groupSize = 1 + coreqs.length;
         
+        // Check if this course has prerequisite relationships with any courses already placed in current row
+        const currentRowCourses = levelRows.get(currentRowIndex) || [];
+        const hasConflictInRow = currentRowCourses.some(existingCourse => {
+          return edgesMap.get(courseId)?.has(existingCourse) || 
+                 edgesMap.get(existingCourse)?.has(courseId);
+        });
+        
         // Move to next row if depth changes OR if we've hit max nodes per row OR if group won't fit
+        // OR if there's a prerequisite relationship with existing courses in the row
         if (
           (lastDepth >= 0 && depth !== lastDepth) || 
-          (currentRowCount > 0 && currentRowCount + groupSize > maxNodesPerLevel)
+          (currentRowCount > 0 && currentRowCount + groupSize > maxNodesPerLevel) ||
+          (currentRowCount > 0 && hasConflictInRow)
         ) {
           currentRowIndex++;
           currentRowCount = 0;
@@ -332,6 +346,109 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
         
         lastDepth = depth;
       }
+    }
+
+    // Post-processing: Ensure no two courses with direct edges are in the same row
+    // This guarantees prerequisites are always above dependents
+    // Also reorganize within rows to keep coreq pairs adjacent
+    let maxIterations = 10;
+    let changed = true;
+    while (changed && maxIterations-- > 0) {
+      changed = false;
+      
+      for (let rowIdx of Array.from(levelRows.keys()).sort((a, b) => a - b)) {
+        const courseList = levelRows.get(rowIdx) || [];
+        if (courseList.length === 0) continue;
+        
+        // Find all conflicting pairs in this row
+        const conflicts: Array<[string, string]> = [];
+        for (let i = 0; i < courseList.length; i++) {
+          for (let j = i + 1; j < courseList.length; j++) {
+            const c1 = courseList[i];
+            const c2 = courseList[j];
+            
+            // Check if there's an edge between them
+            if (edgesMap.get(c1)?.has(c2) || edgesMap.get(c2)?.has(c1)) {
+              conflicts.push([c1, c2]);
+            }
+          }
+        }
+        
+        // If there are conflicts, move the dependent course to the immediately next row
+        if (conflicts.length > 0) {
+          changed = true;
+          let remainingCourses = [...courseList];
+          const coursesToMove: string[] = [];
+          
+          for (const [c1, c2] of conflicts) {
+            // Determine which has higher depth (is a dependent)
+            // If c2 depends on c1, then c1 -> c2 in edgesMap
+            // So edgesMap.get(c1) will contain c2
+            const c1IsPrecedent = edgesMap.get(c1)?.has(c2) || false;
+            const courseToMove = c1IsPrecedent ? c2 : c1;
+            
+            // Remove from current row if still there
+            const idx = remainingCourses.indexOf(courseToMove);
+            if (idx >= 0) {
+              remainingCourses.splice(idx, 1);
+              coursesToMove.push(courseToMove);
+            }
+          }
+          
+          levelRows.set(rowIdx, remainingCourses);
+          
+          // Add moved courses to the immediately next row (rowIdx + 1)
+          if (coursesToMove.length > 0) {
+            const nextRowIdx = rowIdx + 1;
+            if (!levelRows.has(nextRowIdx)) {
+              levelRows.set(nextRowIdx, []);
+            }
+            levelRows.get(nextRowIdx)!.unshift(...coursesToMove);
+          }
+        }
+      }
+    }
+    
+    // Post-processing: Reorganize courses within rows to group corequisites together
+    // This keeps related courses adjacent while maintaining row constraints
+    for (const rowIdx of Array.from(levelRows.keys())) {
+      const courseList = levelRows.get(rowIdx) || [];
+      if (courseList.length <= 1) continue;
+      
+      // Sort courses: group coreq pairs together
+      const sorted: string[] = [];
+      const used = new Set<string>();
+      
+      for (const courseId of courseList) {
+        if (used.has(courseId)) continue;
+        
+        sorted.push(courseId);
+        used.add(courseId);
+        
+        // Find and add any corequisites of this course that are in the same row
+        // Check both directions: A is coreq of B, or B is coreq of A
+        const coreqs = Array.from(courseList).filter(c => {
+          if (c === courseId || used.has(c)) return false;
+          
+          // Check if A -> B or B -> A in coreqGroup
+          const aIsCoreqOfB = coreqGroup.get(courseId)?.has(c) || false;
+          const bIsCoreqOfA = coreqGroup.get(c)?.has(courseId) || false;
+          const isBidirectional = aIsCoreqOfB || bIsCoreqOfA;
+          
+          // Also check coreqMap for bidirectional display relationships
+          const aInCoreqMap = coreqMap?.get(courseId)?.has(c) || false;
+          const bInCoreqMap = coreqMap?.get(c)?.has(courseId) || false;
+          
+          return isBidirectional || aInCoreqMap || bInCoreqMap;
+        });
+        
+        for (const coreq of coreqs) {
+          sorted.push(coreq);
+          used.add(coreq);
+        }
+      }
+      
+      levelRows.set(rowIdx, sorted);
     }
 
     const maxRowIndex = Math.max(...Array.from(levelRows.keys()), 0);
@@ -607,50 +724,56 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
       });
     });
 
-    // Create coreq edge lines (bidirectional edges)
+    // Create coreq edge lines (directed edges, simpler than prereq edges)
     const coreqEdgeLines: {
       waypoints: Array<{ x: number; y: number }>;
       parentId?: string;
       childId?: string;
     }[] = [];
     
-    if (dagData.coreqEdges) {
-      const coreqEdgesMap = new Map<string, Set<string>>();
-      dagData.nodes.forEach((course) => {
-        coreqEdgesMap.set(course.id, new Set());
-      });
-      dagData.coreqEdges.forEach((edge) => {
-        edge.children.forEach((child) => {
-          coreqEdgesMap.get(edge.parent)?.add(child);
-        });
-      });
-      
-      // Track edges we've already drawn to avoid duplicates for bidirectional edges
-      const drawnCoreqEdges = new Set<string>();
-      
-      coreqEdgesMap.forEach((children, parentId) => {
+    if (dagData.coreqEdges && dagData.coreqEdges.length > 0) {
+      // coreqEdges is an Array<{ parent: string, children: string[] }>
+      dagData.coreqEdges.forEach((edge: { parent: string; children: string[] }) => {
+        const parentId = edge.parent;
         const parentPos = positionMap.get(parentId);
         if (!parentPos) return;
 
-        children.forEach((childId) => {
+        edge.children.forEach((childId: string) => {
           const childPos = positionMap.get(childId);
           if (!childPos) return;
 
-          // Create a unique key for this edge (sorted to handle bidirectional)
-          const edgeKey = [parentId, childId].sort().join('|');
+          // Check if courses are in the same row (same Y position)
+          const sameRow = Math.abs(parentPos.y - childPos.y) < 5;
           
-          // Skip if we've already drawn this edge (handles bidirectional coreqs)
-          if (drawnCoreqEdges.has(edgeKey)) return;
-          drawnCoreqEdges.add(edgeKey);
+          let waypoints;
+          
+          if (sameRow) {
+            // Same row: horizontal line from parent to child
+            waypoints = [
+              { x: parentPos.x + (parentPos.x < childPos.x ? nodeW / 2 : -nodeW / 2), y: parentPos.y },
+              { x: childPos.x + (childPos.x < parentPos.x ? nodeW / 2 : -nodeW / 2), y: childPos.y }
+            ];
+          } else {
+            // Different rows: connect from parent edge center to child edge center
+            const parentAboveChild = parentPos.y < childPos.y;
+            
+            if (parentAboveChild) {
+              // Parent above: spawn from bottom center of parent, to top center of child
+              waypoints = [
+                { x: parentPos.x, y: parentPos.y + nodeH / 2 },
+                { x: childPos.x, y: childPos.y - nodeH / 2 }
+              ];
+            } else {
+              // Parent below: spawn from top center of parent, to bottom center of child
+              waypoints = [
+                { x: parentPos.x, y: parentPos.y - nodeH / 2 },
+                { x: childPos.x, y: childPos.y + nodeH / 2 }
+              ];
+            }
+          }
 
-          // Bidirectional: place waypoints to curve around
-          const midY = (parentPos.y + childPos.y) / 2;
-          const waypoints = [
-            { x: parentPos.x, y: parentPos.y + nodeH / 2 },
-            { x: childPos.x, y: childPos.y - nodeH / 2 }
-          ];
-
-          coreqEdgeLines.push({ waypoints, parentId, childId });
+          // Reverse waypoints so arrow points from coreq course TO the course that requires it
+          coreqEdgeLines.push({ waypoints: waypoints.reverse(), parentId, childId });
         });
       });
     }
@@ -845,6 +968,20 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
     return '#' + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
   };
 
+  // Helper function to create arrowhead polygon string
+  const createArrowhead = (x: number, y: number, angle: number, size: number) => {
+    const baseOffsetDist = size * 1.5;
+    const baseX = x - Math.cos(angle) * baseOffsetDist;
+    const baseY = y - Math.sin(angle) * baseOffsetDist;
+    const perpAngle = angle + Math.PI / 2;
+    const arrowWidth = size * 0.4;
+    const leftX = baseX + Math.cos(perpAngle) * arrowWidth;
+    const leftY = baseY + Math.sin(perpAngle) * arrowWidth;
+    const rightX = baseX - Math.cos(perpAngle) * arrowWidth;
+    const rightY = baseY - Math.sin(perpAngle) * arrowWidth;
+    return `${x},${y} ${leftX},${leftY} ${rightX},${rightY}`;
+  };
+
   const visibleSearchMatches = filteredCourseMatches.slice(0, 25);
   const showSearchPanel = showCourseSearchDropdown && courseSearchText.trim().length > 0;
 
@@ -1022,14 +1159,30 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
         </defs>
 
         {/* Draw edges */}
-        {edges
-          .sort((edgeA: any, edgeB: any) => {
-            const activeNodeId = clickedNodeId || hoveredNodeId;
-            const aConnected = activeNodeId && (edgeA.parentId === activeNodeId || edgeA.childId === activeNodeId);
-            const bConnected = activeNodeId && (edgeB.parentId === activeNodeId || edgeB.childId === activeNodeId);
-            // Non-highlighted edges first (false = 0, true = 1), highlighted edges last
-            return (aConnected ? 1 : 0) - (bConnected ? 1 : 0);
-          })
+        {(() => {
+          // Create a Set of coreq edge keys for fast lookup
+          const coreqEdgeKeys = new Set<string>();
+          coreqEdges.forEach(coreq => {
+            coreqEdgeKeys.add(`${coreq.parentId}=>${coreq.childId}`);
+          });
+          
+          return edges
+            .filter((edge: any) => {
+              const edgeKey = `${edge.parentId}=>${edge.childId}`;
+              // Exclude any edges that are corequisite edges
+              if (coreqEdgeKeys.has(edgeKey)) {
+                return false;
+              }
+              return true;
+            })
+            .sort((edgeA: any, edgeB: any) => {
+              const activeNodeId = clickedNodeId || hoveredNodeId;
+              const aConnected = activeNodeId && (edgeA.parentId === activeNodeId || edgeA.childId === activeNodeId);
+              const bConnected = activeNodeId && (edgeB.parentId === activeNodeId || edgeB.childId === activeNodeId);
+              // Non-highlighted edges first (false = 0, true = 1), highlighted edges last
+              return (aConnected ? 1 : 0) - (bConnected ? 1 : 0);
+            })
+        })()
           .map((edge: any, idx) => {
           // Check if this edge is connected to hovered or clicked node
           const activeNodeId = clickedNodeId || hoveredNodeId;
@@ -1055,28 +1208,6 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
           const edgeColor = paleColors[edgeHash % paleColors.length];
           // Darken color in light mode, lighten in dark mode when connected to active (hovered or clicked) node
           const displayColor = isConnectedToActive ? (isDark ? lightenColor(edgeColor, 0.15) : darkenColor(edgeColor, 0.4)) : edgeColor;
-
-          // Helper function to create arrowhead polygon string
-          const createArrowhead = (x: number, y: number, angle: number, size: number) => {
-            // Arrowhead tip points at the target node
-            // The base is offset back along the incoming direction
-            const baseOffsetDist = size * 1.5; // length of arrow
-            const baseX = x - Math.cos(angle) * baseOffsetDist;
-            const baseY = y - Math.sin(angle) * baseOffsetDist;
-            
-            // Create a skinny arrowhead - perpendicular to the angle
-            const perpAngle = angle + Math.PI / 2;
-            const arrowWidth = size * 0.4; // skinny arrow
-            
-            const leftX = baseX + Math.cos(perpAngle) * arrowWidth;
-            const leftY = baseY + Math.sin(perpAngle) * arrowWidth;
-            
-            const rightX = baseX - Math.cos(perpAngle) * arrowWidth;
-            const rightY = baseY - Math.sin(perpAngle) * arrowWidth;
-            
-            // Tip at (x, y), base is the left and right points
-            return `${x},${y} ${leftX},${leftY} ${rightX},${rightY}`;
-          };
 
           // Multi-waypoint path through gaps - create smooth Bezier segments with perfect continuity
           const waypoints = edge.waypoints;
@@ -1198,11 +1329,19 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
           }
         })}
 
-        {/* Draw corequisite edges (dashed) */}
+        {/* Draw corequisite edges (dashed) - rendered before nodes so they appear behind */}
         {coreqEdges
+          .sort((edgeA: any, edgeB: any) => {
+            const activeNodeId = clickedNodeId || hoveredNodeId;
+            const aHighlighted = activeNodeId && edgeA.parentId === activeNodeId;
+            const bHighlighted = activeNodeId && edgeB.parentId === activeNodeId;
+            // Non-highlighted edges first (false = 0, true = 1), highlighted edges last
+            return (aHighlighted ? 1 : 0) - (bHighlighted ? 1 : 0);
+          })
           .map((edge: any, idx) => {
           const activeNodeId = clickedNodeId || hoveredNodeId;
-          const isConnectedToActive = activeNodeId && (edge.parentId === activeNodeId || edge.childId === activeNodeId);
+          // For coreq edges, only highlight if the parent (course with requirement) is clicked/hovered
+          const isConnectedToActive = activeNodeId && edge.parentId === activeNodeId;
           
           // Use a muted color for coreq edges
           const coreqColor = isDark ? "#9ca3af" : "#d1d5db";
@@ -1210,15 +1349,27 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
 
           const waypoints = edge.waypoints;
           const numPoints = waypoints.length;
+          const p_start = waypoints[0];
+          const p_end = waypoints[numPoints - 1];
+          
+          // Calculate angle for arrow
+          const dx = p_end.x - p_start.x;
+          const dy = p_end.y - p_start.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          const angle = distance > 0 ? Math.atan2(dy, dx) : 0;
+          const lineStopOffsetDist = arrowMarkerSize * 1.5;
+          const lineStopX = p_end.x - Math.cos(angle) * lineStopOffsetDist;
+          const lineStopY = p_end.y - Math.sin(angle) * lineStopOffsetDist;
           
           // Simple path for coreq edges
           let pathData = `M ${waypoints[0].x} ${waypoints[0].y}`;
           if (numPoints === 2) {
-            pathData += ` L ${waypoints[1].x} ${waypoints[1].y}`;
+            pathData += ` L ${lineStopX} ${lineStopY}`;
           } else {
-            for (let i = 1; i < numPoints; i++) {
+            for (let i = 1; i < numPoints - 1; i++) {
               pathData += ` L ${waypoints[i].x} ${waypoints[i].y}`;
             }
+            pathData += ` L ${lineStopX} ${lineStopY}`;
           }
 
           return (
@@ -1227,10 +1378,17 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
                 d={pathData}
                 fill="none"
                 stroke={displayColor}
-                strokeWidth={isConnectedToActive ? strokeWidth * 2 : strokeWidth * 0.6}
+                strokeWidth={isConnectedToActive ? strokeWidth * 2 : strokeWidth}
                 strokeDasharray="4,4"
-                opacity={isConnectedToActive ? 1 : 0.5}
+                opacity={isConnectedToActive ? 1 : 0.7}
               />
+              {distance > 0 && (
+                <polygon
+                  points={createArrowhead(p_end.x, p_end.y, angle, arrowMarkerSize)}
+                  fill={displayColor}
+                  opacity={isConnectedToActive ? 1 : 0.7}
+                />
+              )}
             </g>
           );
         })}
@@ -1376,6 +1534,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
             </g>
           );
         })}
+
       </svg>
       </div>
       </div>
@@ -1409,14 +1568,14 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
             <div className="font-bold mb-2 text-sm text-primary">
               {targetId}
             </div>
-            <div className="text-xs mb-3 text-text-secondary italic max-h-20 overflow-y-auto">
+            <div className="text-xs mb-1 text-text-secondary italic max-h-20 overflow-y-auto">
               {targetNode?.title || targetNode?.label}
             </div>
             
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col">
               {allPrereqsList.length > 0 && (
                 <div>
-                  <div className="font-semibold text-primary mb-1">
+                  <div className="font-semibold text-primary mt-1 mb-1">
                     Prerequisites:
                   </div>
                   <div className="pl-2 text-text-muted">
@@ -1427,22 +1586,37 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
                 </div>
               )}
 
-              {((coreqMap?.get(targetId!) as Set<string> | undefined)?.size || 0) > 0 && (
-                <div>
-                  <div className="font-semibold text-primary mb-1">
-                    Corequisites:
+              {((coreqMap?.get(targetId!) as Set<string> | undefined)?.size || 0) > 0 && (() => {
+                const coreqOrs: string[] = (targetNode as any)?.coreqOrs || [];
+                const rawCoreqs = Array.from(coreqMap?.get(targetId!) as Set<string> | Set<unknown>);
+                const standaloneCoereqs = rawCoreqs.filter(coreq => {
+                  // If no coreqOrs, all are standalone
+                  if (!coreqOrs.length) return true;
+                  return !coreqOrs.some(orStatement => {
+                    const codes = (orStatement.match(/[A-Z]{2,6}\s*\d{3,4}[A-Z]?/g) || []).map(c => c.toUpperCase().replace(/\s+/g, ' '));
+                    return codes.includes(String(coreq).toUpperCase().replace(/\s+/g, ' '));
+                  });
+                });
+                
+                const allCoreqsList = [...standaloneCoereqs.map(c => formatNodeLabel(String(c), false, 0)), ...coreqOrs];
+
+                return (
+                  <div>
+                    <div className="font-semibold text-primary mt-1 mb-1">
+                      Corequisites:
+                    </div>
+                    <div className="pl-2 text-text-muted">
+                      {allCoreqsList.map((item, i) => (
+                        <div key={i}>• {item}</div>
+                      ))}
+                    </div>
                   </div>
-                  <div className="pl-2 text-text-muted">
-                    {Array.from(coreqMap?.get(targetId!) as Set<string> | Set<unknown>).map((coreq: string | unknown) => (
-                      <div key={coreq as string}>• {String(coreq)}</div>
-                    ))}
-                  </div>
-                </div>
-              )}
+                );
+              })()}
               
               {((edgesMap?.get(targetId!) as Set<string> | undefined)?.size || 0) > 0 && (
                 <div>
-                  <div className="font-semibold text-primary mb-1">
+                  <div className="font-semibold text-primary mt-1 mb-1">
                     Required for:
                   </div>
                   <div className="pl-2 text-text-muted">

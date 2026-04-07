@@ -55,7 +55,7 @@ REQUISITE_LABEL_PATTERN = re.compile(
     r'(?:recommended\s+)?pre\s*(?:-|/)?\s*co\s*(?:-|/)?\s*requisites?|'
     r'(?:recommended\s+)?(?:pre|prerequisite)(?:-|/)requisites?|'
     r'(?:recommended\s+)?prerequisites?|(?:recommended\s+)?pre(?:-)?requisites?|(?:recommended\s+)?prereqs?|'
-    r'co\s*(?:-|/)?\s*requisites?|co(?:-)?requisites?|coreqs?'
+    r'co\s*(?:-|/)?\s*requisites?|co\s*(?:-|/)?\s*reqs?|co(?:-)?requisites?|coreqs?'
     r')(?=\s*[:\-]|\s+[A-Z(\d]|\s+[a-z])(?:\s*[:\-]?)\s*',
     re.IGNORECASE,
 )
@@ -367,7 +367,8 @@ def extract_major_program_requirements(enrollment_requirements: str) -> List[Any
     def normalize_freeform_requirement(raw: str) -> str:
         text = normalize_requirement_text(raw)
         text = text.replace('\u2013', '-').replace('\u2014', '-')
-        text = re.sub(r'\s*[-/]\s*', ' ', text)
+        text = re.sub(r'\s*-\s*', ' ', text)  # Replace hyphens with space
+        text = re.sub(r'\s*/\s*', ' OR ', text)  # Replace slashes with OR
         text = re.sub(r'\s+', ' ', text).strip(' ,')
         text = text.lower()
         text = re.sub(r'\bgrad\b', 'graduate', text)
@@ -787,7 +788,7 @@ def classify_requisite_label(label: str) -> str:
     normalized = normalize_requirement_text(label).lower()
     normalized = normalized.replace('-', ' ').replace('/', ' ')
     normalized = re.sub(r'\s+', ' ', normalized).strip()
-    if 'coreq' in normalized or 'corequisite' in normalized or 'co requisite' in normalized:
+    if 'coreq' in normalized or 'corequisite' in normalized or 'co requisite' in normalized or 'co req' in normalized:
         return 'corequisite'
     return 'prerequisite'
 
@@ -850,19 +851,29 @@ def classify_requisite_text(text: str, default: str = 'prerequisite') -> str:
             return 'exclusion'
         return 'other'
 
-    concurrent_language = bool(re.search(
-        r'\b(?:coreq(?:s)?|corequisite(?:s)?|co[-\s]?requisite(?:s)?|concurrent(?:ly)?|currently\s+enrolled|must\s+be\s+taken\s+concurrently|or\s+currently\s+enrolled)\b',
+    # Check for explicit prerequisite language (gives priority if text starts with "Completed")
+    prerequisite_language = bool(re.search(
+        r'\b(?:completed|passed|prior\s+to|prerequisite(?:s)?|pre[-\s]?requisite(?:s)?|prereq(?:s)?)\b',
         text,
         re.IGNORECASE,
     ))
+    
+    # Check for corequisite language
+    concurrent_language = bool(re.search(
+        r'\b(?:coreq(?:s)?|corequisite(?:s)?|co[-\s]?requisite(?:s)?|co[-\s]?req(?:s)?|concurrent(?:ly)?|currently\s+enrolled|must\s+be\s+taken\s+concurrently|or\s+currently\s+enrolled)\b',
+        text,
+        re.IGNORECASE,
+    ))
+    
+    # If both prerequisite and concurrent language are present, prioritize prerequisite if text starts with "Completed"
+    # (e.g., "Completed LAW 6003 AND previously completed or are currently enrolled in LAW 7009" is a prerequisite with coreq options)
+    if prerequisite_language and concurrent_language:
+        if re.search(r'^\s*completed', text, re.IGNORECASE):
+            return 'prerequisite'
+    
+    # Otherwise use the signals in order: concurrent, then prerequisite
     if concurrent_language:
         return 'corequisite'
-        
-    prerequisite_language = bool(re.search(
-        r'\b(?:prereq(?:s)?|prerequisite(?:s)?|pre[-\s]?requisite(?:s)?|prior\s+to|completed|passed)\b',
-        text,
-        re.IGNORECASE,
-    ))
     if prerequisite_language:
         return 'prerequisite'
         
@@ -1307,6 +1318,7 @@ def tokenize_prerequisite(text: str, default_subject: Optional[str] = None) -> L
     
     # Replace explicit operators to regular AND/OR.
     text = re.sub(r'\bAND/OR\b', ' OR ', text)
+    text = re.sub(r'\s*/\s*', ' OR ', text)  # Replace "/" with " OR " (e.g., "KOR 2020/2060" -> "KOR 2020 OR 2060")
     text = re.sub(r'\s*,\s*AND\b', ' AND ', text)
     text = re.sub(r'\s*,\s*OR\b', ' OR ', text)
     text = re.sub(r'\s*,\s*', ' OR ', text)
@@ -2151,6 +2163,56 @@ def main():
         courses_with_other_requirements
     )
     
+    # Post-processing: Remove courses from prerequisites if they're also corequisites
+    def remove_coreqs_from_prereqs(courses_dict):
+        """Remove courses from prerequisite trees if they appear as corequisites."""
+        for course_code, prereq_tree in courses_dict.items():
+            # Extract all corequisite courses from the tree
+            coreq_courses = set()
+            def extract_coreqs(node):
+                if node is None:
+                    return
+                if isinstance(node, dict) and node.get('type') == 'COREQ':
+                    # Found a COREQ node, extract all courses within it
+                    def collect_courses(n):
+                        if n is None:
+                            return
+                        if isinstance(n, dict):
+                            if n.get('type') == 'course':
+                                coreq_courses.add(n.get('code'))
+                            for child in n.get('children', []):
+                                collect_courses(child)
+                    collect_courses(node)
+                elif isinstance(node, dict):
+                    for child in node.get('children', []):
+                        extract_coreqs(child)
+            
+            extract_coreqs(prereq_tree)
+            
+            # Remove corequisite courses from prerequisite tree
+            def remove_from_tree(node):
+                if node is None:
+                    return node
+                if isinstance(node, dict):
+                    if node.get('type') == 'course' and node.get('code') in coreq_courses:
+                        return None
+                    if node.get('type') in ('AND', 'OR', 'COUNT'):
+                        new_children = [remove_from_tree(child) for child in node.get('children', [])]
+                        new_children = [c for c in new_children if c is not None]
+                        if not new_children:
+                            return None
+                        if len(new_children) == 1:
+                            return new_children[0]
+                        node['children'] = new_children
+                    return node
+                return node
+            
+            courses_dict[course_code] = remove_from_tree(prereq_tree)
+        
+        return courses_dict
+    
+    courses_with_prereqs = remove_coreqs_from_prereqs(courses_with_prereqs)
+
     # Save results to JSON
     output_data = {
         "metadata": {
