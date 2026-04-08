@@ -15,15 +15,13 @@ export default function ForumQuestionsPage() {
   const [plans, setPlans] = useState<Array<{ id: string; title: string }>>([]);
   const [canPost, setCanPost] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
-  const [userMajor, setUserMajor] = useState<string | null>(null);
 
   const [questionTitle, setQuestionTitle] = useState('');
   const [questionBody, setQuestionBody] = useState('');
   const [attachedPlanId, setAttachedPlanId] = useState('');
   const [isPlanDropdownOpen, setIsPlanDropdownOpen] = useState(false);
-  const [hoveredPlanId, setHoveredPlanId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Anonymity and tags state
   const [isAnonymous, setIsAnonymous] = useState(true);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -36,8 +34,6 @@ export default function ForumQuestionsPage() {
       const user = await getCurrentUser();
       setPlans(res.plans);
       setCanPost(res.canPost);
-      setUserMajor(user?.major ?? null);
-      // Auto-add user's major to tags if they have one
       if (user?.major && !selectedTags.includes(user.major)) {
         setSelectedTags([user.major]);
       }
@@ -49,7 +45,6 @@ export default function ForumQuestionsPage() {
     ? plans.find((plan) => plan.id === attachedPlanId)?.title || 'Attach plan'
     : 'No plan attached';
 
-  // Filter available tags (exclude already selected ones)
   const availableTags = FORUM_TAG_OPTIONS.filter(tag => !selectedTags.includes(tag));
   const filteredTags = filterTagsByQuery(availableTags, tagSearchQuery);
 
@@ -67,7 +62,6 @@ export default function ForumQuestionsPage() {
 
   const handleCreateQuestion = () => {
     setError(null);
-
     startTransition(async () => {
       const res = await createForumPost(
         questionTitle,
@@ -80,8 +74,6 @@ export default function ForumQuestionsPage() {
         setError(res.error);
         return;
       }
-
-      // Navigate to the newly created post
       if (res?.postNumber && res?.title) {
         router.push(getForumPostHref(res.postNumber, res.title));
       } else {
@@ -95,14 +87,19 @@ export default function ForumQuestionsPage() {
     return (
       <div className="w-full pt-0 pb-6 animate-pulse">
         <div className="mb-6 flex items-center justify-between gap-3 border-b border-panel-border pb-4">
-          <div className="h-10 w-48 rounded bg-input-disabled" />
-          <div className="h-9 w-28 rounded bg-input-disabled" />
+          <div className="space-y-2">
+            <div className="h-9 w-48 rounded bg-input-disabled" />
+            <div className="h-4 w-72 rounded bg-input-disabled" />
+          </div>
+          <div className="h-5 w-24 rounded bg-input-disabled" />
         </div>
-        <div className="bg-panel-bg border border-panel-border rounded-xl p-5 space-y-3">
+        <div className="space-y-3">
+          <div className="h-11 w-full rounded-[20px] bg-input-disabled" />
+          <div className="h-40 w-full rounded-[20px] bg-input-disabled" />
+          <div className="h-5 w-36 rounded bg-input-disabled" />
+          <div className="h-11 w-full rounded-[20px] bg-input-disabled" />
           <div className="h-11 w-full rounded-xl bg-input-disabled" />
-          <div className="h-32 w-full rounded-xl bg-input-disabled" />
-          <div className="h-11 w-full rounded-xl bg-input-disabled" />
-          <div className="h-10 w-28 rounded-xl bg-input-disabled" />
+          <div className="h-9 w-32 rounded-full bg-input-disabled" />
         </div>
       </div>
     );
@@ -124,78 +121,85 @@ export default function ForumQuestionsPage() {
         </Link>
       </div>
 
-      <div className="bg-panel-bg border border-panel-border rounded-xl p-5">
-        {!canPost && (
-          <p className="mb-4 text-sm text-text-secondary">Log in to ask questions, reply, and vote.</p>
-        )}
+      {!canPost && (
+        <p className="mb-4 text-sm text-text-secondary">Log in to ask questions, reply, and vote.</p>
+      )}
 
-        {error && (
-          <div className="mb-4 bg-red-500/10 border border-red-500/40 text-red-500 px-4 py-2 rounded-xl text-sm font-semibold">
-            {error}
-          </div>
-        )}
+      {error && (
+        <div className="mb-4 bg-red-500/10 border border-red-500/40 text-red-500 px-4 py-2 rounded-xl text-sm font-semibold">
+          {error}
+        </div>
+      )}
 
-        <div className="space-y-3">
-          <input
-            type="text"
-            value={questionTitle}
-            onChange={(e) => setQuestionTitle(e.target.value)}
-            placeholder="Question title"
-            className="w-full p-3 border border-panel-border rounded-xl bg-input-bg text-text-primary outline-none"
-            disabled={!canPost || isPending}
-          />
+      <div className="space-y-4">
+        {/* Title */}
+        <input
+          type="text"
+          value={questionTitle}
+          onChange={(e) => setQuestionTitle(e.target.value)}
+          placeholder="Question title"
+          className="w-full h-11 px-4 border border-panel-border rounded-[20px] bg-input-bg text-text-primary outline-none"
+          disabled={!canPost || isPending}
+        />
+
+        {/* Body */}
+        <div className="border border-panel-border rounded-[20px] bg-input-bg">
           <textarea
             value={questionBody}
             onChange={(e) => setQuestionBody(e.target.value)}
             placeholder="Ask your question or share the context people need to help"
             rows={6}
-            className="w-full p-3 border border-panel-border rounded-xl bg-input-bg text-text-primary outline-none"
+            className="w-full px-4 pt-3 pb-2 bg-transparent text-text-primary outline-none resize-none"
             disabled={!canPost || isPending}
           />
+        </div>
 
-          {/* Anonymity Checkbox */}
-          <div className="flex items-center gap-2.5 pt-2">
-            <input
-              type="checkbox"
-              id="anonymous-checkbox"
-              checked={isAnonymous}
-              onChange={(e) => setIsAnonymous(e.target.checked)}
-              disabled={!canPost || isPending}
-              className="w-4 h-4 rounded cursor-pointer"
-            />
-            <label htmlFor="anonymous-checkbox" className="text-sm font-medium text-text-primary cursor-pointer">
-              Post anonymously
-            </label>
+        {/* Anonymous checkbox */}
+        <label htmlFor="anonymous-checkbox" className={`flex items-center gap-2 select-none ${(!canPost || isPending) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
+          <input
+            type="checkbox"
+            id="anonymous-checkbox"
+            checked={isAnonymous}
+            onChange={(e) => setIsAnonymous(e.target.checked)}
+            disabled={!canPost || isPending}
+            className="sr-only"
+          />
+          <div className={`w-4 h-4 shrink-0 rounded border flex items-center justify-center transition-colors ${isAnonymous ? 'bg-button-bg border-button-bg' : 'border-panel-border-strong'}`}>
+            <Icon name="check" color="currentColor" width={10} height={10} className={`text-button-text transition-opacity ${isAnonymous ? 'opacity-100' : 'opacity-0'}`} />
           </div>
+          <span className="text-sm font-medium text-text-primary">Post anonymously</span>
+        </label>
 
-          {/* Tags Section */}
-          <div className="pt-1">
-            <label className="block text-sm font-medium text-text-primary mb-2">Tags</label>
-            
-            {/* Selected tags */}
-            {selectedTags.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-2">
-                {selectedTags.map((tag) => (
-                  <div
-                    key={tag}
-                    className="inline-flex items-center gap-2 bg-uva-orange/15 text-uva-orange px-3 py-1.5 rounded-lg text-sm font-medium"
+        {/* Tags */}
+        <div>
+          <label className="block text-sm font-medium text-text-secondary mb-2">Tags</label>
+
+          {selectedTags.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {selectedTags.map((tag) => (
+                <div
+                  key={tag}
+                  className="inline-flex items-center gap-1.5 bg-uva-orange/15 text-uva-orange px-2.5 py-1 rounded-full text-[11px] font-semibold select-none cursor-default"
+                >
+                  {tag}
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveTag(tag)}
+                    disabled={!canPost || isPending}
+                    className="inline-flex items-center justify-center cursor-pointer hover:opacity-70 transition-opacity disabled:cursor-not-allowed"
+                    aria-label={`Remove ${tag}`}
                   >
-                    {tag}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveTag(tag)}
-                      className="ml-1 hover:opacity-70 transition-opacity"
-                      disabled={!canPost || isPending}
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
+                    <Icon name="x" color="currentColor" width={10} height={10} className="w-2.5 h-2.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
 
-            {/* Tag search and dropdown */}
-            <div className="relative">
+          <DropdownMenu
+            isOpen={isTagDropdownOpen && filteredTags.length > 0}
+            onOpenChange={setIsTagDropdownOpen}
+            trigger={
               <input
                 type="text"
                 value={tagSearchQuery}
@@ -203,83 +207,67 @@ export default function ForumQuestionsPage() {
                   setTagSearchQuery(e.target.value);
                   setIsTagDropdownOpen(true);
                 }}
-                onFocus={() => setIsTagDropdownOpen(true)}
+                onClick={() => setIsTagDropdownOpen(true)}
                 placeholder="Search majors, minors, and topic tags"
-                className="w-full p-3 border border-panel-border rounded-xl bg-input-bg text-text-primary outline-none text-sm"
+                className="w-full h-11 px-4 border border-panel-border rounded-[20px] bg-input-bg text-text-primary outline-none text-sm"
                 disabled={!canPost || isPending}
               />
-              
-              {/* Tag suggestions dropdown */}
-              {isTagDropdownOpen && filteredTags.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-panel-bg border border-panel-border rounded-xl shadow-lg z-50 max-h-48 overflow-y-auto">
-                  {filteredTags.map((tag) => (
-                    <button
-                      key={tag}
-                      type="button"
-                      onClick={() => handleAddTag(tag)}
-                      className="w-full text-left px-4 py-2.5 hover:bg-input-bg text-sm text-text-primary transition-colors"
-                    >
-                      {tag}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          <DropdownMenu
-            isOpen={isPlanDropdownOpen}
-            onOpenChange={(open) => {
-              setIsPlanDropdownOpen(open);
-              if (!open) setHoveredPlanId(null);
-            }}
-            disabled={!canPost || isPending}
-            trigger={
-              <button
-                type="button"
-                disabled={!canPost || isPending}
-                className="w-full px-4 py-2.5 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between focus:outline-none hover:border-panel-border-strong transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <span className="truncate text-sm font-medium min-w-0">{selectedPlanLabel}</span>
-                <Icon name="chevron-down" color="currentColor" width={16} height={16} className={`w-4 h-4 ml-2 shrink-0 text-text-secondary transition-transform duration-200 ${isPlanDropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
             }
           >
-            <DropdownMenuContent>
-              <DropdownMenuItem
-                selected={attachedPlanId === ''}
-                onClick={() => {
-                  setAttachedPlanId('');
-                  setHoveredPlanId(null);
-                  setIsPlanDropdownOpen(false);
-                }}
-              >
-                No plan attached
-              </DropdownMenuItem>
-              {plans.map((plan) => (
+            <DropdownMenuContent maxHeight="max-h-48">
+              {filteredTags.map((tag) => (
                 <DropdownMenuItem
-                  key={plan.id}
-                  selected={attachedPlanId === plan.id}
-                  onClick={() => {
-                    setAttachedPlanId(plan.id);
-                    setHoveredPlanId(null);
-                    setIsPlanDropdownOpen(false);
-                  }}
+                  key={tag}
+                  onClick={() => handleAddTag(tag)}
                 >
-                  Attach: {plan.title}
+                  {tag}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          <button
-            type="button"
-            onClick={handleCreateQuestion}
-            disabled={!canPost || isPending}
-            className="px-4 py-2 bg-uva-orange/90 text-white rounded-xl hover:bg-uva-orange font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isPending ? 'Posting...' : 'Ask Question'}
-          </button>
         </div>
+
+        {/* Attach plan */}
+        <DropdownMenu
+          isOpen={isPlanDropdownOpen}
+          onOpenChange={setIsPlanDropdownOpen}
+          disabled={!canPost || isPending}
+          trigger={
+            <button
+              type="button"
+              disabled={!canPost || isPending}
+              className="w-full sm:w-64 h-11 px-4 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between focus:outline-none hover:border-panel-border-strong transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span className="truncate text-sm font-medium min-w-0">{selectedPlanLabel}</span>
+              <Icon name="chevron-down" color="currentColor" width={16} height={16} className={`w-4 h-4 ml-2 shrink-0 text-text-secondary transition-transform duration-200 ${isPlanDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+          }
+        >
+          <DropdownMenuContent>
+            <DropdownMenuItem selected={attachedPlanId === ''} onClick={() => { setAttachedPlanId(''); setIsPlanDropdownOpen(false); }}>
+              No plan attached
+            </DropdownMenuItem>
+            {plans.map((plan) => (
+              <DropdownMenuItem
+                key={plan.id}
+                selected={attachedPlanId === plan.id}
+                onClick={() => { setAttachedPlanId(plan.id); setIsPlanDropdownOpen(false); }}
+              >
+                Attach: {plan.title}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        {/* Submit */}
+        <button
+          type="button"
+          onClick={handleCreateQuestion}
+          disabled={!canPost || isPending}
+          className="h-9 px-5 bg-button-bg text-button-text rounded-full hover:bg-button-hover font-semibold text-sm transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isPending ? 'Posting...' : 'Ask Question'}
+        </button>
       </div>
     </div>
   );
