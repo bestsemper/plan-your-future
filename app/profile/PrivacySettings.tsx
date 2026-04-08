@@ -34,38 +34,33 @@ export default function PrivacySettings({ currentProfileVisibility }: PrivacySet
       )}
 
       <div className="space-y-4">
-        <div className="flex items-start justify-between">
-          <div className="flex-1 pr-4">
-            <h3 className="text-sm font-semibold text-text-primary mb-1">Anonymous Mode</h3>
-            <p className="text-xs text-text-secondary">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <h3 className="text-sm font-bold text-heading mb-1 truncate">Anonymous Mode</h3>
+            <p className="text-[13px] font-medium text-text-secondary leading-snug">
               {isHidden
                 ? "Your profile is hidden. Posts appear as 'Anonymous User' unless made public individually."
                 : "Your profile is public. You can still post anonymously on a per-post basis."
               }
             </p>
           </div>
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center shrink-0">
             <button
               type="button"
               onClick={handleToggle}
               disabled={isPending}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+              className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                 isHidden
-                  ? 'bg-uva-orange/90 hover:bg-uva-orange'
-                  : 'bg-gray-300 hover:bg-gray-400'
+                  ? 'bg-button-bg'
+                  : 'bg-panel-border-strong text-transparent'
               }`}
             >
               <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform duration-200 ease-in-out ${
                   isHidden ? 'translate-x-6' : 'translate-x-1'
                 }`}
               />
             </button>
-            {isHidden && (
-              <span className="text-xs font-semibold text-uva-orange whitespace-nowrap">
-                (anonymous mode on)
-              </span>
-            )}
           </div>
         </div>
       </div>

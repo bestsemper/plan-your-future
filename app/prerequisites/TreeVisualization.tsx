@@ -1038,53 +1038,53 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
   return (
     <div className="w-full h-full flex flex-col bg-panel-bg absolute inset-0 overflow-hidden min-w-0 min-h-0">
       {/* Search Bar - Left Side */}
-      <DropdownMenu
-        isOpen={showSearchPanel}
-        onOpenChange={setShowCourseSearchDropdown}
-        contentClassName="-inset-x-0.75"
-        className="absolute top-4 left-4 right-40 z-10 sm:right-44 md:right-40 lg:w-80 lg:right-auto"
-        trigger={
-          <div className="relative bg-panel-bg/90 backdrop-blur p-0.5 rounded-xl border border-panel-border shadow-sm">
-            <Icon
-              name="search"
-              color="currentColor"
-              width={16}
-              height={16}
-              className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-text-tertiary"
-            />
-            <input
-              type="text"
-              placeholder="Search courses in tree"
-              value={courseSearchText}
-              onChange={(e) => {
-                setCourseSearchText(e.target.value);
-                setShowCourseSearchDropdown(true);
-              }}
-              onClick={() => setShowCourseSearchDropdown(true)}
-              className="w-full h-[40px] pl-10 pr-4 rounded-lg bg-input-bg text-text-primary outline-none"
-            />
-          </div>
-        }
-      >
-        <DropdownMenuContent maxHeight="max-h-64">
-          {visibleSearchMatches.length > 0 ? (
-            visibleSearchMatches.map((course) => (
-              <DropdownMenuItem
-                key={course.id}
-                selected={clickedNodeId === course.id}
-                onClick={() => handleSelectCourseFromSearch(course.id)}
-                description={course.title || course.id}
-              >
-                {course.label}
-              </DropdownMenuItem>
-            ))
-          ) : (
-            <div className="px-3 py-2 text-sm text-text-secondary">No matching courses found</div>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      {/* Old outer container removed - styling moved to trigger */}
+      <div className="absolute top-4 left-4 right-40 z-10 lg:w-80 lg:right-auto">
+        <DropdownMenu
+          isOpen={showSearchPanel}
+          onOpenChange={setShowCourseSearchDropdown}
+          contentClassName="-inset-x-0.75"
+          className="w-full"
+          trigger={
+            <div className="relative bg-panel-bg/90 backdrop-blur p-0.5 rounded-xl border border-panel-border shadow-sm">
+              <Icon
+                name="search"
+                color="currentColor"
+                width={16}
+                height={16}
+                className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-text-tertiary"
+              />
+              <input
+                type="text"
+                placeholder="Search courses in tree"
+                value={courseSearchText}
+                onChange={(e) => {
+                  setCourseSearchText(e.target.value);
+                  setShowCourseSearchDropdown(true);
+                }}
+                onClick={() => setShowCourseSearchDropdown(true)}
+                className="w-full h-[40px] pl-10 pr-4 rounded-full bg-input-bg text-text-primary outline-none"
+              />
+            </div>
+          }
+        >
+          <DropdownMenuContent maxHeight="max-h-64">
+            {visibleSearchMatches.length > 0 ? (
+              visibleSearchMatches.map((course) => (
+                <DropdownMenuItem
+                  key={course.id}
+                  selected={clickedNodeId === course.id}
+                  onClick={() => handleSelectCourseFromSearch(course.id)}
+                  description={course.title || course.id}
+                >
+                  {course.label}
+                </DropdownMenuItem>
+              ))
+            ) : (
+              <div className="px-3 py-2 text-sm text-text-secondary">No matching courses found</div>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
 
       {/* Zoom Controls - Right Side */}
       <div className="absolute top-4 right-4 z-10 bg-panel-bg/90 backdrop-blur p-0.5 rounded-xl border border-panel-border shadow-sm flex items-center">
@@ -1488,7 +1488,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
                 fill={isDark ? (activeNodeId === id ? "#7b8a97" : isDirectlyConnected ? "#4b5563" : "#1f2937") : (activeNodeId === id ? "#e5e7eb" : isDirectlyConnected ? "#ececf1" : "#ffffff")}
                 stroke={isDark ? (activeNodeId === id ? "#6b7280" : isDirectlyConnected ? "#6b7280" : "#6b7280") : (activeNodeId === id ? "#9ca3af" : isDirectlyConnected ? "#d1d5db" : "#d1d5db")}
                 strokeWidth={activeNodeId === id ? 2.5 : isDirectlyConnected ? 2 : strokeWidth}
-                rx={strokeWidth * 2}
+                rx={8}
                 onMouseEnter={(e) => {
                   if (!clickedNodeId) {
                     // Normal hover behavior when no node is clicked
