@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Icon } from '../components/Icon';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from '../components/DropdownMenu';
-import { getCourseInfoFromJSON } from '../actions';
+import { addCourseToSemester, getCourseInfoFromJSON, getPlanBuilderData } from '../actions';
 
 interface CourseInfo {
   courseCode: string;
@@ -31,8 +31,12 @@ type CourseOption = {
   terms?: string[];
 };
 
+type PlanSemester = { id: string; termName: string; termOrder: number; year: number; };
+type PlanOption = { id: string; title: string; semesters: PlanSemester[]; };
+
 export default function CoursesPage() {
   const [allCourses, setAllCourses] = useState<CourseOption[]>([]);
+  const [plans, setPlans] = useState<PlanOption[]>([]);
   const [courseCode, setCourseCode] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedCourseInfo, setSelectedCourseInfo] = useState<CourseInfo | null>(null);
@@ -99,6 +103,16 @@ export default function CoursesPage() {
           career: c.career,
           terms: c.terms,
         })));
+
+        // Load user plans for "Add to Plan" feature
+        const planData = await getPlanBuilderData();
+        if (!('error' in planData)) {
+          setPlans(planData.plans.map((p) => ({
+            id: p.id,
+            title: p.title,
+            semesters: p.semesters,
+          })));
+        }
       } catch (error) {
         console.error('Failed to load courses:', error);
       } finally {
@@ -532,8 +546,9 @@ export default function CoursesPage() {
         {/* Course Details Panel */}
         <div className="lg:col-span-2">
           {selectedCourseInfo ? (
-            <CourseDescriptionContent 
+            <CourseDescriptionContent
               courseInfo={selectedCourseInfo}
+              plans={plans}
               showInfoTooltip={showInfoTooltip}
               infoButtonRef={infoButtonRef}
               onInfoClick={handleInfoClick}
@@ -554,6 +569,7 @@ export default function CoursesPage() {
 
 interface CourseDescriptionProps {
   courseInfo: CourseInfo | null;
+  plans: PlanOption[];
   showInfoTooltip: boolean;
   infoButtonRef: React.RefObject<HTMLButtonElement | null>;
   onInfoClick: () => void;
@@ -628,12 +644,50 @@ function formatEnrollmentRequirement(requirement: string): { label: string; valu
 
 function CourseDescriptionContent({
   courseInfo,
+  plans,
   showInfoTooltip,
   infoButtonRef,
   onInfoClick,
   onInfoMouseEnter,
   onInfoMouseLeave,
 }: CourseDescriptionProps) {
+  const [showAddToPlan, setShowAddToPlan] = useState(false);
+  const [selectedPlanId, setSelectedPlanId] = useState('');
+  const [selectedSemesterId, setSelectedSemesterId] = useState('');
+  const [isPlanDropdownOpen, setIsPlanDropdownOpen] = useState(false);
+  const [isSemesterDropdownOpen, setIsSemesterDropdownOpen] = useState(false);
+  const [addStatus, setAddStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [addMessage, setAddMessage] = useState('');
+
+  // Reset add-to-plan state when course changes
+  useEffect(() => {
+    setShowAddToPlan(false);
+    setSelectedPlanId('');
+    setSelectedSemesterId('');
+    setAddStatus('idle');
+    setAddMessage('');
+  }, [courseInfo?.courseCode]);
+
+  const selectedPlan = plans.find((p) => p.id === selectedPlanId);
+
+  const handleAddToPlan = async () => {
+    if (!courseInfo || !selectedSemesterId) return;
+    setAddStatus('loading');
+    try {
+      await addCourseToSemester(selectedSemesterId, courseInfo.courseCode, courseInfo.creditsMin ?? 3);
+      setAddStatus('success');
+      setAddMessage(`${courseInfo.courseCode} added to plan!`);
+      setTimeout(() => {
+        setShowAddToPlan(false);
+        setAddStatus('idle');
+        setAddMessage('');
+      }, 2000);
+    } catch {
+      setAddStatus('error');
+      setAddMessage('Failed to add course. Please try again.');
+    }
+  };
+
   if (!courseInfo) {
     return (
       <div className="bg-panel-bg p-6 rounded-xl border border-panel-border text-center py-12">
@@ -662,14 +716,127 @@ function CourseDescriptionContent({
     <div className="bg-panel-bg rounded-xl border border-panel-border flex flex-col h-[calc(100vh-200px)]">
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
         <div>
-          <h2 className="text-2xl font-bold text-heading">{courseInfo.courseCode}</h2>
-          {courseInfo.title && (
-            <p className="mt-1 text-sm text-text-secondary">{courseInfo.title}</p>
-          )}
-          {courseInfo.credits && (
-            <p className="mt-2 text-sm font-medium text-text-primary">
-              Credits: <span className="font-semibold">{courseInfo.credits}</span>
-            </p>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h2 className="text-2xl font-bold text-heading">{courseInfo.courseCode}</h2>
+              {courseInfo.title && (
+                <p className="mt-1 text-sm text-text-secondary">{courseInfo.title}</p>
+              )}
+              {courseInfo.credits && (
+                <p className="mt-2 text-sm font-medium text-text-primary">
+                  Credits: <span className="font-semibold">{courseInfo.credits}</span>
+                </p>
+              )}
+            </div>
+            {plans.length > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  setShowAddToPlan(!showAddToPlan);
+                  setAddStatus('idle');
+                  setAddMessage('');
+                }}
+                className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-panel-bg border border-panel-border text-text-primary text-sm font-semibold hover:bg-hover-bg transition-colors cursor-pointer"
+              >
+                <Icon name="plus" color="currentColor" width={14} height={14} />
+                Add to Plan
+              </button>
+            )}
+          </div>
+
+          {showAddToPlan && (
+            <div className="mt-3 p-3 rounded-xl border border-panel-border bg-hover-bg/30 space-y-3">
+              <div className="flex flex-wrap gap-2">
+                <DropdownMenu
+                  isOpen={isPlanDropdownOpen}
+                  onOpenChange={setIsPlanDropdownOpen}
+                  trigger={
+                    <button
+                      type="button"
+                      className="h-9 px-3 border border-panel-border rounded-xl bg-input-bg text-text-primary text-sm text-left cursor-pointer flex items-center justify-between gap-2 focus:outline-none hover:border-panel-border-strong transition-all min-w-36"
+                    >
+                      <span className="truncate">{selectedPlan ? selectedPlan.title : 'Select plan'}</span>
+                      <Icon name="chevron-down" color="currentColor" width={14} height={14} className="shrink-0 text-text-secondary" />
+                    </button>
+                  }
+                >
+                  <DropdownMenuContent maxHeight="max-h-48">
+                    {plans.map((plan) => (
+                      <DropdownMenuItem
+                        key={plan.id}
+                        selected={selectedPlanId === plan.id}
+                        onClick={() => {
+                          setSelectedPlanId(plan.id);
+                          setSelectedSemesterId('');
+                          setIsPlanDropdownOpen(false);
+                        }}
+                      >
+                        {plan.title}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <DropdownMenu
+                  isOpen={isSemesterDropdownOpen}
+                  onOpenChange={setIsSemesterDropdownOpen}
+                  trigger={
+                    <button
+                      type="button"
+                      disabled={!selectedPlan}
+                      className="h-9 px-3 border border-panel-border rounded-xl bg-input-bg text-text-primary text-sm text-left cursor-pointer flex items-center justify-between gap-2 focus:outline-none hover:border-panel-border-strong transition-all min-w-40 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <span className="truncate">
+                        {selectedSemesterId
+                          ? selectedPlan?.semesters.find((s) => s.id === selectedSemesterId)
+                              ? `${selectedPlan.semesters.find((s) => s.id === selectedSemesterId)!.termName} ${selectedPlan.semesters.find((s) => s.id === selectedSemesterId)!.year}`
+                              : 'Select semester'
+                          : 'Select semester'}
+                      </span>
+                      <Icon name="chevron-down" color="currentColor" width={14} height={14} className="shrink-0 text-text-secondary" />
+                    </button>
+                  }
+                >
+                  <DropdownMenuContent maxHeight="max-h-48">
+                    {(selectedPlan?.semesters ?? []).map((semester) => (
+                      <DropdownMenuItem
+                        key={semester.id}
+                        selected={selectedSemesterId === semester.id}
+                        onClick={() => {
+                          setSelectedSemesterId(semester.id);
+                          setIsSemesterDropdownOpen(false);
+                        }}
+                      >
+                        {semester.termName} {semester.year}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <button
+                  type="button"
+                  onClick={() => void handleAddToPlan()}
+                  disabled={!selectedSemesterId || addStatus === 'loading' || addStatus === 'success'}
+                  className="h-9 px-4 rounded-xl bg-button-bg text-button-text text-sm font-semibold hover:bg-button-hover transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {addStatus === 'loading' ? 'Adding...' : 'Add'}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowAddToPlan(false)}
+                  className="h-9 px-4 rounded-xl border border-panel-border text-text-primary text-sm font-semibold hover:bg-hover-bg transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+
+              {addMessage && (
+                <p className={`text-xs font-medium ${addStatus === 'success' ? 'text-green-500' : 'text-red-500'}`}>
+                  {addMessage}
+                </p>
+              )}
+            </div>
           )}
         </div>
 

@@ -294,44 +294,44 @@ export default function ForumPage() {
         </div>
       </div>
 
-      <div className="mb-4 flex items-center justify-end">
-        <div className="text-sm">
-          <DropdownMenu
-            isOpen={isSortDropdownOpen}
-            onOpenChange={setIsSortDropdownOpen}
-            align="right"
-            trigger={
-              <button
-                type="button"
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-text-primary cursor-pointer hover:bg-hover-bg transition-colors"
-              >
-                <span>Sort: {sortBy === 'recent' ? 'Most Recent' : 'Highest Upvoted'}</span>
-                <Icon name="chevron-down" color="currentColor" width={16} height={16} className={`w-4 h-4 text-text-secondary transition-transform duration-200 ${isSortDropdownOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
-              </button>
-            }
-          >
-            <DropdownMenuContent className="w-48">
-              <DropdownMenuItem
-                selected={sortBy === 'recent'}
-                onClick={() => {
-                  setSortBy('recent');
-                  setIsSortDropdownOpen(false);
-                }}
-              >
-                Most Recent
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                selected={sortBy === 'upvoted'}
-                onClick={() => {
-                  setSortBy('upvoted');
-                  setIsSortDropdownOpen(false);
-                }}
-              >
-                Highest Upvoted
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+      <div className="mb-4 flex items-center justify-end gap-1.5">
+        <span className="text-xs font-medium text-text-tertiary">Sort by:</span>
+        <DropdownMenu
+          isOpen={isSortDropdownOpen}
+          onOpenChange={setIsSortDropdownOpen}
+          align="center"
+          contentClassName="w-[200%]"
+          trigger={
+            <button
+              type="button"
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-text-primary hover:bg-hover-bg rounded-full transition-colors cursor-pointer"
+            >
+              <span>{sortBy === 'recent' ? 'Most Recent' : 'Highest Upvoted'}</span>
+              <Icon name="chevron-down" color="currentColor" width={12} height={12} className={`w-3 h-3 text-text-secondary transition-transform duration-200 ${isSortDropdownOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
+            </button>
+          }
+        >
+          <DropdownMenuContent>
+            <DropdownMenuItem
+              selected={sortBy === 'recent'}
+              onClick={() => {
+                setSortBy('recent');
+                setIsSortDropdownOpen(false);
+              }}
+            >
+              Most Recent
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              selected={sortBy === 'upvoted'}
+              onClick={() => {
+                setSortBy('upvoted');
+                setIsSortDropdownOpen(false);
+              }}
+            >
+              Highest Upvoted
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {error && (
@@ -386,7 +386,11 @@ export default function ForumPage() {
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="flex flex-wrap items-center gap-2">
                       <div
-                        className="flex items-center h-8 gap-0.5 bg-panel-bg border border-panel-border rounded-full p-0.5"
+                        className={`flex items-center h-8 gap-0 border rounded-full p-0.5 transition-colors ${
+                          post.currentUserPostVote === 1 ? 'bg-uva-orange/10 border-uva-orange/30' :
+                          post.currentUserPostVote === -1 ? 'bg-red-500/10 border-red-500/30' :
+                          'bg-panel-bg border-panel-border'
+                        }`}
                         onClick={(event) => event.stopPropagation()}
                         onKeyDown={(event) => event.stopPropagation()}
                       >
@@ -396,15 +400,13 @@ export default function ForumPage() {
                           disabled={isVoting}
                           aria-label="Like post"
                           className={`inline-flex items-center justify-center h-full aspect-square rounded-full transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
-                            post.currentUserPostVote === 1
-                              ? 'text-uva-orange bg-uva-orange/10'
-                              : 'text-text-secondary hover:bg-hover-bg'
+                            post.currentUserPostVote === 1 ? 'text-uva-orange' : 'text-text-secondary hover:bg-hover-bg'
                           }`}
                         >
-                          <Icon name="chevron-up" color="currentColor" width={16} height={16} className="w-5 h-5" aria-hidden="true" />
+                          <Icon name="chevron-up" color="currentColor" width={14} height={14} className="w-4 h-4" aria-hidden="true" />
                         </button>
 
-                        <span className="px-0.5 min-w-[1.25rem] text-center text-xs font-bold text-text-primary">{post.voteScore}</span>
+                        <span className="min-w-4 text-center text-xs font-bold text-text-primary">{post.voteScore}</span>
 
                         <button
                           type="button"
@@ -412,12 +414,10 @@ export default function ForumPage() {
                           disabled={isVoting}
                           aria-label="Unlike post"
                           className={`inline-flex items-center justify-center h-full aspect-square rounded-full transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
-                            post.currentUserPostVote === -1
-                              ? 'text-red-500 bg-red-500/10'
-                              : 'text-text-secondary hover:bg-hover-bg'
+                            post.currentUserPostVote === -1 ? 'text-red-500' : 'text-text-secondary hover:bg-hover-bg'
                           }`}
                         >
-                          <Icon name="chevron-down" color="currentColor" width={16} height={16} className="w-5 h-5" aria-hidden="true" />
+                          <Icon name="chevron-down" color="currentColor" width={14} height={14} className="w-4 h-4" aria-hidden="true" />
                         </button>
                       </div>
 
