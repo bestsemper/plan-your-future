@@ -10,7 +10,7 @@ type DropdownMenuProps = {
   trigger: ReactNode;
   children: ReactNode;
   disabled?: boolean;
-  align?: 'left' | 'right';
+  align?: 'left' | 'right' | 'center';
   className?: string;
   contentClassName?: string;
   onClear?: () => void;
@@ -96,8 +96,8 @@ export function DropdownMenu({
       </div>
 
       {isOpen && !disabled && (
-        <div className={`absolute z-20 w-full mt-1.5 bg-panel-bg border border-panel-border rounded-xl shadow-lg overflow-hidden max-w-full ${
-          align === 'right' ? 'right-0' : 'left-0'
+        <div className={`absolute z-20 mt-1.5 bg-panel-bg border border-panel-border rounded-xl shadow-lg overflow-hidden max-w-full ${
+          align === 'right' ? 'right-0 w-full' : align === 'center' ? 'left-1/2 -translate-x-1/2' : 'left-0 w-full'
         } ${contentClassName}`}>
           {children}
         </div>
@@ -165,30 +165,18 @@ export function DropdownMenuItem({
     <button
       type="button"
       onClick={onClick}
-      className={`w-full text-left px-3 py-2 text-sm cursor-pointer transition-colors flex items-center justify-between ${
-        selected ? 'bg-hover-bg text-primary' : 'text-text-primary hover:bg-hover-bg'
+      className={`w-full text-left px-3 py-2 text-sm cursor-pointer transition-colors flex items-center ${
+        selected ? 'bg-hover-bg text-text-primary font-semibold' : 'text-text-primary hover:bg-hover-bg/50'
       }`}
     >
-      <div className="flex flex-col min-w-0 pr-2">
-        <span className={`truncate ${selected ? 'font-semibold' : ''}`}>{children}</span>
+      <div className="flex flex-col min-w-0">
+        <span className="truncate">{children}</span>
         {description && (
-          <span className={`text-xs truncate mt-0.5 ${selected ? 'text-primary/70 font-normal' : 'text-text-muted'}`}>
+          <span className="text-xs truncate mt-0.5 text-text-muted">
             {description}
           </span>
         )}
       </div>
-      {selected && icon ? (
-        icon
-      ) : selected ? (
-        <Icon
-          name="check"
-          color="currentColor"
-          width={14}
-          height={14}
-          className="w-3.5 h-3.5 shrink-0 text-primary"
-          aria-hidden="true"
-        />
-      ) : null}
     </button>
   );
 }
