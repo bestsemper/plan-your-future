@@ -86,14 +86,14 @@ export default function ForumQuestionsPage() {
   if (!dataLoaded) {
     return (
       <div className="w-full pt-0 pb-6 animate-pulse">
-        <div className="mb-6 flex items-center justify-between gap-3 border-b border-panel-border pb-4">
-          <div className="space-y-2">
+        <div className="mb-6 border-b border-panel-border pb-4 flex items-center justify-between gap-4">
+          <div className="flex-1 min-w-0 space-y-2">
             <div className="h-9 w-48 rounded bg-input-disabled" />
             <div className="h-4 w-72 rounded bg-input-disabled" />
           </div>
-          <div className="h-5 w-24 rounded bg-input-disabled" />
+          <div className="h-5 w-24 rounded bg-input-disabled shrink-0" />
         </div>
-        <div className="space-y-3">
+        <div className="space-y-3 bg-panel-bg rounded-xl border border-panel-border p-4 pb-5 mb-4">
           <div className="h-11 w-full rounded-[20px] bg-input-disabled" />
           <div className="h-40 w-full rounded-[20px] bg-input-disabled" />
           <div className="h-5 w-36 rounded bg-input-disabled" />
@@ -107,29 +107,30 @@ export default function ForumQuestionsPage() {
 
   return (
     <div className="w-full pt-0 pb-6">
-      <div className="mb-6 flex items-center justify-between gap-3 border-b border-panel-border pb-4">
-        <div>
+      <div className="mb-6 border-b border-panel-border pb-4 flex items-center justify-between gap-4">
+        <div className="flex-1 min-w-0">
           <h1 className="text-3xl font-bold text-heading">Ask a Question</h1>
           <p className="mt-1 text-sm text-text-secondary">Start a new thread for advice, planning help, or course feedback.</p>
         </div>
         <Link
           href="/forum"
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-text-secondary hover:text-uva-orange transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-text-secondary hover:text-uva-orange transition-colors shrink-0"
         >
-          <Icon name="arrow-right" color="currentColor" width={16} height={16} className="w-4 h-4 rotate-180" aria-hidden="true" />
+          <Icon name="arrow-left" color="currentColor" width={16} height={16} className="w-4 h-4" aria-hidden="true" />
           Back to Forum
         </Link>
       </div>
 
-      {!canPost && (
-        <p className="mb-4 text-sm text-text-secondary">Log in to ask questions, reply, and vote.</p>
-      )}
+      <div className="bg-panel-bg rounded-xl border border-panel-border p-4 pb-5 mb-4">
+        {!canPost && (
+          <p className="mb-4 text-sm text-text-secondary">Log in to ask questions, reply, and vote.</p>
+        )}
 
-      {error && (
-        <div className="mb-4 bg-red-500/10 border border-red-500/40 text-red-500 px-4 py-2 rounded-xl text-sm font-semibold">
-          {error}
-        </div>
-      )}
+        {error && (
+          <div className="mb-4 bg-red-500/10 border border-red-500/40 text-red-500 px-4 py-2 rounded-xl text-sm font-semibold">
+            {error}
+          </div>
+        )}
 
       <div className="space-y-4">
         {/* Title */}
@@ -268,6 +269,7 @@ export default function ForumQuestionsPage() {
         >
           {isPending ? 'Posting...' : 'Ask Question'}
         </button>
+      </div>
       </div>
     </div>
   );

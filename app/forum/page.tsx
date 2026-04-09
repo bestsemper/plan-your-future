@@ -178,8 +178,8 @@ export default function ForumPage() {
 
   if (!dataLoaded) {
     return (
-      <div className="w-full pt-0 pb-6 animate-pulse">
-        <div className="mb-6 border-b border-panel-border pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="w-full min-w-0 pt-0 animate-pulse">
+        <div className="mb-4 border-b border-panel-border pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 min-w-0">
           <div className="h-9 w-64 rounded bg-input-disabled max-w-full" />
           <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full lg:w-auto lg:min-w-[460px] min-w-0">
             <div className="h-10 flex-1 min-w-[200px] rounded bg-input-disabled" />
@@ -187,15 +187,15 @@ export default function ForumPage() {
           </div>
         </div>
 
-        <div className="mb-4 flex items-center justify-end">
+        <div className="mb-2 flex items-center justify-end">
           <div className="h-8 w-32 rounded bg-input-disabled" />
         </div>
 
         <div className="flex flex-col">
           {Array.from({ length: 2 }).map((_, i) => (
-            <div key={i} className="flex flex-col">
-              {i > 0 && <hr className="border-t border-panel-border m-0 p-0" />}
-              <article className="p-4 mt-1 mb-1 rounded-2xl">
+            <div key={i} className="flex flex-col min-w-0">
+              
+              <article className="p-4 mt-1 mb-1 rounded-xl border border-panel-border bg-panel-bg min-w-0">
                 <div className="flex flex-col min-w-0 space-y-3">
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-3">
                     <div className="h-7 w-3/4 rounded bg-input-disabled" />
@@ -294,7 +294,7 @@ export default function ForumPage() {
         </div>
       </div>
 
-      <div className="mb-4 flex items-center justify-end gap-1.5">
+      <div className="flex items-center justify-end gap-1.5">
         <span className="text-xs font-medium text-text-tertiary">Sort by:</span>
         <DropdownMenu
           isOpen={isSortDropdownOpen}
@@ -303,10 +303,10 @@ export default function ForumPage() {
           trigger={
             <button
               type="button"
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-text-primary hover:bg-hover-bg rounded-full transition-colors cursor-pointer"
+              className="inline-flex items-center h-8 gap-1.5 px-3 text-xs font-semibold text-text-primary hover:bg-hover-bg rounded-full transition-colors cursor-pointer"
             >
               <span>{sortBy === 'recent' ? 'Most Recent' : 'Highest Upvoted'}</span>
-              <Icon name="chevron-down" color="currentColor" width={12} height={12} className={`w-3 h-3 text-text-secondary transition-transform duration-200 ${isSortDropdownOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
+              <Icon name="chevron-down" color="currentColor" width={12} height={12} className={`w-3.5 h-3.5 text-text-secondary transition-transform duration-200 ${isSortDropdownOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
             </button>
           }
         >
@@ -345,7 +345,7 @@ export default function ForumPage() {
 
           return (
             <div key={post.id} className="flex flex-col min-w-0">
-              {index > 0 && <hr className="border-t border-panel-border m-0 p-0" />}
+              
               <article
                 role="link"
                 tabIndex={0}
@@ -356,7 +356,7 @@ export default function ForumPage() {
                     router.push(postHref);
                   }
                 }}
-                className="p-4 mt-1 mb-1 rounded-2xl cursor-pointer hover:bg-hover-bg/50 transition-colors min-w-0"
+                className="p-4 mt-4 rounded-xl border border-panel-border bg-panel-bg cursor-pointer transition-colors min-w-0"
               >
                 <div className="flex flex-col min-w-0">
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1 sm:gap-3 mb-2 min-w-0">
@@ -420,7 +420,7 @@ export default function ForumPage() {
                         </button>
                       </div>
 
-                      <div className="flex items-center justify-center h-8 gap-1.5 px-3 bg-panel-bg border border-panel-border rounded-full transition-colors">
+                      <div className="flex items-center justify-center h-8 gap-1.5 px-3 bg-panel-bg border border-panel-border rounded-full hover:bg-hover-bg transition-colors">
                         <Icon name="forum" color="currentColor" width={16} height={16} className="w-4 h-4 text-text-secondary" aria-hidden="true" />
                         <span className="text-xs font-semibold text-text-secondary">{post.answers.length}</span>
                       </div>
@@ -433,7 +433,7 @@ export default function ForumPage() {
                           event.stopPropagation();
                           handleOpenAttachedPlan(post.attachedPlan!.id);
                         }}
-                        className="inline-flex items-center h-8 gap-1.5 px-3 rounded-full bg-panel-bg border border-panel-border text-xs font-semibold text-text-secondary cursor-pointer transition-colors max-w-full"
+                        className="inline-flex items-center h-8 gap-1.5 px-3 rounded-full bg-panel-bg border border-panel-border text-xs font-semibold text-text-secondary cursor-pointer hover:bg-hover-bg transition-colors max-w-full"
                       >
                         <span className="uppercase tracking-wide text-[10px] shrink-0">Attached Plan</span>
                         <span className="text-text-primary truncate max-w-[120px] sm:max-w-xs">{post.attachedPlan.title}</span>

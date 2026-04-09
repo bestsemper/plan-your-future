@@ -403,26 +403,34 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
     return (
       <div className="w-full pt-0 pb-6 animate-pulse">
         <div className="h-5 w-24 rounded bg-input-disabled mb-6" />
-        <div className="pb-5 space-y-3">
-          <div className="h-9 w-3/4 rounded bg-input-disabled" />
-          <div className="h-4 w-48 rounded bg-input-disabled" />
-          <div className="h-4 w-full rounded bg-input-disabled" />
-          <div className="h-4 w-5/6 rounded bg-input-disabled" />
-          <div className="flex gap-2 pt-1">
-            <div className="h-8 w-20 rounded-full bg-input-disabled" />
-            <div className="h-8 w-20 rounded-full bg-input-disabled" />
-          </div>
-        </div>
-        <div className="h-10 rounded-[20px] bg-input-disabled mb-4 mt-4" />
-        <div className="h-4 w-28 rounded bg-input-disabled mb-4" />
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="mt-4 space-y-2">
-            <div className="h-3.5 w-36 rounded bg-input-disabled" />
+        
+        <div className="bg-panel-bg rounded-xl border border-panel-border p-4 pb-5">
+          
+          <div className="space-y-3">
+            <div className="h-9 w-3/4 rounded bg-input-disabled" />
+            <div className="h-4 w-48 rounded bg-input-disabled" />
             <div className="h-4 w-full rounded bg-input-disabled" />
-            <div className="h-4 w-2/3 rounded bg-input-disabled" />
-            <div className="h-6 w-24 rounded bg-input-disabled" />
+            <div className="h-4 w-5/6 rounded bg-input-disabled" />
+            <div className="flex gap-2 pt-1">
+              <div className="h-8 w-20 rounded-full bg-input-disabled" />
+              <div className="h-8 w-20 rounded-full bg-input-disabled" />
+            </div>
           </div>
-        ))}
+          
+          <hr className="border-t border-panel-border my-6" />
+          
+          <div className="h-10 rounded-[20px] bg-input-disabled mb-4 mt-4" />
+          
+          <div className="h-4 w-28 rounded bg-input-disabled mb-4" />
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="mt-4 space-y-2">
+              <div className="h-3.5 w-36 rounded bg-input-disabled" />
+              <div className="h-4 w-full rounded bg-input-disabled" />
+              <div className="h-4 w-2/3 rounded bg-input-disabled" />
+              <div className="h-6 w-24 rounded bg-input-disabled" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -643,8 +651,8 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
         </div>
       )}
 
-      <div>
-        <article className="pb-5 mt-1 mb-1">
+      <div className="bg-panel-bg rounded-xl border border-panel-border p-4 pb-5">
+        <article>
           <div className="flex items-start justify-between gap-3 mb-1">
             <h1 className="text-3xl font-bold text-heading leading-tight">{post.title}</h1>
             {post.canDelete && (
@@ -747,6 +755,8 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
             )}
           </div>
         </article>
+
+        <hr className="border-t border-panel-border my-4" />
 
         <section className="mt-4">
           <div className="mb-4">
@@ -851,10 +861,10 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
               trigger={
                 <button
                   type="button"
-                  className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-text-primary hover:bg-hover-bg rounded-full transition-colors cursor-pointer"
+                  className="inline-flex items-center h-8 gap-1.5 px-3 text-xs font-semibold text-text-primary hover:bg-hover-bg rounded-full transition-colors cursor-pointer"
                 >
                   <span>{replySortLabel}</span>
-                  <Icon name="chevron-down" color="currentColor" width={12} height={12} className={`w-3 h-3 text-text-secondary transition-transform duration-200 ${isSortDropdownOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
+                  <Icon name="chevron-down" color="currentColor" width={14} height={14} className={`w-3.5 h-3.5 text-text-secondary transition-transform duration-200 ${isSortDropdownOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
                 </button>
               }
             >
