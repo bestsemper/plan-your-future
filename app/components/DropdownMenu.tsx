@@ -71,7 +71,7 @@ export function DropdownMenu({
   }, [isOpen, onOpenChange]);
 
   return (
-    <div className={`relative ${className}`} ref={containerRef}>
+    <div className={`relative ${className}`} ref={containerRef} data-dropdown-root>
       <div className="relative" onClick={() => !disabled && onOpenChange(!isOpen)}>
         {trigger}
         {showClearButton && onClear && (
@@ -96,7 +96,7 @@ export function DropdownMenu({
       </div>
 
       {isOpen && !disabled && (
-        <div className={`absolute z-20 mt-1.5 bg-panel-bg border border-panel-border rounded-xl shadow-lg overflow-hidden max-w-full ${
+        <div data-tutorial-dropdown-content className={`absolute z-20 mt-1.5 bg-panel-bg border border-panel-border rounded-xl shadow-lg overflow-hidden max-w-full ${
           align === 'right' ? 'right-0 w-full' : align === 'center' ? 'left-1/2 -translate-x-1/2' : 'left-0 w-full'
         } ${contentClassName}`}>
           {children}
@@ -115,7 +115,7 @@ export function DropdownMenuContent({
   className = '',
 }: DropdownMenuContentProps) {
   return (
-    <div className={`${maxHeight} flex flex-col overflow-y-auto overflow-x-hidden max-w-full ${className}`}>
+    <div data-tutorial-dropdown-content className={`${maxHeight} flex flex-col overflow-y-auto overflow-x-hidden max-w-full ${className}`}>
       {children}
     </div>
   );

@@ -74,6 +74,12 @@ export default function Sidebar({ user }: { user: { computingId: string, display
     setMenuOpen(false);
   }, [pathname]);
 
+  useEffect(() => {
+    const onClosePopups = () => setMenuOpen(false);
+    window.addEventListener("tutorial:close-popups", onClosePopups);
+    return () => window.removeEventListener("tutorial:close-popups", onClosePopups);
+  }, []);
+
   return (
     <>
       <header className="lg:hidden fixed top-0 left-0 right-0 z-40 h-14 bg-uva-blue text-white px-4 flex items-center justify-between">
@@ -141,19 +147,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
                 {link.label}
               </Link>
             ))}
-            {user && canStartTutorial && (
-              <button
-                type="button"
-                onClick={() => {
-                  setMobileNavOpen(false);
-                  startTutorial();
-                }}
-                className="w-full flex items-center gap-3 px-4 py-2.5 transition-colors font-medium rounded-xl border text-white/75 hover:text-white hover:bg-black/20 border-transparent hover:border-white/10 cursor-pointer"
-              >
-                <Icon name="help-circle" color="currentColor" width={18} height={18} />
-                Help & Tutorial
-              </button>
-            )}
+{/* Help & Tutorial hidden on mobile */}
           </nav>
         </div>
 

@@ -212,7 +212,8 @@ export default function CoursesPage() {
   const handleSelectCourse = async (code: string) => {
     setCourseCode(code);
     setShowDropdown(false);
-    
+    window.dispatchEvent(new CustomEvent("tutorial:step-event", { detail: { name: "courseSearchSelected" } }));
+
     try {
       const baseInfo = await getCourseInfoFromJSON(code);
       const info: CourseInfo = {
@@ -292,15 +293,14 @@ export default function CoursesPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Search Panel */}
         <div className="lg:col-span-1">
-          <div className="bg-panel-bg p-6 rounded-xl border border-panel-border">
+          <div className="bg-panel-bg p-6 rounded-xl border border-panel-border" data-tutorial-target="courses-search-input">
             <label className="block text-sm font-semibold text-heading mb-3">Search Courses</label>
             <DropdownMenu
-              isOpen={showDropdown && filteredCourses.length > 0 && (courseCode.trim().length > 0 || filterDepartment !== '' || filterMinCredits !== '' || filterMaxCredits !== '' || filterTerm !== '' || filterCareer !== '')}
+              isOpen={showDropdown && filteredCourses.length > 0}
               onOpenChange={setShowDropdown}
               className="w-full"
               trigger={
                 <input
-                  data-tutorial-target="courses-search-input"
                   ref={searchInputRef}
                   type="text"
                   placeholder="Enter course code or name..."
@@ -311,7 +311,7 @@ export default function CoursesPage() {
                   }}
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (filteredCourses.length > 0 && courseCode.trim().length > 0) {
+                    if (filteredCourses.length > 0) {
                       setShowDropdown(true);
                     }
                   }}
@@ -322,7 +322,7 @@ export default function CoursesPage() {
                       setShowDropdown(false);
                     }
                   }}
-                  className="w-full h-10 px-3 py-2 bg-input-bg border border-panel-border rounded-xl text-sm text-text-primary outline-none transition-colors"
+                  className="w-full h-10 px-3 py-2 bg-input-bg border border-panel-border rounded-full text-sm text-text-primary outline-none transition-colors"
                 />
               }
             >
@@ -352,7 +352,7 @@ export default function CoursesPage() {
               <label className="block text-sm font-semibold text-text-secondary mb-2">Department</label>
               {!isDepartmentSearching && filterDepartment ? (
                 // Show selected department with clear button
-                <div className="w-full h-10 px-4 py-2 border border-panel-border rounded-xl bg-input-bg text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all relative"
+                <div className="w-full h-10 px-4 py-2 border border-panel-border rounded-full bg-input-bg text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all relative"
                   data-tutorial-target="courses-department-filter"
                   onClick={() => setIsDepartmentSearching(true)}
                   role="button"
@@ -416,7 +416,7 @@ export default function CoursesPage() {
                           setIsDepartmentOpen(false);
                         }, 100);
                       }}
-                      className="w-full h-10 px-3 py-2 bg-input-bg border border-panel-border rounded-xl text-sm text-text-primary placeholder:text-text-tertiary placeholder:text-sm outline-none transition-colors"
+                      className="w-full h-10 px-3 py-2 bg-input-bg border border-panel-border rounded-full text-sm text-text-primary placeholder:text-text-tertiary placeholder:text-sm outline-none transition-colors"
                     />
                   }
                 >
@@ -447,7 +447,7 @@ export default function CoursesPage() {
                     setIsDepartmentSearching(true);
                     setIsDepartmentOpen(true);
                   }}
-                  className="w-full h-10 px-4 py-2 border border-panel-border rounded-xl bg-input-bg text-text-tertiary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all"
+                  className="w-full h-10 px-4 py-2 border border-panel-border rounded-full bg-input-bg text-text-tertiary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all"
                 >
                   <span className="truncate text-sm">Select Department</span>
                   <Icon name="chevron-down" color="currentColor" width={16} height={16} className="w-4 h-4 shrink-0 text-text-secondary" />
@@ -466,7 +466,7 @@ export default function CoursesPage() {
                   <button
                     data-tutorial-target="courses-term-filter"
                     type="button"
-                    className="w-full h-10 px-4 py-2 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all"
+                    className="w-full h-10 px-4 py-2 border border-panel-border rounded-full bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all"
                   >
                     <span className={filterTerm ? 'truncate' : 'truncate text-text-tertiary text-sm'}>
                       {filterTerm || 'All Terms'}
@@ -509,7 +509,7 @@ export default function CoursesPage() {
                 onOpenChange={setIsCareerOpen}
                 className="w-full"
                 trigger={
-                  <button type="button" className="w-full h-10 px-4 py-2 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all">
+                  <button type="button" className="w-full h-10 px-4 py-2 border border-panel-border rounded-full bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all">
                     <span className={filterCareer ? 'truncate' : 'truncate text-text-tertiary text-sm'}>
                       {filterCareer === 'UGRD' ? 'Undergraduate' : filterCareer === 'GRAD' ? 'Graduate' : 'All Levels'}
                     </span>
@@ -685,6 +685,7 @@ function CourseDescriptionContent({
       await addCourseToSemester(selectedSemesterId, courseInfo.courseCode, courseInfo.creditsMin ?? 3);
       setAddStatus('success');
       setAddMessage(`${courseInfo.courseCode} added to plan!`);
+      window.dispatchEvent(new CustomEvent("tutorial:step-event", { detail: { name: "courseAddedToPlan" } }));
       setTimeout(() => {
         setShowAddToPlan(false);
         setAddStatus('idle');
@@ -695,6 +696,16 @@ function CourseDescriptionContent({
       setAddMessage('Failed to add course. Please try again.');
     }
   };
+
+  useEffect(() => {
+    const onClosePopups = () => {
+      setShowAddToPlan(false);
+      setIsPlanDropdownOpen(false);
+      setIsSemesterDropdownOpen(false);
+    };
+    window.addEventListener("tutorial:close-popups", onClosePopups);
+    return () => window.removeEventListener("tutorial:close-popups", onClosePopups);
+  }, []);
 
   if (!courseInfo) {
     return (
@@ -739,6 +750,7 @@ function CourseDescriptionContent({
             {plans.length > 0 && (
               <button
                 type="button"
+                data-tutorial-target="courses-add-to-plan-toggle"
                 onClick={() => {
                   setShowAddToPlan(!showAddToPlan);
                   setAddStatus('idle');
@@ -761,6 +773,7 @@ function CourseDescriptionContent({
                   trigger={
                     <button
                       type="button"
+                      data-tutorial-target="courses-plan-select"
                       className="h-9 px-3 border border-panel-border rounded-xl bg-input-bg text-text-primary text-sm text-left cursor-pointer flex items-center justify-between gap-2 focus:outline-none hover:border-panel-border-strong transition-all min-w-36"
                     >
                       <span className="truncate">{selectedPlan ? selectedPlan.title : 'Select plan'}</span>
@@ -777,6 +790,7 @@ function CourseDescriptionContent({
                           setSelectedPlanId(plan.id);
                           setSelectedSemesterId('');
                           setIsPlanDropdownOpen(false);
+                          window.dispatchEvent(new CustomEvent("tutorial:step-event", { detail: { name: "coursePlanSelected" } }));
                         }}
                       >
                         {plan.title}
@@ -791,6 +805,7 @@ function CourseDescriptionContent({
                   trigger={
                     <button
                       type="button"
+                      data-tutorial-target="courses-semester-select"
                       disabled={!selectedPlan}
                       className="h-9 px-3 border border-panel-border rounded-xl bg-input-bg text-text-primary text-sm text-left cursor-pointer flex items-center justify-between gap-2 focus:outline-none hover:border-panel-border-strong transition-all min-w-40 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
@@ -813,6 +828,7 @@ function CourseDescriptionContent({
                         onClick={() => {
                           setSelectedSemesterId(semester.id);
                           setIsSemesterDropdownOpen(false);
+                          window.dispatchEvent(new CustomEvent("tutorial:step-event", { detail: { name: "courseSemesterSelected" } }));
                         }}
                       >
                         {semester.termName} {semester.year}
@@ -823,26 +839,27 @@ function CourseDescriptionContent({
 
                 <button
                   type="button"
+                  data-tutorial-target="courses-add-to-plan-submit"
                   onClick={() => void handleAddToPlan()}
                   disabled={!selectedSemesterId || addStatus === 'loading' || addStatus === 'success'}
                   className="h-9 px-4 rounded-xl bg-button-bg text-button-text text-sm font-semibold hover:bg-button-hover transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {addStatus === 'loading' ? 'Adding...' : 'Add'}
+                  {addStatus === 'loading' ? 'Adding...' : addStatus === 'success' ? 'Added!' : 'Add'}
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() => setShowAddToPlan(false)}
-                  className="h-9 px-4 rounded-xl border border-panel-border text-text-primary text-sm font-semibold hover:bg-hover-bg transition-colors cursor-pointer"
-                >
-                  Cancel
-                </button>
+                {addStatus !== 'success' && (
+                  <button
+                    type="button"
+                    onClick={() => setShowAddToPlan(false)}
+                    className="h-9 px-4 rounded-xl border border-panel-border text-text-primary text-sm font-semibold hover:bg-hover-bg transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                )}
               </div>
 
-              {addMessage && (
-                <p className={`text-xs font-medium ${addStatus === 'success' ? 'text-green-500' : 'text-red-500'}`}>
-                  {addMessage}
-                </p>
+              {addStatus === 'error' && addMessage && (
+                <p className="text-xs font-medium text-red-500">{addMessage}</p>
               )}
             </div>
           )}

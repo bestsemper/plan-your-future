@@ -586,6 +586,15 @@ export default function PlanBuilderPage() {
     emitTutorialEvent('planImportFileSelected');
   }, [importFile]);
 
+  useEffect(() => {
+    const onClosePopups = () => {
+      setIsImportAuditOpen(false);
+      setIsImportPlanDropdownOpen(false);
+    };
+    window.addEventListener("tutorial:close-popups", onClosePopups);
+    return () => window.removeEventListener("tutorial:close-popups", onClosePopups);
+  }, []);
+
   // Close info tooltip when clicking outside (mobile only) or when unhover (desktop)
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -1742,7 +1751,7 @@ export default function PlanBuilderPage() {
               </button>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-3" data-tutorial-target="plan-import-container">
               <p className="text-sm text-text-secondary">
                 Open Stellic → Plan your Path → Download Plan → Create plan report
               </p>
@@ -1819,7 +1828,10 @@ export default function PlanBuilderPage() {
                 type="file"
                 accept="application/pdf"
                 data-tutorial-target="plan-import-file"
-                onChange={(e) => setImportFile(e.target.files?.[0] ?? null)}
+                onChange={(e) => {
+                  setImportFile(e.target.files?.[0] ?? null);
+                  if (e.target.files?.[0]) emitTutorialEvent('planImportFileSelected');
+                }}
                 className="w-full text-sm text-text-primary file:mr-3 file:px-3 file:py-2 file:border file:border-panel-border-strong file:rounded file:bg-panel-bg-alt file:text-text-primary file:cursor-pointer"
               />
 

@@ -3,6 +3,13 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
+
+const emitTutorialEvent = (name: string) => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  window.dispatchEvent(new CustomEvent('tutorial:step-event', { detail: { name } }));
+};
 import { Icon } from '@/app/components/Icon';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from '@/app/components/DropdownMenu';
 import { getForumPageData, voteOnForumPost } from '../actions';
@@ -239,7 +246,7 @@ export default function ForumPage() {
               isOpen={showSuggestions}
               onOpenChange={setIsSearchDropdownOpen}
               trigger={
-                <div className="relative">
+                <div className="relative" data-tutorial-target="forum-search-input">
                   <span className="sr-only">Search the forum</span>
                   <Icon
                     name="search"
@@ -249,7 +256,6 @@ export default function ForumPage() {
                     className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-text-tertiary"
                   />
                   <input
-                    data-tutorial-target="forum-search-input"
                     type="text"
                     value={search}
                     onChange={(e) => {
@@ -319,6 +325,7 @@ export default function ForumPage() {
               onClick={() => {
                 setSortBy('recent');
                 setIsSortDropdownOpen(false);
+                emitTutorialEvent('forumSortSelected');
               }}
             >
               Most Recent
@@ -328,6 +335,7 @@ export default function ForumPage() {
               onClick={() => {
                 setSortBy('upvoted');
                 setIsSortDropdownOpen(false);
+                emitTutorialEvent('forumSortSelected');
               }}
             >
               Highest Upvoted

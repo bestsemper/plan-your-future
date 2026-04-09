@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { Icon } from "./Icon";
 
 const TUTORIAL_VERSION = "v3";
 const STORAGE_PREFIX = `hoos-plan:tutorial:${TUTORIAL_VERSION}`;
@@ -17,7 +18,7 @@ const STORAGE_SEEN_KEY = `${STORAGE_PREFIX}:seen`;
 const STORAGE_COMPLETED_KEY = `${STORAGE_PREFIX}:completed`;
 const STORAGE_STEP_KEY = `${STORAGE_PREFIX}:current-step`;
 
-type FeatureId = "welcome" | "audit" | "plan" | "dashboard" | "courses" | "prereq" | "forum" | "finish";
+type FeatureId = "welcome" | "audit" | "plan" | "courses" | "prereq" | "forum" | "finish";
 
 type TutorialStep = {
   id: string;
@@ -95,7 +96,7 @@ const tutorialSteps: TutorialStep[] = [
     primaryCta: "Waiting for click",
     secondaryCta: "Skip",
     route: "/profile",
-    targetSelector: '[data-tutorial-target="audit-import-file"]',
+    targetSelector: '[data-tutorial-target="audit-import-container"]',
     advanceOnTargetClick: true,
   },
   {
@@ -169,11 +170,11 @@ const tutorialSteps: TutorialStep[] = [
     featureId: "plan",
     title: "Choose Stellic PDF",
     body: "Click the highlighted file picker and choose your Stellic plan PDF.",
-    primaryCta: "Waiting for click",
+    primaryCta: "Waiting for selection",
     secondaryCta: "Skip",
     route: "/plan",
-    targetSelector: '[data-tutorial-target="plan-import-file"]',
-    advanceOnTargetClick: true,
+    targetSelector: '[data-tutorial-target="plan-import-container"]',
+    progressEvents: ["planImportFileSelected"],
   },
   {
     id: "plan_submit",
@@ -197,17 +198,7 @@ const tutorialSteps: TutorialStep[] = [
     isSkipWarning: true,
   },
 
-  {
-    id: "dashboard_feature",
-    featureId: "dashboard",
-    title: "Feature: Dashboard",
-    body: "Click Dashboard in the sidebar.",
-    primaryCta: "Waiting for click",
-    secondaryCta: "Skip",
-    route: "/plan",
-    targetSelector: '[data-tutorial-target="nav-dashboard"]',
-    advanceOnTargetClick: true,
-  },
+
   {
     id: "courses_feature",
     featureId: "courses",
@@ -222,8 +213,8 @@ const tutorialSteps: TutorialStep[] = [
   {
     id: "courses_search_input",
     featureId: "courses",
-    title: "Find a specific class",
-    body: "Click the search box and type CS 2100.",
+    title: "Find a class",
+    body: "Click the search box and type any course name to search.",
     primaryCta: "Waiting for click",
     secondaryCta: "Skip",
     route: "/courses",
@@ -233,18 +224,19 @@ const tutorialSteps: TutorialStep[] = [
   {
     id: "courses_select_specific_class",
     featureId: "courses",
-    title: "Open that class",
-    body: "Select CS 2100 from the dropdown to open course details and requirements.",
+    title: "Open a class",
+    body: "Select any course from the dropdown to view its details and requirements.",
     primaryCta: "Waiting for selection",
     secondaryCta: "Skip",
     route: "/courses",
+    targetSelector: '[data-tutorial-target="courses-search-input"]',
     progressEvents: ["courseSearchSelected"],
   },
   {
     id: "courses_open_add_to_plan",
     featureId: "courses",
     title: "Start Add to Plan",
-    body: "Click Add to Plan in the course details panel for CS 2100.",
+    body: "Click Add to Plan in the course details panel.",
     primaryCta: "Waiting for click",
     secondaryCta: "Skip",
     route: "/courses",
@@ -256,22 +248,22 @@ const tutorialSteps: TutorialStep[] = [
     featureId: "courses",
     title: "Choose a plan",
     body: "Click Select plan and choose where CS 2100 should go.",
-    primaryCta: "Waiting for click",
+    primaryCta: "Waiting for selection",
     secondaryCta: "Skip",
     route: "/courses",
     targetSelector: '[data-tutorial-target="courses-plan-select"]',
-    advanceOnTargetClick: true,
+    progressEvents: ["coursePlanSelected"],
   },
   {
     id: "courses_choose_semester",
     featureId: "courses",
     title: "Choose a semester",
     body: "Click Select semester and pick the term for CS 2100.",
-    primaryCta: "Waiting for click",
+    primaryCta: "Waiting for selection",
     secondaryCta: "Skip",
     route: "/courses",
     targetSelector: '[data-tutorial-target="courses-semester-select"]',
-    advanceOnTargetClick: true,
+    progressEvents: ["courseSemesterSelected"],
   },
   {
     id: "courses_add_to_plan_submit",
@@ -319,7 +311,7 @@ const tutorialSteps: TutorialStep[] = [
     id: "prereq_tree_search_course",
     featureId: "prereq",
     title: "Find a class in the tree",
-    body: "Click Search courses in tree and type CS 3100.",
+    body: "Click Search courses in tree and type any course name to search.",
     primaryCta: "Waiting for click",
     secondaryCta: "Skip",
     route: "/prerequisites",
@@ -327,13 +319,14 @@ const tutorialSteps: TutorialStep[] = [
     advanceOnTargetClick: true,
   },
   {
-    id: "prereq_tree_open_course_details",
+    id: "prereq_tree_select_course",
     featureId: "prereq",
     title: "Open class details",
-    body: "Choose CS 3100 from the search results to view prerequisites, corequisites, and what it unlocks.",
+    body: "Choose a course from the search results to view prerequisites, corequisites, and what it unlocks.",
     primaryCta: "Waiting for selection",
     secondaryCta: "Skip",
     route: "/prerequisites",
+    targetSelector: '[data-tutorial-target="prereq-tree-course-search"]',
     progressEvents: ["prereqTreeCourseSelected"],
   },
   {
@@ -373,12 +366,12 @@ const tutorialSteps: TutorialStep[] = [
     id: "forum_sort",
     featureId: "forum",
     title: "Sort posts",
-    body: "Click Sort by to switch between recent activity and highest-upvoted posts.",
-    primaryCta: "Waiting for click",
+    body: "Click Sort by and select an option to switch between recent activity and highest-upvoted posts.",
+    primaryCta: "Waiting for selection",
     secondaryCta: "Skip",
     route: "/forum",
     targetSelector: '[data-tutorial-target="forum-sort-button"]',
-    advanceOnTargetClick: true,
+    progressEvents: ["forumSortSelected"],
   },
   {
     id: "forum_ask_question",
@@ -391,6 +384,14 @@ const tutorialSteps: TutorialStep[] = [
     targetSelector: '[data-tutorial-target="forum-ask-question"]',
     advanceOnTargetClick: true,
   },
+  {
+    id: "forum_question_created",
+    featureId: "forum",
+    title: "Ask a Question",
+    body: "You can now write a question, add tags, and attach your plan. When done, click Post.",
+    primaryCta: "Done",
+    route: "/forum/questions",
+  },
 
   {
     id: "finish",
@@ -399,8 +400,7 @@ const tutorialSteps: TutorialStep[] = [
     body: "You are set. Reopen this tutorial anytime from Help in the sidebar.",
     primaryCta: "Done",
     secondaryCta: "Restart",
-    route: "/forum",
-    targetSelector: '[data-tutorial-target="nav-dashboard"]',
+    route: "/forum/questions",
   },
 ];
 
@@ -417,7 +417,6 @@ const orderedFlowStepIds = [
   "plan_choose_mode",
   "plan_choose_file",
   "plan_submit",
-  "dashboard_feature",
   "courses_feature",
   "courses_search_input",
   "courses_select_specific_class",
@@ -429,16 +428,36 @@ const orderedFlowStepIds = [
   "prereq_feature",
   "prereq_search_department",
   "prereq_tree_search_course",
-  "prereq_tree_open_course_details",
+  "prereq_tree_select_course",
   "prereq_info",
   "forum_feature",
   "forum_search",
   "forum_sort",
   "forum_ask_question",
+  "forum_question_created",
   "finish",
 ] as const;
 
-const orderedFeatureIds: FeatureId[] = ["welcome", "audit", "plan", "dashboard", "courses", "prereq", "forum", "finish"];
+// First step of each feature — used by Back to jump to the start of the previous feature
+const featureFirstStepId: Partial<Record<FeatureId, string>> = {
+  welcome: "welcome",
+  audit: "audit_open_account_menu",
+  plan: "plan_nav",
+  courses: "courses_feature",
+  prereq: "prereq_feature",
+  forum: "forum_feature",
+  finish: "finish",
+};
+
+const featureSkipTarget: Partial<Record<FeatureId, string>> = {
+  audit: "plan_nav",
+  plan: "courses_feature",
+  courses: "prereq_feature",
+  prereq: "forum_feature",
+  forum: "forum_question_created",
+};
+
+const orderedFeatureIds: FeatureId[] = ["welcome", "audit", "plan", "courses", "prereq", "forum", "finish"];
 
 const stepById = tutorialSteps.reduce<Record<string, TutorialStep>>((acc, step) => {
   acc[step.id] = step;
@@ -467,17 +486,21 @@ function featureProgressLabel(featureId: FeatureId): string {
   return `Feature ${index + 1} of ${orderedFeatureIds.length}`;
 }
 
-function emitHighlight(target: HTMLElement | null, shouldHighlight: boolean) {
+function emitHighlight(target: HTMLElement | null, shouldHighlight: boolean, borderRadius?: number) {
   if (!target) {
     return;
   }
 
   if (shouldHighlight) {
     target.classList.add("tutorial-target-highlight");
+    if (borderRadius !== undefined) {
+      target.style.borderRadius = `${borderRadius}px`;
+    }
     return;
   }
 
   target.classList.remove("tutorial-target-highlight");
+  target.style.borderRadius = "";
 }
 
 function findVisibleTarget(selector: string): HTMLElement | null {
@@ -520,9 +543,14 @@ export default function TutorialProvider({
 
   const [isOpen, setIsOpen] = useState(false);
   const [currentStepId, setCurrentStepId] = useState<string>(orderedFlowStepIds[0]);
-  const [highlightRect, setHighlightRect] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
+  const [highlightRect, setHighlightRect] = useState<{ top: number; left: number; width: number; height: number; borderRadius: number } | null>(null);
   const lastDispatchKeyRef = useRef<string>("");
   const highlightedElementRef = useRef<HTMLElement | null>(null);
+  const isOpenRef = useRef(false);
+
+  useEffect(() => {
+    isOpenRef.current = isOpen;
+  }, [isOpen]);
 
   const step = stepById[currentStepId];
 
@@ -536,7 +564,7 @@ export default function TutorialProvider({
     }
 
     const hasSeen = loadStorageFlag(STORAGE_SEEN_KEY);
-    if (!hasSeen && pathname === "/") {
+    if (!hasSeen && pathname === "/" && window.innerWidth >= 1024) {
       setCurrentStepId(orderedFlowStepIds[0]);
       setIsOpen(true);
       window.localStorage.setItem(STORAGE_SEEN_KEY, "1");
@@ -567,6 +595,10 @@ export default function TutorialProvider({
   }, [currentStepId, isAuthenticated, isOpen, pathname, router, step]);
 
   const applyHighlightToTarget = (selector: string, shouldScroll = false) => {
+    if (!isOpenRef.current) {
+      return;
+    }
+
     const target = findVisibleTarget(selector);
     if (!target) {
       emitHighlight(highlightedElementRef.current, false);
@@ -579,20 +611,83 @@ export default function TutorialProvider({
       emitHighlight(highlightedElementRef.current, false);
     }
 
-    emitHighlight(target, true);
+    const targetRect = target.getBoundingClientRect();
+
+    // Note: emitHighlight with border-radius is called later after calculating the radius
     highlightedElementRef.current = target;
 
     if (shouldScroll) {
       target.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
     }
 
-    const rect = target.getBoundingClientRect();
+    // Check if there's an open dropdown; if so, highlight the dropdown content instead
+    let highlightTarget = targetRect;
+    const dropdownRoot = target.closest("[data-dropdown-root]") ?? target;
+    const dropdownContent = dropdownRoot.querySelector("[data-tutorial-dropdown-content]") as HTMLElement | null;
+    if (dropdownContent) {
+      const dr = dropdownContent.getBoundingClientRect();
+      if (dr.width > 0 && dr.height > 0) {
+        // Dropdown is open, highlight the dropdown content instead of the button
+        highlightTarget = dr;
+      }
+    }
+
+    // Find the effective border-radius for the element being highlighted
+    const getRadius = (el: HTMLElement) => {
+      const style = window.getComputedStyle(el);
+      // Check all four corners and return the maximum (in case they're different)
+      const topLeft = parseFloat(style.borderTopLeftRadius) || 0;
+      const topRight = parseFloat(style.borderTopRightRadius) || 0;
+      const bottomRight = parseFloat(style.borderBottomRightRadius) || 0;
+      const bottomLeft = parseFloat(style.borderBottomLeftRadius) || 0;
+      return Math.max(topLeft, topRight, bottomRight, bottomLeft);
+    };
+    
+    let computedRadius = getRadius(target);
+    if (computedRadius === 0) {
+      // Try to find a child element with rounded styling
+      const firstChild = target.querySelector("input[class*='rounded'], button[class*='rounded'], a[class*='rounded'], div[class*='rounded']") as HTMLElement | null;
+      if (firstChild) computedRadius = getRadius(firstChild);
+    }
+    if (computedRadius === 0) {
+      // Fallback: look for any input or button child
+      const firstChild = target.querySelector("input, button, a") as HTMLElement | null;
+      if (firstChild) computedRadius = getRadius(firstChild);
+    }
+    
     const padding = 10;
+    const paddedHeight = highlightTarget.height + padding * 2;
+    const paddedWidth = highlightTarget.width + padding * 2;
+    const originalHalfSize = Math.min(highlightTarget.width, highlightTarget.height) / 2;
+    const paddedHalfSize = Math.min(paddedWidth, paddedHeight) / 2;
+    
+    // Preserve the original roundedness ratio
+    // If original radius is >= 95% of half-size, it's fully rounded, so keep it fully rounded
+    const isFullyRounded = computedRadius >= originalHalfSize * 0.95;
+    let svgRadius: number;
+    let orangeHighlightRadius: number;
+    
+    if (isFullyRounded) {
+      // Keep fully rounded elements fully rounded at the new size
+      svgRadius = paddedHalfSize;
+      orangeHighlightRadius = originalHalfSize;
+    } else {
+      // Background highlight radius should not depend on container size—just the element's radius + offset
+      orangeHighlightRadius = computedRadius;
+      svgRadius = computedRadius + 10; // +10 to make bg highlight slightly more rounded than orange
+    }
+
+    // Apply the radius to the highlighted element
+    if (highlightedElementRef.current) {
+      emitHighlight(highlightedElementRef.current, true, orangeHighlightRadius);
+    }
+
     setHighlightRect({
-      top: Math.max(0, rect.top - padding),
-      left: Math.max(0, rect.left - padding),
-      width: rect.width + padding * 2,
-      height: rect.height + padding * 2,
+      top: Math.max(0, highlightTarget.top - padding),
+      left: Math.max(0, highlightTarget.left - padding),
+      width: paddedWidth,
+      height: paddedHeight,
+      borderRadius: svgRadius,
     });
   };
 
@@ -607,21 +702,25 @@ export default function TutorialProvider({
 
   // Apply highlight to target element
   useEffect(() => {
-    if (!isOpen || !step?.targetSelector) {
-      return;
-    }
-
-    // Clear old highlight first
+    // Always clear the old highlight when step changes
     emitHighlight(highlightedElementRef.current, false);
     highlightedElementRef.current = null;
     setHighlightRect(null);
 
+    if (!isOpen || !step?.targetSelector) {
+      return;
+    }
+
     const selector = step.targetSelector;
-    applyHighlightToTarget(selector, true);
 
     const applyHighlight = () => {
       applyHighlightToTarget(selector);
     };
+
+    // Delay the initial highlight to let the page/modal settle before measuring position.
+    const initialTimer = window.setTimeout(() => {
+      applyHighlightToTarget(selector, true);
+    }, 200);
 
     // Keep retrying while the step is active so highlights appear after async UI renders.
     const highlightRetryInterval = window.setInterval(applyHighlight, 400);
@@ -632,6 +731,7 @@ export default function TutorialProvider({
     window.addEventListener("focus", applyHighlight);
 
     return () => {
+      window.clearTimeout(initialTimer);
       window.clearInterval(highlightRetryInterval);
       window.removeEventListener("resize", applyHighlight);
       window.removeEventListener("scroll", applyHighlight, true);
@@ -732,23 +832,26 @@ export default function TutorialProvider({
     setIsOpen(false);
   };
 
+  const dispatchClosePopups = () => {
+    window.dispatchEvent(new CustomEvent("tutorial:close-popups"));
+  };
+
   const goBack = () => {
-    if (currentStepId === "audit_skip_warning") {
-      setCurrentStepId("audit_submit");
-      return;
-    }
+    if (!step) return;
 
-    if (currentStepId === "plan_skip_warning") {
-      setCurrentStepId("plan_submit");
-      return;
-    }
+    const currentFeature = step.featureId;
+    const currentFeatureIndex = orderedFeatureIds.indexOf(currentFeature);
 
-    const flowIndex = orderedFlowStepIds.indexOf(currentStepId as (typeof orderedFlowStepIds)[number]);
-    if (flowIndex <= 0) {
-      return;
-    }
+    // If we're at the very first feature, nothing to go back to
+    if (currentFeatureIndex <= 0) return;
 
-    setCurrentStepId(orderedFlowStepIds[flowIndex - 1]);
+    // Jump to the first step of the previous feature
+    const prevFeature = orderedFeatureIds[currentFeatureIndex - 1];
+    const prevFirstStep = featureFirstStepId[prevFeature];
+    if (!prevFirstStep) return;
+
+    dispatchClosePopups();
+    goToStep(prevFirstStep);
   };
 
   const handlePrimary = () => {
@@ -758,16 +861,6 @@ export default function TutorialProvider({
 
     if (step.id === "welcome") {
       goToStep("audit_open_account_menu");
-      return;
-    }
-
-    if (step.id === "audit_skip_warning") {
-      goToStep("plan_nav");
-      return;
-    }
-
-    if (step.id === "plan_skip_warning") {
-      goToStep("dashboard_feature");
       return;
     }
 
@@ -793,28 +886,16 @@ export default function TutorialProvider({
       return;
     }
 
-    if (step.id.startsWith("audit_") && !step.isSkipWarning) {
-      goToStep("audit_skip_warning");
-      return;
-    }
-
-    if (step.id.startsWith("plan_") && !step.isSkipWarning) {
-      goToStep("plan_skip_warning");
-      return;
-    }
-
-    if (step.id === "audit_skip_warning") {
-      goToStep("audit_submit");
-      return;
-    }
-
-    if (step.id === "plan_skip_warning") {
-      goToStep("plan_submit");
-      return;
-    }
-
     if (step.id === "finish") {
       startTutorial();
+      return;
+    }
+
+    // Feature-level skip: jump directly to the next feature section
+    const skipTarget = featureSkipTarget[step.featureId];
+    if (skipTarget) {
+      dispatchClosePopups();
+      goToStep(skipTarget);
       return;
     }
 
@@ -844,37 +925,47 @@ export default function TutorialProvider({
 
   const progressLabel = step ? featureProgressLabel(step.featureId) : "Feature";
   const primaryDisabled = Boolean(step?.advanceOnTargetClick || (step?.progressEvents && step.progressEvents.length > 0));
-  const tutorialCardPositionClass =
-    step?.id.startsWith("prereq_")
-      ? "bottom-4 left-4 lg:bottom-6 lg:left-6"
-      : "bottom-4 right-4 lg:bottom-6 lg:right-6";
+  const tutorialCardPositionClass = "bottom-4 right-4 lg:bottom-6 lg:right-6";
 
   return (
     <TutorialContext.Provider value={contextValue}>
       {children}
       {isAuthenticated && isOpen && step && (
-        <div className="fixed inset-0 z-[90] pointer-events-none" role="dialog" aria-modal="false" aria-label="App tutorial">
-          <div className="fixed inset-0 pointer-events-none">
-            {highlightRect ? (
-              <>
-                <div className="fixed bg-black/58 pointer-events-none" style={{ top: 0, left: 0, right: 0, height: `${highlightRect.top}px` }} />
-                <div className="fixed bg-black/58 pointer-events-none" style={{ top: `${highlightRect.top}px`, left: 0, width: `${highlightRect.left}px`, height: `${highlightRect.height}px` }} />
-                <div className="fixed bg-black/58 pointer-events-none" style={{ top: `${highlightRect.top}px`, left: `${highlightRect.left + highlightRect.width}px`, right: 0, height: `${highlightRect.height}px` }} />
-                <div className="fixed bg-black/58 pointer-events-none" style={{ top: `${highlightRect.top + highlightRect.height}px`, left: 0, right: 0, bottom: 0 }} />
-              </>
-            ) : (
-              <div className="fixed inset-0 bg-black/58 pointer-events-none" />
-            )}
-          </div>
-          <div className={`pointer-events-auto fixed ${tutorialCardPositionClass} w-full max-w-xl rounded-2xl border border-panel-border bg-panel-bg shadow-2xl`}>
+        <div className="hidden lg:block fixed inset-0 z-[90] pointer-events-none" role="dialog" aria-modal="false" aria-label="App tutorial" style={{ width: "100vw", height: "100vh" }}>
+          {/* Spotlight overlay using SVG mask for rounded cutout */}
+          <svg
+            className="fixed inset-0 pointer-events-none"
+            style={{ width: "100vw", height: "100vh" }}
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <defs>
+              <mask id="tutorial-spotlight-mask">
+                <rect width="100%" height="100%" fill="white" />
+                {highlightRect && (
+                  <rect
+                    x={highlightRect.left}
+                    y={highlightRect.top}
+                    width={highlightRect.width}
+                    height={highlightRect.height}
+                    rx={highlightRect.borderRadius}
+                    ry={highlightRect.borderRadius}
+                    fill="black"
+                  />
+                )}
+              </mask>
+            </defs>
+            <rect width="100%" height="100%" fill="rgba(0,0,0,0.58)" mask="url(#tutorial-spotlight-mask)" />
+          </svg>
+          <div className={`pointer-events-auto fixed ${tutorialCardPositionClass} w-full max-w-xl rounded-3xl border border-panel-border bg-panel-bg shadow-2xl`}>
             <div className="px-6 py-4 border-b border-panel-border flex items-center justify-between gap-4">
               <p className="text-xs font-semibold uppercase tracking-[0.08em] text-text-tertiary">{progressLabel}</p>
               <button
                 type="button"
-                className="text-sm text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
+                className="inline-flex items-center justify-center text-text-primary/80 hover:text-text-primary transition-colors cursor-pointer"
                 onClick={closeTutorial}
+                aria-label="Close tutorial"
               >
-                Close
+                <Icon name="x" color="currentColor" width={22} height={22} />
               </button>
             </div>
 
@@ -886,7 +977,7 @@ export default function TutorialProvider({
                 <button
                   type="button"
                   onClick={goBack}
-                  className="px-4 py-2 rounded-xl border border-panel-border-strong text-sm font-semibold text-text-secondary hover:text-text-primary hover:bg-hover-bg cursor-pointer"
+                  className="px-4 py-2 rounded-full border border-panel-border-strong text-sm font-semibold text-text-secondary hover:text-text-primary hover:bg-hover-bg cursor-pointer"
                 >
                   Back
                 </button>
@@ -895,7 +986,7 @@ export default function TutorialProvider({
                   <button
                     type="button"
                     onClick={handleSecondary}
-                    className="px-4 py-2 rounded-xl border border-panel-border-strong text-sm font-semibold text-text-secondary hover:text-text-primary hover:bg-hover-bg cursor-pointer"
+                    className="px-4 py-2 rounded-full border border-panel-border-strong text-sm font-semibold text-text-secondary hover:text-text-primary hover:bg-hover-bg cursor-pointer"
                   >
                     {step.secondaryCta}
                   </button>
@@ -905,7 +996,7 @@ export default function TutorialProvider({
                   type="button"
                   onClick={handlePrimary}
                   disabled={primaryDisabled}
-                  className="ml-auto px-4 py-2 rounded-xl bg-button-bg text-button-text text-sm font-semibold hover:bg-button-hover transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="ml-auto px-4 py-2 rounded-full bg-button-bg text-button-text text-sm font-semibold hover:bg-button-hover transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {step.primaryCta}
                 </button>

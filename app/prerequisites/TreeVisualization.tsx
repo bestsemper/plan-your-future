@@ -838,8 +838,13 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
   };
 
   const filteredCourseMatches = useMemo(() => {
+    if (!dagData) return [];
+    
     const query = courseSearchText.trim().toLowerCase();
-    if (!query || !dagData) return [];
+    if (!query) {
+      // If no query, show all courses sorted by ID
+      return dagData.nodes.sort((a, b) => a.id.localeCompare(b.id));
+    }
 
     return dagData.nodes
       .filter((node) => {
@@ -986,7 +991,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
   };
 
   const visibleSearchMatches = filteredCourseMatches.slice(0, 25);
-  const showSearchPanel = showCourseSearchDropdown && courseSearchText.trim().length > 0;
+  const showSearchPanel = showCourseSearchDropdown;
 
   const formatNodeLabel = (id: string, isPostreq = false, depth = 0): string => {
     const node = dagData?.nodes.find(n => n.id === id);
@@ -1048,7 +1053,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
           contentClassName="-inset-x-0.75"
           className="w-full"
           trigger={
-            <div className="relative bg-panel-bg/90 backdrop-blur p-0.5 rounded-xl border border-panel-border shadow-sm">
+            <div className="relative bg-panel-bg/90 backdrop-blur p-0.5 rounded-xl border border-panel-border shadow-sm" data-tutorial-target="prereq-tree-course-search">
               <Icon
                 name="search"
                 color="currentColor"
@@ -1057,7 +1062,6 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
                 className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-text-tertiary"
               />
               <input
-                data-tutorial-target="prereq-tree-course-search"
                 type="text"
                 placeholder="Search courses in tree"
                 value={courseSearchText}

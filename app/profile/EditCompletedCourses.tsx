@@ -155,6 +155,12 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
     emitTutorialEvent('auditFileSelected');
   }, [importFile]);
 
+  useEffect(() => {
+    const onClosePopups = () => setInternalIsOpen(false);
+    window.addEventListener("tutorial:close-popups", onClosePopups);
+    return () => window.removeEventListener("tutorial:close-popups", onClosePopups);
+  }, []);
+
   async function loadAllCourses() {
     try {
       const res = await getPlanBuilderData();
@@ -318,7 +324,7 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
               </div>
             )}
 
-            <div className="border border-panel-border rounded-2xl p-6 bg-panel-bg space-y-3">
+            <div className="border border-panel-border rounded-2xl p-6 bg-panel-bg space-y-3" data-tutorial-target="audit-import-container">
               <h3 className="font-semibold text-heading text-base">Import Audit Report</h3>
               <p className="text-sm text-text-secondary">
                 Open Stellic → Plan your Path → Print Audit Report → Create audit report
