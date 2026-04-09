@@ -214,7 +214,7 @@ export default function EditProfileForm({
   }
 
   return (
-    <div className="fixed z-50 flex items-center justify-center lg:inset-0 lg:bg-black/50 lg:p-4 max-lg:inset-x-0 max-lg:top-14 max-lg:bottom-0 max-lg:p-3" onClick={handleCancel}>
+    <div className="fixed z-50 flex items-center justify-center lg:inset-0 lg:bg-black/50 lg:p-4 max-lg:inset-x-0 max-lg:top-14 max-lg:bottom-0 max-lg:pt-0 max-lg:p-3" onClick={handleCancel}>
       <div 
         className="bg-panel-bg rounded-2xl border border-panel-border shadow-xl max-lg:shadow-none max-w-2xl w-full max-h-[calc(100dvh-2rem)] overflow-hidden flex flex-col max-lg:rounded-3xl max-lg:max-w-none max-lg:h-full max-lg:max-h-none"
         onClick={(e) => e.stopPropagation()}

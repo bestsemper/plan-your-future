@@ -81,21 +81,6 @@ export default async function Profile() {
         </div>
 
         <PrivacySettings currentProfileVisibility={user.profileVisibility} />
-
-        <div className="bg-panel-bg p-6 rounded-xl border border-panel-border">
-           <h2 className="text-xl font-bold mb-5 text-heading">Badges</h2>
-          <div className="flex gap-3 flex-wrap">
-            <div className="bg-badge-orange-bg text-uva-orange px-3 py-2 rounded-lg flex items-center gap-2 text-sm font-bold border border-uva-orange/30">
-              <Icon name="star" color="currentColor" width={16} height={16} className="w-4 h-4" /> Early Adopter                                                                  
-            </div>
-            <div className="bg-badge-blue-bg text-badge-blue-text px-3 py-2 rounded-lg flex items-center gap-2 text-sm font-bold border border-uva-blue/20">
-              <Icon name="activity" color="currentColor" width={16} height={16} className="w-4 h-4" /> Active Participant
-            </div>
-            <div className="bg-panel-bg-alt text-gray-500 px-3 py-2 rounded-lg text-sm border border-panel-border-strong border-dashed flex items-center gap-2 font-semibold cursor-pointer hover:border-uva-orange hover:text-uva-orange transition-colors">
-              <Icon name="plus" color="currentColor" width={16} height={16} className="w-4 h-4" /> Earn more badges                     
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

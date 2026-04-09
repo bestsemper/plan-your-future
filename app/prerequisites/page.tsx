@@ -164,7 +164,7 @@ export default function PrerequisitesPage() {
               onClick={handleInfoClick}
               onMouseEnter={handleInfoMouseEnter}
               onMouseLeave={handleInfoMouseLeave}
-              className="w-5 h-5 flex items-center justify-center text-text-tertiary hover:text-text-secondary focus:text-text-secondary transition-colors cursor-help"
+              className="w-5 h-5 pb-3 flex items-center justify-center text-text-tertiary hover:text-text-secondary focus:text-text-secondary transition-colors cursor-help"
               aria-label="Information about the prerequisites tree"
             >
               <Icon
