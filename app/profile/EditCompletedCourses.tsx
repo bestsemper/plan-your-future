@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { getCompletedCourses, addCompletedCourse, deleteCompletedCourse, getPlanBuilderData, importCompletedCoursesFromAuditPdf } from '@/app/actions';
 import { Icon } from '@/app/components/Icon';
 
@@ -42,6 +43,7 @@ function fileToDataUrl(file: File): Promise<string> {
 }
 
 export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged }: EditCompletedCoursesProps) {
+  const searchParams = useSearchParams();
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const [courses, setCourses] = useState<CompletedCourse[]>([]);
   const [allCourses, setAllCourses] = useState<CourseOption[]>([]);
@@ -108,6 +110,15 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
   }, [courses, showTransfer, showExtra, showTaken]);
 
   const modalIsOpen = typeof isOpen === 'boolean' ? isOpen : internalIsOpen;
+
+  const emitTutorialEvent = (name: string) => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    window.dispatchEvent(new CustomEvent('tutorial:step-event', { detail: { name } }));
+  };
+
   const closeModal = () => {
     if (typeof isOpen === 'boolean') {
       onClose?.();
@@ -120,8 +131,29 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
     if (modalIsOpen) {
       loadCourses();
       loadAllCourses();
+      emitTutorialEvent('auditModalOpened');
     }
   }, [modalIsOpen]);
+
+  useEffect(() => {
+    if (typeof isOpen === 'boolean') {
+      return;
+    }
+
+    if (searchParams.get('tutorialAction') !== 'openAuditModal') {
+      return;
+    }
+
+    setInternalIsOpen(true);
+  }, [isOpen, searchParams]);
+
+  useEffect(() => {
+    if (!importFile) {
+      return;
+    }
+
+    emitTutorialEvent('auditFileSelected');
+  }, [importFile]);
 
   async function loadAllCourses() {
     try {
@@ -235,6 +267,7 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
       setImportFile(null);
       await loadCourses();
       onCoursesChanged?.();
+      emitTutorialEvent('auditImportCompleted');
       setIsImporting(false);
     } catch {
       setError('Unable to read PDF file.');
@@ -250,6 +283,7 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
     return (
       <button
         onClick={() => setInternalIsOpen(true)}
+        data-tutorial-target="open-completed-courses"
         className="w-full sm:w-auto border border-dashed border-panel-border-strong px-5 py-2.5 rounded-xl hover:bg-hover-bg text-text-primary font-semibold transition-colors cursor-pointer"
       >
         Completed Courses
@@ -292,11 +326,13 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
               <input
                 type="file"
                 accept="application/pdf"
+                data-tutorial-target="audit-import-file"
                 onChange={(e) => setImportFile(e.target.files?.[0] ?? null)}
                 className="w-full text-sm text-text-primary file:mr-3 file:px-3 file:py-2 file:border file:border-panel-border-strong file:rounded file:bg-panel-bg-alt file:text-text-primary file:cursor-pointer"
               />
               <button
                 type="button"
+                data-tutorial-target="audit-import-submit"
                 onClick={() => void handleImportFromAuditPdf()}
                 disabled={isImporting}
                 className="w-full px-6 py-3 bg-button-bg text-button-text rounded-xl font-semibold hover:bg-button-hover transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"

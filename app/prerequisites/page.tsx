@@ -158,6 +158,7 @@ export default function PrerequisitesPage() {
           <h1 className="text-3xl font-bold text-heading">Prerequisites Tree</h1>
           <div className="relative w-5 h-5 mt-1 flex-shrink-0">
             <button
+              data-tutorial-target="prereq-info-button"
               ref={infoButtonRef}
               type="button"
               onClick={handleInfoClick}
@@ -195,6 +196,7 @@ export default function PrerequisitesPage() {
                   className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-text-tertiary"
                 />
                 <input
+                  data-tutorial-target="prereq-search-input"
                   ref={searchInputRef}
                   type="text"
                   placeholder="Search departments..."

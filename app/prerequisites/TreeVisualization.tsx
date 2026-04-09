@@ -891,6 +891,9 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
     setHoverPos({ x: 0, y: 0 });
     setShowCourseSearchDropdown(false);
     setCourseSearchText("");
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('tutorial:step-event', { detail: { name: 'prereqTreeCourseSelected' } }));
+    }
     setTimeout(() => focusNodeInViewport(nodeId), 0);
   };
 
@@ -1054,6 +1057,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
                 className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-text-tertiary"
               />
               <input
+                data-tutorial-target="prereq-tree-course-search"
                 type="text"
                 placeholder="Search courses in tree"
                 value={courseSearchText}

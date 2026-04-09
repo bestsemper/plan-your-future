@@ -213,3 +213,25 @@ body {
   background: var(--text-tertiary);
   background-clip: padding-box;
 }
+
+.tutorial-target-highlight {
+  position: relative;
+  z-index: 95;
+  outline: 4px solid var(--color-uva-orange);
+  outline-offset: 4px;
+  border-radius: 14px;
+  box-shadow: 0 0 0 3px rgba(229, 114, 0, 0.18), 0 0 0 8px rgba(229, 114, 0, 0.08);
+  animation: tutorial-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes tutorial-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(229, 114, 0, 0.35);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(229, 114, 0, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(229, 114, 0, 0);
+  }
+}
