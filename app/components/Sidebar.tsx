@@ -5,9 +5,11 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "./Icon";
 import { logout } from "../actions";
+import { useTutorial } from "./TutorialProvider";
 
 export default function Sidebar({ user }: { user: { computingId: string, displayName: string } | null }) {
   const pathname = usePathname();
+  const { canStartTutorial, startTutorial } = useTutorial();
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const desktopMenuRef = useRef<HTMLDivElement>(null);
@@ -40,6 +42,14 @@ export default function Sidebar({ user }: { user: { computingId: string, display
       icon: <Icon name="prerequisites" color="currentColor" width={18} height={18} />,
     },
   ];
+
+  const tutorialTargetByHref: Record<string, string> = {
+    '/': 'nav-dashboard',
+    '/plan': 'nav-plan',
+    '/forum': 'nav-forum',
+    '/courses': 'nav-courses',
+    '/prerequisites': 'nav-prerequisites',
+  };
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
   const isLoginPage = pathname === "/login";
@@ -119,6 +129,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
               <Link
                 key={link.href}
                 href={link.href}
+                data-tutorial-target={tutorialTargetByHref[link.href]}
                 onClick={() => setMobileNavOpen(false)}
                 className={`flex items-center gap-3 px-4 py-2.5 transition-colors font-medium rounded-xl border ${
                   isActive(link.href)
@@ -130,6 +141,19 @@ export default function Sidebar({ user }: { user: { computingId: string, display
                 {link.label}
               </Link>
             ))}
+            {user && canStartTutorial && (
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileNavOpen(false);
+                  startTutorial();
+                }}
+                className="w-full flex items-center gap-3 px-4 py-2.5 transition-colors font-medium rounded-xl border text-white/75 hover:text-white hover:bg-black/20 border-transparent hover:border-white/10 cursor-pointer"
+              >
+                <Icon name="help-circle" color="currentColor" width={18} height={18} />
+                Help & Tutorial
+              </button>
+            )}
           </nav>
         </div>
 
@@ -139,6 +163,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
               <button
                 type="button"
                 onClick={() => setMenuOpen((prev) => !prev)}
+                data-tutorial-target="account-menu-toggle"
                 className="w-full flex items-center space-x-3 rounded-xl hover:bg-black/20 p-2.5 transition-colors border border-transparent hover:border-white/10 cursor-pointer"
               >
                 <div className="w-8 h-8 rounded-full bg-uva-orange flex items-center justify-center text-white font-bold uppercase">
@@ -154,6 +179,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
                 <div className="absolute left-0 right-0 bottom-full mb-2 rounded-xl border border-white/10 bg-[#1c243c] shadow-lg p-1.5 z-20">
                   <Link
                     href="/profile"
+                    data-tutorial-target="account-menu-profile"
                     onClick={() => {
                       setMenuOpen(false);
                       setMobileNavOpen(false);
@@ -198,6 +224,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
               <Link
                 key={link.href}
                 href={link.href}
+                data-tutorial-target={tutorialTargetByHref[link.href]}
                 className={`flex items-center gap-3 px-4 py-2.5 transition-colors font-medium rounded-xl border ${
                   isActive(link.href)
                     ? "bg-white text-slate-900 border-black/15"
@@ -208,6 +235,16 @@ export default function Sidebar({ user }: { user: { computingId: string, display
                 {link.label}
               </Link>
             ))}
+            {user && canStartTutorial && (
+              <button
+                type="button"
+                onClick={startTutorial}
+                className="w-full flex items-center gap-3 px-4 py-2.5 transition-colors font-medium rounded-xl border text-white/75 hover:text-white hover:bg-black/20 border-transparent hover:border-white/10 cursor-pointer"
+              >
+                <Icon name="help-circle" color="currentColor" width={18} height={18} />
+                Help & Tutorial
+              </button>
+            )}
           </nav>
         </div>
 
@@ -217,6 +254,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
               <button
                 type="button"
                 onClick={() => setMenuOpen((prev) => !prev)}
+                data-tutorial-target="account-menu-toggle"
                 className="w-full flex items-center space-x-3 rounded-xl hover:bg-black/20 p-2.5 transition-colors border border-transparent hover:border-white/10 cursor-pointer"
               >
                 <div className="w-8 h-8 rounded-full bg-uva-orange flex items-center justify-center text-white font-bold uppercase">
@@ -232,6 +270,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
                 <div className="absolute left-0 right-0 bottom-full mb-2 rounded-xl border border-white/10 bg-[#1c243c] shadow-lg p-1.5 z-20">
                   <Link
                     href="/profile"
+                    data-tutorial-target="account-menu-profile"
                     onClick={() => setMenuOpen(false)}
                     className="block rounded-lg px-3 py-2 text-sm font-medium text-white/75 hover:text-white hover:bg-white/10"
                   >

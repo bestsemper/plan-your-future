@@ -249,6 +249,7 @@ export default function ForumPage() {
                     className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-text-tertiary"
                   />
                   <input
+                    data-tutorial-target="forum-search-input"
                     type="text"
                     value={search}
                     onChange={(e) => {
@@ -286,6 +287,7 @@ export default function ForumPage() {
           </div>
 
           <Link
+            data-tutorial-target="forum-ask-question"
             href="/forum/questions"
             className="h-[42px] px-5 inline-flex items-center justify-center bg-button-bg text-button-text rounded-full hover:bg-button-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-button-bg/20 font-semibold transition-colors cursor-pointer whitespace-nowrap"
           >
@@ -303,6 +305,7 @@ export default function ForumPage() {
           contentClassName="w-[200%]"
           trigger={
             <button
+              data-tutorial-target="forum-sort-button"
               type="button"
               className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-text-primary hover:bg-hover-bg rounded-full transition-colors cursor-pointer"
             >

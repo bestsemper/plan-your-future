@@ -538,6 +538,14 @@ export default function PlanBuilderPage() {
   // Comparison plan display
   const [comparisonPlan, setComparisonPlan] = useState<any | null>(null);
 
+  const emitTutorialEvent = (name: string) => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    window.dispatchEvent(new CustomEvent('tutorial:step-event', { detail: { name } }));
+  };
+
   // Load comparison plan from sessionStorage if in compare mode
   useEffect(() => {
     if (searchParams && searchParams.get('compare') === 'true' && typeof window !== 'undefined') {
@@ -553,6 +561,30 @@ export default function PlanBuilderPage() {
       }
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    if (searchParams.get('tutorialAction') !== 'openPlanImportModal') {
+      return;
+    }
+
+    setIsImportAuditOpen(true);
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (!isImportAuditOpen) {
+      return;
+    }
+
+    emitTutorialEvent('planImportModalOpened');
+  }, [isImportAuditOpen]);
+
+  useEffect(() => {
+    if (!importFile) {
+      return;
+    }
+
+    emitTutorialEvent('planImportFileSelected');
+  }, [importFile]);
 
   // Close info tooltip when clicking outside (mobile only) or when unhover (desktop)
   useEffect(() => {
@@ -1230,6 +1262,7 @@ export default function PlanBuilderPage() {
       setImportMode('new');
       setIsImportPlanDropdownOpen(false);
       setIsImportAuditOpen(false);
+      emitTutorialEvent('planImportCompleted');
       setImportingPdf(false);
       void loadData(res?.planId);
     } catch {
@@ -1357,6 +1390,7 @@ export default function PlanBuilderPage() {
               <button
                 type="button"
                 onClick={() => setIsMoreMenuOpen((prev) => !prev)}
+                data-tutorial-target="open-plan-more-actions"
                 onBlur={() =>
                   setTimeout(() => {
                     setIsMoreMenuOpen(false);
@@ -1408,6 +1442,7 @@ export default function PlanBuilderPage() {
                   </button>
                   <button
                     type="button"
+                    data-tutorial-target="open-plan-import"
                     onClick={() => {
                       setIsImportAuditOpen(true);
                       setIsMoreMenuOpen(false);
@@ -1808,11 +1843,12 @@ export default function PlanBuilderPage() {
                 Open Stellic → Plan your Path → Download Plan → Create plan report
               </p>
 
-              <div className="flex gap-2">
+              <div className="flex gap-2" data-tutorial-target="plan-import-mode">
                 <button
                   type="button"
                   onClick={() => {
                     setImportMode('new');
+                    emitTutorialEvent('planImportModeSelected');
                     setIsImportPlanDropdownOpen(false);
                     setImportError(null);
                   }}
@@ -1824,6 +1860,7 @@ export default function PlanBuilderPage() {
                   type="button"
                   onClick={() => {
                     setImportMode('overwrite');
+                    emitTutorialEvent('planImportModeSelected');
                     setImportOverwritePlanId((prev) => prev || activePlan?.id || '');
                     setImportError(null);
                   }}
@@ -1877,6 +1914,7 @@ export default function PlanBuilderPage() {
               <input
                 type="file"
                 accept="application/pdf"
+                data-tutorial-target="plan-import-file"
                 onChange={(e) => setImportFile(e.target.files?.[0] ?? null)}
                 className="w-full text-sm text-text-primary file:mr-3 file:px-3 file:py-2 file:border file:border-panel-border-strong file:rounded file:bg-panel-bg-alt file:text-text-primary file:cursor-pointer"
               />
@@ -1889,6 +1927,7 @@ export default function PlanBuilderPage() {
 
               <button
                 type="button"
+                data-tutorial-target="plan-import-submit"
                 onClick={() => void handleImportFromPdf()}
                 disabled={importingPdf}
                 className="w-full px-4 py-2 bg-uva-blue/90 text-white rounded-xl hover:bg-uva-blue font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"

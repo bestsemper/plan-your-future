@@ -300,6 +300,7 @@ export default function CoursesPage() {
               className="w-full"
               trigger={
                 <input
+                  data-tutorial-target="courses-search-input"
                   ref={searchInputRef}
                   type="text"
                   placeholder="Enter course code or name..."
@@ -352,6 +353,7 @@ export default function CoursesPage() {
               {!isDepartmentSearching && filterDepartment ? (
                 // Show selected department with clear button
                 <div className="w-full h-10 px-4 py-2 border border-panel-border rounded-xl bg-input-bg text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all relative"
+                  data-tutorial-target="courses-department-filter"
                   onClick={() => setIsDepartmentSearching(true)}
                   role="button"
                   tabIndex={0}
@@ -385,6 +387,7 @@ export default function CoursesPage() {
                   className="w-full"
                   trigger={
                     <input
+                      data-tutorial-target="courses-department-filter"
                       type="text"
                       autoFocus
                       placeholder="Search departments..."
@@ -438,6 +441,7 @@ export default function CoursesPage() {
               ) : (
                 // Show select button
                 <button
+                  data-tutorial-target="courses-department-filter"
                   type="button"
                   onClick={() => {
                     setIsDepartmentSearching(true);
@@ -459,7 +463,11 @@ export default function CoursesPage() {
                 onOpenChange={setIsTermOpen}
                 className="w-full"
                 trigger={
-                  <button type="button" className="w-full h-10 px-4 py-2 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all">
+                  <button
+                    data-tutorial-target="courses-term-filter"
+                    type="button"
+                    className="w-full h-10 px-4 py-2 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all"
+                  >
                     <span className={filterTerm ? 'truncate' : 'truncate text-text-tertiary text-sm'}>
                       {filterTerm || 'All Terms'}
                     </span>
