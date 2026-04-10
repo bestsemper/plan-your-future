@@ -1420,7 +1420,7 @@ export default function PlanBuilderPage() {
                       setIsMoreMenuOpen(false);
                     }}
                     disabled={creatingPlan}
-                    className="w-full px-3 py-2 rounded-xl text-left text-sm text-text-primary hover:bg-hover-bg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2.5"
+                    className="w-full px-3 py-2 rounded-3xl text-left text-sm text-text-primary hover:bg-hover-bg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2.5"
                   >
                     <Icon name="plus" color="currentColor" width={15} height={15} className="shrink-0 text-text-secondary" />
                     {creatingPlan ? 'Creating...' : 'New Plan'}
@@ -1432,7 +1432,7 @@ export default function PlanBuilderPage() {
                       setIsMoreMenuOpen(false);
                     }}
                     disabled={!activePlan || updatingYear}
-                    className="w-full px-3 py-2 rounded-xl text-left text-sm text-text-primary hover:bg-hover-bg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2.5"
+                    className="w-full px-3 py-2 rounded-3xl text-left text-sm text-text-primary hover:bg-hover-bg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2.5"
                   >
                     <Icon name="calendar" color="currentColor" width={15} height={15} className="shrink-0 text-text-secondary" />
                     {updatingYear ? 'Adding Year...' : 'Add Year'}
@@ -1444,7 +1444,7 @@ export default function PlanBuilderPage() {
                       setIsMoreMenuOpen(false);
                     }}
                     disabled={!activePlan}
-                    className="w-full px-3 py-2 rounded-xl text-left text-sm text-text-primary hover:bg-hover-bg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2.5"
+                    className="w-full px-3 py-2 rounded-3xl text-left text-sm text-text-primary hover:bg-hover-bg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2.5"
                   >
                     <Icon name="edit" color="currentColor" width={15} height={15} className="shrink-0 text-text-secondary" />
                     Rename Plan
@@ -1460,7 +1460,7 @@ export default function PlanBuilderPage() {
                       setIsImportPlanDropdownOpen(false);
                       setImportError(null);
                     }}
-                    className="w-full px-3 py-2 rounded-lg text-left text-sm text-text-primary hover:bg-hover-bg transition-colors cursor-pointer flex items-center gap-2.5"
+                    className="w-full px-3 py-2 rounded-3xl text-left text-sm text-text-primary hover:bg-hover-bg transition-colors cursor-pointer flex items-center gap-2.5"
                   >
                     <Icon name="external-link" color="currentColor" width={15} height={15} className="shrink-0 text-text-secondary" />
                     Import Plan
@@ -1473,7 +1473,7 @@ export default function PlanBuilderPage() {
                       setIsMoreMenuOpen(false);
                     }}
                     disabled={!activePlan || deletingPlan}
-                    className="w-full px-3 py-2 rounded-xl text-left text-sm text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2.5"
+                    className="w-full px-3 py-2 rounded-3xl text-left text-sm text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2.5"
                   >
                     <Icon name="trash" color="currentColor" width={15} height={15} className="shrink-0" />
                     {deletingPlan ? 'Deleting...' : 'Delete Plan'}
