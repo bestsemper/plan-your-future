@@ -202,7 +202,7 @@ export default function ForumPage() {
           {Array.from({ length: 2 }).map((_, i) => (
             <div key={i} className="flex flex-col min-w-0">
               
-              <article className="p-4 mt-1 mb-1 rounded-xl border border-panel-border bg-panel-bg min-w-0">
+              <article className="p-4 mt-1 mb-1 rounded-3xl border border-panel-border bg-panel-bg min-w-0">
                 <div className="flex flex-col min-w-0 space-y-3">
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-3">
                     <div className="h-7 w-3/4 rounded bg-input-disabled" />
@@ -367,7 +367,7 @@ export default function ForumPage() {
                     router.push(postHref);
                   }
                 }}
-                className="p-4 mt-4 rounded-xl border border-panel-border bg-panel-bg cursor-pointer transition-colors min-w-0"
+                className="p-4 mt-4 rounded-3xl border border-panel-border bg-panel-bg cursor-pointer transition-colors min-w-0"
               >
                 <div className="flex flex-col min-w-0">
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1 sm:gap-3 mb-2 min-w-0">

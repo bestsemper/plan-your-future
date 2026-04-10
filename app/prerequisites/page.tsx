@@ -20,6 +20,7 @@ export default function PrerequisitesPage() {
   const [isDesktop, setIsDesktop] = useState(false);
   const [isHoveringInfo, setIsHoveringInfo] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const [departmentsLoaded, setDepartmentsLoaded] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const infoButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -45,7 +46,7 @@ export default function PrerequisitesPage() {
         }
       }
     }
-    fetchDepartmentsAndMajor();
+    fetchDepartmentsAndMajor().finally(() => setDepartmentsLoaded(true));
   }, []);
 
   // Close info tooltip when clicking outside (mobile only) or when unhover (desktop)
@@ -151,6 +152,27 @@ export default function PrerequisitesPage() {
     }
   };
 
+  if (!departmentsLoaded) {
+    return (
+      <div className="w-full h-full pt-0 flex flex-col min-w-0 animate-pulse">
+        <div className="mb-6 flex flex-col gap-4 border-b border-panel-border pb-4 w-full min-w-0 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-center gap-2">
+            <div className="h-9 w-56 rounded bg-input-disabled" />
+            <div className="w-6 h-6 rounded-full bg-input-disabled shrink-0" />
+          </div>
+          <div className="h-[42px] w-full lg:max-w-xs rounded-full bg-input-disabled" />
+        </div>
+        <div className="bg-panel-bg rounded-3xl border border-panel-border flex-1 flex items-center justify-center min-h-[300px]">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-12 h-12 rounded-full bg-input-disabled" />
+            <div className="h-5 w-40 rounded bg-input-disabled" />
+            <div className="h-4 w-64 rounded bg-input-disabled" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full h-full pt-0 flex flex-col min-w-0">
       <div className="mb-6 flex flex-col gap-4 border-b border-panel-border pb-4 w-full min-w-0 lg:flex-row lg:items-center lg:justify-between">
@@ -239,13 +261,13 @@ export default function PrerequisitesPage() {
       </div>
 
       {selectedDepartment ? (
-        <div className="bg-panel-bg rounded-xl border border-panel-border overflow-hidden flex flex-col h-[calc(100vh-100px)] w-full">
+        <div className="bg-panel-bg rounded-3xl border border-panel-border overflow-hidden flex flex-col h-[calc(100vh-100px)] w-full">
           <div className="flex-1 overflow-hidden min-w-0 min-h-0 relative">
             <TreeVisualization department={selectedDepartment.mnemonic} departmentFullName={selectedDepartment.fullName} />
           </div>
         </div>
       ) : (
-        <div className="bg-panel-bg border border-panel-border rounded-xl p-12 text-center">
+        <div className="bg-panel-bg border border-panel-border rounded-3xl p-12 text-center">
           <Icon name="grid" color="currentColor" width={48} height={48} className="w-12 h-12 mx-auto mb-4 text-text-muted opacity-50" alt="No" />
           <p className="text-lg font-medium text-heading mb-2">No Department Selected</p>
           <p className="text-sm text-text-secondary">Select a department from the search bar to view its prerequisites tree</p>

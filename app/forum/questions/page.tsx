@@ -93,7 +93,7 @@ export default function ForumQuestionsPage() {
           </div>
           <div className="h-5 w-24 rounded bg-input-disabled shrink-0" />
         </div>
-        <div className="space-y-3 bg-panel-bg rounded-xl border border-panel-border p-4 pb-5 mb-4">
+        <div className="space-y-3 bg-panel-bg rounded-3xl border border-panel-border p-4 pb-5 mb-4">
           <div className="h-11 w-full rounded-[20px] bg-input-disabled" />
           <div className="h-40 w-full rounded-[20px] bg-input-disabled" />
           <div className="h-5 w-36 rounded bg-input-disabled" />
@@ -121,7 +121,7 @@ export default function ForumQuestionsPage() {
         </Link>
       </div>
 
-      <div className="bg-panel-bg rounded-xl border border-panel-border p-4 pb-5 mb-4">
+      <div className="bg-panel-bg rounded-3xl border border-panel-border p-4 pb-5 mb-4">
         {!canPost && (
           <p className="mb-4 text-sm text-text-secondary">Log in to ask questions, reply, and vote.</p>
         )}

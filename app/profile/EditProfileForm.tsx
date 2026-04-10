@@ -206,7 +206,7 @@ export default function EditProfileForm({
       <button
         type="button"
         onClick={() => setIsEditing(true)}
-        className="w-full sm:w-auto bg-button-bg text-button-text px-5 py-2.5 rounded-xl hover:bg-button-hover font-bold transition-colors cursor-pointer"
+        className="w-full sm:w-auto bg-button-bg text-button-text px-5 py-2.5 rounded-full hover:bg-button-hover font-bold transition-colors cursor-pointer"
       >
         Edit Profile
       </button>
@@ -216,7 +216,7 @@ export default function EditProfileForm({
   return (
     <div className="fixed z-50 flex items-center justify-center lg:inset-0 lg:bg-black/50 lg:p-4 max-lg:inset-x-0 max-lg:top-14 max-lg:bottom-0 max-lg:pt-0 max-lg:p-3" onClick={handleCancel}>
       <div 
-        className="bg-panel-bg rounded-2xl border border-panel-border shadow-xl max-lg:shadow-none max-w-2xl w-full max-h-[calc(100dvh-2rem)] overflow-hidden flex flex-col max-lg:rounded-3xl max-lg:max-w-none max-lg:h-full max-lg:max-h-none"
+        className="bg-panel-bg rounded-3xl border border-panel-border shadow-xl max-lg:shadow-none max-w-2xl w-full max-h-[calc(100dvh-2rem)] overflow-hidden flex flex-col max-lg:max-w-none max-lg:h-full max-lg:max-h-none"
         onClick={(e) => e.stopPropagation()}
       >
           {/* Header */}
@@ -240,7 +240,7 @@ export default function EditProfileForm({
                 type="text"
                 value={formDisplayName}
                 onChange={(e) => setFormDisplayName(e.target.value)}
-                className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary outline-none transition-all"
+                className="w-full px-4 py-3 border border-panel-border rounded-full bg-input-bg text-text-primary outline-none transition-all"
                 required
               />
             </div>
@@ -249,7 +249,7 @@ export default function EditProfileForm({
               <label className="block text-sm font-semibold text-text-secondary mb-2">Major</label>
               {!isMajorSearching && formMajor ? (
                 // Show selected major with clear button
-                <div className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all relative"
+                <div className="w-full px-4 py-3 border border-panel-border rounded-full bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all relative"
                   onClick={() => setIsMajorSearching(true)}
                   role="button"
                   tabIndex={0}
@@ -301,7 +301,7 @@ export default function EditProfileForm({
                           }
                         }, 100);
                       }}
-                      className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary placeholder:text-text-tertiary outline-none transition-all"
+                      className="w-full px-4 py-3 border border-panel-border rounded-full bg-input-bg text-text-primary placeholder:text-text-tertiary outline-none transition-all"
                     />
                   }
                 >
@@ -344,7 +344,7 @@ export default function EditProfileForm({
                     setIsMajorSearching(true);
                     setIsMajorOpen(true);
                   }}
-                  className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all"
+                  className="w-full px-4 py-3 border border-panel-border rounded-full bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all"
                 >
                   <span className="truncate text-text-tertiary">Select your major</span>
                   <Icon name="chevron-down" color="currentColor" width={16} height={16} className="w-4 h-4 shrink-0 text-text-secondary" />
@@ -354,7 +354,7 @@ export default function EditProfileForm({
 
             <div>
               <label className="block text-sm font-semibold text-text-secondary mb-2">School</label>
-              <div className="w-full px-4 py-3 border border-panel-border rounded-xl bg-panel-bg-alt text-text-primary">
+              <div className="w-full px-4 py-3 border border-panel-border rounded-full bg-panel-bg-alt text-text-primary">
                 {formSchool || <span className="text-text-tertiary">Select a major to auto-fill school</span>}
               </div>
             </div>
@@ -364,7 +364,7 @@ export default function EditProfileForm({
               <p className="text-xs text-text-tertiary mb-3">Select certificates, ROTC, honors programs, and other academic opportunities</p>
               {!isAdditionalProgramsSearching && formAdditionalPrograms.length > 0 ? (
                 // Show selected program with clear button
-                <div className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all relative"
+                <div className="w-full px-4 py-3 border border-panel-border rounded-full bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all relative"
                   onClick={() => setIsAdditionalProgramsSearching(true)}
                   role="button"
                   tabIndex={0}
@@ -416,7 +416,7 @@ export default function EditProfileForm({
                           }
                         }, 100);
                       }}
-                      className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary placeholder:text-text-tertiary outline-none transition-all"
+                      className="w-full px-4 py-3 border border-panel-border rounded-full bg-input-bg text-text-primary placeholder:text-text-tertiary outline-none transition-all"
                     />
                   }
                 >
@@ -459,7 +459,7 @@ export default function EditProfileForm({
                     setIsAdditionalProgramsSearching(true);
                     setIsAdditionalProgramsOpen(true);
                   }}
-                  className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all"
+                  className="w-full px-4 py-3 border border-panel-border rounded-full bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all"
                 >
                   <span className="truncate text-text-tertiary">Select additional programs</span>
                   <Icon name="chevron-down" color="currentColor" width={16} height={16} className="w-4 h-4 shrink-0 text-text-secondary" />
@@ -473,7 +473,7 @@ export default function EditProfileForm({
                 isOpen={isAcademicYearOpen}
                 onOpenChange={setIsAcademicYearOpen}
                 trigger={
-                  <button className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all">
+                  <button className="w-full px-4 py-3 border border-panel-border rounded-full bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all">
                     <span className={formCurrentAcademicYear ? 'truncate' : 'truncate text-text-tertiary'}>
                       {academicYearOptions.find(o => o.value === formCurrentAcademicYear)?.label ?? 'Select current academic year'}
                     </span>
@@ -513,7 +513,7 @@ export default function EditProfileForm({
                 isOpen={isGradYearOpen}
                 onOpenChange={setIsGradYearOpen}
                 trigger={
-                  <button className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all">
+                  <button className="w-full px-4 py-3 border border-panel-border rounded-full bg-input-bg text-text-primary text-left cursor-pointer flex items-center justify-between gap-3 focus:outline-none hover:border-panel-border-strong transition-all">
                     <span className={formGradYear ? 'truncate' : 'truncate text-text-tertiary'}>
                       {gradYearOptions.find(o => o.value === formGradYear)?.label ?? 'Select graduation year'}
                     </span>
@@ -554,7 +554,7 @@ export default function EditProfileForm({
                 onChange={(e) => setFormBio(e.target.value)}
                 placeholder="Tell others about yourself..."
                 rows={5}
-                className="w-full px-4 py-3 border border-panel-border rounded-xl bg-input-bg text-text-primary outline-none transition-all resize-none"
+                className="w-full px-4 py-3 border border-panel-border rounded-3xl bg-input-bg text-text-primary outline-none transition-all resize-none"
               />
             </div>
 
@@ -571,7 +571,7 @@ export default function EditProfileForm({
               type="button"
               onClick={handleCancel}
               disabled={isPending}
-              className="w-full sm:w-auto px-4 py-2 border border-panel-border-strong rounded-xl font-semibold text-text-primary hover:bg-hover-bg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full sm:w-auto px-4 py-2 border border-panel-border-strong rounded-full font-semibold text-text-primary hover:bg-hover-bg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
@@ -579,7 +579,7 @@ export default function EditProfileForm({
               type="button"
               onClick={handleSave}
               disabled={isPending || !hasChanges}
-              className={`w-full sm:w-auto px-4 py-2 rounded-xl font-semibold transition-colors cursor-pointer ${
+              className={`w-full sm:w-auto px-4 py-2 rounded-full font-semibold transition-colors cursor-pointer ${
                 hasChanges
                   ? 'bg-button-bg text-button-text hover:bg-button-hover disabled:opacity-50 disabled:cursor-not-allowed'
                   : 'border border-panel-border-strong text-text-primary hover:bg-hover-bg disabled:opacity-50 disabled:cursor-not-allowed'

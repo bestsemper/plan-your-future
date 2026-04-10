@@ -96,7 +96,7 @@ export function DropdownMenu({
       </div>
 
       {isOpen && !disabled && (
-        <div data-tutorial-dropdown-content className={`absolute z-20 mt-1.5 bg-panel-bg border border-panel-border rounded-xl shadow-lg overflow-hidden max-w-full ${
+        <div data-tutorial-dropdown-content className={`absolute z-20 mt-1.5 bg-panel-bg border border-panel-border rounded-3xl shadow-lg overflow-hidden max-w-full ${
           align === 'right' ? 'right-0 w-full' : align === 'center' ? 'left-1/2 -translate-x-1/2' : 'left-0 w-full'
         } ${contentClassName}`}>
           {children}

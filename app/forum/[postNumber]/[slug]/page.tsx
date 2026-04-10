@@ -404,7 +404,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
       <div className="w-full pt-0 pb-6 animate-pulse">
         <div className="h-5 w-24 rounded bg-input-disabled mb-6" />
         
-        <div className="bg-panel-bg rounded-xl border border-panel-border p-4 pb-5">
+        <div className="bg-panel-bg rounded-3xl border border-panel-border p-4 pb-5">
           
           <div className="space-y-3">
             <div className="h-9 w-3/4 rounded bg-input-disabled" />
@@ -651,7 +651,7 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
         </div>
       )}
 
-      <div className="bg-panel-bg rounded-xl border border-panel-border p-4 pb-5">
+      <div className="bg-panel-bg rounded-3xl border border-panel-border p-4 pb-5">
         <article>
           <div className="flex items-start justify-between gap-3 mb-1">
             <h1 className="text-3xl font-bold text-heading leading-tight">{post.title}</h1>

@@ -24,7 +24,7 @@ export default function PrivacySettings({ currentProfileVisibility }: PrivacySet
   };
 
   return (
-    <div className="bg-panel-bg p-6 rounded-xl border border-panel-border">
+    <div className="bg-panel-bg p-6 rounded-3xl border border-panel-border">
       <h2 className="text-xl font-bold mb-5 text-heading">Privacy Settings</h2>
       
       {error && (

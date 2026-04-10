@@ -67,11 +67,11 @@ export default function LoginPage() {
 
   return (
     <div className="max-w-5xl mx-auto py-10 px-4">
-      <div className="max-w-lg mx-auto bg-panel-bg border border-panel-border shadow-sm p-8 rounded-2xl">
+      <div className="max-w-lg mx-auto bg-panel-bg border border-panel-border shadow-sm p-8 rounded-3xl">
         <div className="flex flex-col mb-7 border-b border-panel-border pb-6">
           <div className="flex justify-between items-center mb-2">
             <h1 className="text-3xl font-bold text-heading">{isSignUp ? 'Create Account' : 'Sign In'}</h1>
-            <span className="bg-badge-orange-bg text-uva-orange border border-uva-orange/60 px-2.5 py-1 rounded-xl text-xs font-semibold flex items-center gap-1">
+            <span className="bg-badge-orange-bg text-uva-orange border border-uva-orange/60 px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
               <Icon name="lock" color="currentColor" width={12} height={12} />
               NetBadge
             </span>
@@ -96,7 +96,7 @@ export default function LoginPage() {
                 <input 
                   type="text" 
                   name="displayName"
-                  className="w-full p-3 border border-panel-border rounded-xl bg-input-bg text-text-primary outline-none transition-colors focus:border-uva-blue"
+                  className="w-full p-3 border border-panel-border rounded-full bg-input-bg text-text-primary outline-none transition-colors focus:border-uva-blue"
                   required
                 />
               </div>
@@ -106,7 +106,7 @@ export default function LoginPage() {
               <input 
                 type="text" 
                 name="computingId"
-                className="w-full p-3 border border-panel-border rounded-xl bg-input-bg text-text-primary outline-none transition-colors focus:border-uva-blue"
+                className="w-full p-3 border border-panel-border rounded-full bg-input-bg text-text-primary outline-none transition-colors focus:border-uva-blue"
                 required
               />
             </div>
@@ -115,7 +115,7 @@ export default function LoginPage() {
               <input 
                 type="password" 
                 name="password"
-                className="w-full p-3 border border-panel-border rounded-xl bg-input-bg text-text-primary outline-none transition-colors focus:border-uva-blue"
+                className="w-full p-3 border border-panel-border rounded-full bg-input-bg text-text-primary outline-none transition-colors focus:border-uva-blue"
                 required
               />
             </div>
@@ -125,7 +125,7 @@ export default function LoginPage() {
                 <input 
                   type="password" 
                   name="confirmPassword"
-                  className="w-full p-3 border border-panel-border rounded-xl bg-input-bg text-text-primary outline-none transition-colors focus:border-uva-blue"
+                  className="w-full p-3 border border-panel-border rounded-full bg-input-bg text-text-primary outline-none transition-colors focus:border-uva-blue"
                   required
                 />
               </div>
@@ -135,7 +135,7 @@ export default function LoginPage() {
           <div className="flex flex-col gap-4 mt-8">
             <button 
               type="submit" 
-              className="w-full bg-uva-blue text-white px-5 py-3 rounded-xl hover:bg-uva-blue-dark font-bold transition-colors cursor-pointer flex justify-center items-center gap-2"
+              className="w-full bg-uva-blue text-white px-5 py-3 rounded-full hover:bg-uva-blue-dark font-bold transition-colors cursor-pointer flex justify-center items-center gap-2"
             >
               {isSignUp ? 'Create Account' : 'Log In'}
               {!isSignUp && <Icon name="arrow-right" color="currentColor" width={16} height={16} />}
@@ -152,7 +152,7 @@ export default function LoginPage() {
                 setIsSignUp(!isSignUp);
                 setError(null);
               }}
-              className="w-full bg-panel-bg-alt border border-panel-border text-text-primary px-5 py-3 rounded-xl hover:bg-hover-bg font-bold transition-colors cursor-pointer"
+              className="w-full bg-panel-bg-alt border border-panel-border text-text-primary px-5 py-3 rounded-full hover:bg-hover-bg font-bold transition-colors cursor-pointer"
             >
               {isSignUp ? 'Already have an account? Log In' : "Don't have an account? Sign Up"}
             </button>

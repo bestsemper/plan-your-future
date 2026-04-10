@@ -275,11 +275,42 @@ export default function CoursesPage() {
 
   if (loading) {
     return (
-      <div className="w-full pt-0 pb-6">
+      <div className="w-full pt-0 pb-6 animate-pulse">
         <div className="mb-6 border-b border-panel-border pb-4">
-          <h1 className="text-3xl font-bold text-heading">Course Search</h1>
+          <div className="h-9 w-44 rounded bg-input-disabled" />
         </div>
-        <div className="text-center py-8 text-text-secondary">Loading courses...</div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left: search + filters */}
+          <div className="lg:col-span-1 space-y-4">
+            <div className="bg-panel-bg rounded-3xl border border-panel-border p-6 space-y-3">
+              <div className="h-4 w-32 rounded bg-input-disabled" />
+              <div className="h-10 w-full rounded-full bg-input-disabled" />
+            </div>
+            <div className="bg-panel-bg rounded-3xl border border-panel-border p-6 space-y-4">
+              <div className="h-4 w-16 rounded bg-input-disabled" />
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="space-y-1.5">
+                  <div className="h-3 w-24 rounded bg-input-disabled" />
+                  <div className="h-10 w-full rounded-full bg-input-disabled" />
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* Right: course detail placeholder */}
+          <div className="lg:col-span-2">
+            <div className="bg-panel-bg rounded-3xl border border-panel-border p-6 space-y-4">
+              <div className="h-7 w-36 rounded bg-input-disabled" />
+              <div className="h-4 w-52 rounded bg-input-disabled" />
+              <div className="h-4 w-20 rounded bg-input-disabled" />
+              <div className="pt-2 space-y-2">
+                <div className="h-4 w-full rounded bg-input-disabled" />
+                <div className="h-4 w-5/6 rounded bg-input-disabled" />
+                <div className="h-4 w-4/5 rounded bg-input-disabled" />
+                <div className="h-4 w-3/4 rounded bg-input-disabled" />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -293,7 +324,7 @@ export default function CoursesPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Search Panel */}
         <div className="lg:col-span-1">
-          <div className="bg-panel-bg p-6 rounded-xl border border-panel-border" data-tutorial-target="courses-search-input">
+          <div className="bg-panel-bg p-6 rounded-3xl border border-panel-border" data-tutorial-target="courses-search-input">
             <label className="block text-sm font-semibold text-heading mb-3">Search Courses</label>
             <DropdownMenu
               isOpen={showDropdown && filteredCourses.length > 0}
@@ -344,7 +375,7 @@ export default function CoursesPage() {
           </div>
 
           {/* Filters Panel */}
-          <div className="bg-panel-bg p-6 rounded-xl border border-panel-border mt-4 space-y-4">
+          <div className="bg-panel-bg p-6 rounded-3xl border border-panel-border mt-4 space-y-4">
             <label className="block text-sm font-semibold text-heading">Filters</label>
             
             {/* Department Filter */}
@@ -564,7 +595,7 @@ export default function CoursesPage() {
               onInfoMouseLeave={handleInfoMouseLeave}
             />
           ) : (
-            <div className="bg-panel-bg p-6 rounded-xl border border-panel-border text-center py-12">
+            <div className="bg-panel-bg p-6 rounded-3xl border border-panel-border text-center py-12">
             <Icon name="book" color="currentColor" width={48} height={48} className="w-12 h-12 mx-auto mb-4 text-text-muted opacity-50" />
               <p className="text-text-secondary">Search for a course to view its details</p>
             </div>
@@ -709,7 +740,7 @@ function CourseDescriptionContent({
 
   if (!courseInfo) {
     return (
-      <div className="bg-panel-bg p-6 rounded-xl border border-panel-border text-center py-12">
+      <div className="bg-panel-bg p-6 rounded-3xl border border-panel-border text-center py-12">
         <Icon name="book" color="currentColor" width={48} height={48} className="w-12 h-12 mx-auto mb-4 text-text-muted opacity-50" />
         <p className="text-text-secondary">Search for a course to view its details</p>
       </div>
@@ -732,7 +763,7 @@ function CourseDescriptionContent({
   };
 
   return (
-    <div className="bg-panel-bg rounded-xl border border-panel-border flex flex-col h-[calc(100vh-200px)]">
+    <div className="bg-panel-bg rounded-3xl border border-panel-border flex flex-col h-[calc(100vh-200px)]">
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
         <div>
           <div className="flex items-start justify-between gap-3">
@@ -765,7 +796,7 @@ function CourseDescriptionContent({
           </div>
 
           {showAddToPlan && (
-            <div className="mt-3 p-3 rounded-xl border border-panel-border bg-hover-bg/30 space-y-3">
+            <div className="mt-3 p-3 rounded-3xl border border-panel-border bg-hover-bg/30 space-y-3">
               <div className="flex flex-wrap gap-2">
                 <DropdownMenu
                   isOpen={isPlanDropdownOpen}
@@ -774,7 +805,7 @@ function CourseDescriptionContent({
                     <button
                       type="button"
                       data-tutorial-target="courses-plan-select"
-                      className="h-9 px-3 border border-panel-border rounded-xl bg-input-bg text-text-primary text-sm text-left cursor-pointer flex items-center justify-between gap-2 focus:outline-none hover:border-panel-border-strong transition-all min-w-36"
+                      className="h-9 px-3 border border-panel-border rounded-full bg-input-bg text-text-primary text-sm text-left cursor-pointer flex items-center justify-between gap-2 focus:outline-none hover:border-panel-border-strong transition-all min-w-36"
                     >
                       <span className="truncate">{selectedPlan ? selectedPlan.title : 'Select plan'}</span>
                       <Icon name="chevron-down" color="currentColor" width={14} height={14} className="shrink-0 text-text-secondary" />
@@ -807,7 +838,7 @@ function CourseDescriptionContent({
                       type="button"
                       data-tutorial-target="courses-semester-select"
                       disabled={!selectedPlan}
-                      className="h-9 px-3 border border-panel-border rounded-xl bg-input-bg text-text-primary text-sm text-left cursor-pointer flex items-center justify-between gap-2 focus:outline-none hover:border-panel-border-strong transition-all min-w-40 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="h-9 px-3 border border-panel-border rounded-full bg-input-bg text-text-primary text-sm text-left cursor-pointer flex items-center justify-between gap-2 focus:outline-none hover:border-panel-border-strong transition-all min-w-40 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <span className="truncate">
                         {selectedSemesterId
@@ -842,7 +873,7 @@ function CourseDescriptionContent({
                   data-tutorial-target="courses-add-to-plan-submit"
                   onClick={() => void handleAddToPlan()}
                   disabled={!selectedSemesterId || addStatus === 'loading' || addStatus === 'success'}
-                  className="h-9 px-4 rounded-xl bg-button-bg text-button-text text-sm font-semibold hover:bg-button-hover transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="h-9 px-4 rounded-full bg-button-bg text-button-text text-sm font-semibold hover:bg-button-hover transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {addStatus === 'loading' ? 'Adding...' : addStatus === 'success' ? 'Added!' : 'Add'}
                 </button>
@@ -851,7 +882,7 @@ function CourseDescriptionContent({
                   <button
                     type="button"
                     onClick={() => setShowAddToPlan(false)}
-                    className="h-9 px-4 rounded-xl border border-panel-border text-text-primary text-sm font-semibold hover:bg-hover-bg transition-colors cursor-pointer"
+                    className="h-9 px-4 rounded-full border border-panel-border text-text-primary text-sm font-semibold hover:bg-hover-bg transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>

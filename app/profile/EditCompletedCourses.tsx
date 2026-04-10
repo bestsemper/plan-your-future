@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { getCompletedCourses, addCompletedCourse, deleteCompletedCourse, getPlanBuilderData, importCompletedCoursesFromAuditPdf } from '@/app/actions';
 import { Icon } from '@/app/components/Icon';
+import ConfirmModal from '@/app/components/ConfirmModal';
 
 interface CompletedCourse {
   id: string;
@@ -58,6 +59,8 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
   const [showTransfer, setShowTransfer] = useState(true);
   const [showExtra, setShowExtra] = useState(true);
   const [showTaken, setShowTaken] = useState(false);
+  const [courseToDelete, setCourseToDelete] = useState<string | null>(null);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
   const getCurrentSemesterRank = () => {
     const now = new Date();
@@ -233,10 +236,16 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
     setShowDropdown(false);
   }
 
-  async function handleDeleteCourse(courseId: string) {
-    if (!confirm('Are you sure you want to delete this course?')) {
-      return;
-    }
+  const requestDeleteCourse = (courseId: string) => {
+    setCourseToDelete(courseId);
+    setIsDeleteConfirmOpen(true);
+  };
+
+  async function handleDeleteCourse() {
+    if (!courseToDelete) return;
+    const courseId = courseToDelete;
+    setIsDeleteConfirmOpen(false);
+    setCourseToDelete(null);
 
     setIsDeleting(courseId);
     setError('');
@@ -290,7 +299,7 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
       <button
         onClick={() => setInternalIsOpen(true)}
         data-tutorial-target="open-completed-courses"
-        className="w-full sm:w-auto border border-dashed border-panel-border-strong px-5 py-2.5 rounded-xl hover:bg-hover-bg text-text-primary font-semibold transition-colors cursor-pointer"
+        className="w-full sm:w-auto border border-dashed border-panel-border-strong px-5 py-2.5 rounded-full hover:bg-hover-bg text-text-primary font-semibold transition-colors cursor-pointer"
       >
         Completed Courses
       </button>
@@ -300,7 +309,7 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
   return (
     <div className="fixed z-50 flex items-center justify-center lg:inset-0 lg:bg-black/50 lg:p-4 max-lg:inset-x-0 max-lg:top-14 max-lg:bottom-0 max-lg:pt-0 max-lg:p-3" onClick={closeModal}>
       <div 
-        className="bg-panel-bg rounded-2xl border border-panel-border shadow-xl max-lg:shadow-none max-w-2xl w-full max-h-[calc(100dvh-2rem)] overflow-hidden flex flex-col max-lg:rounded-3xl max-lg:max-w-none max-lg:h-full max-lg:max-h-none"
+        className="bg-panel-bg rounded-3xl border border-panel-border shadow-xl max-lg:shadow-none max-w-2xl w-full max-h-[calc(100dvh-2rem)] overflow-hidden flex flex-col max-lg:max-w-none max-lg:h-full max-lg:max-h-none"
         onClick={(e) => e.stopPropagation()}
       >
           {/* Header */}
@@ -324,7 +333,7 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
               </div>
             )}
 
-            <div className="border border-panel-border rounded-2xl p-6 bg-panel-bg space-y-3" data-tutorial-target="audit-import-container">
+            <div className="border border-panel-border rounded-3xl p-6 bg-panel-bg space-y-3" data-tutorial-target="audit-import-container">
               <h3 className="font-semibold text-heading text-base">Import Audit Report</h3>
               <p className="text-sm text-text-secondary">
                 Open Stellic → Plan your Path → Print Audit Report → Create audit report
@@ -341,14 +350,14 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
                 data-tutorial-target="audit-import-submit"
                 onClick={() => void handleImportFromAuditPdf()}
                 disabled={isImporting}
-                className="w-full px-6 py-3 bg-button-bg text-button-text rounded-xl font-semibold hover:bg-button-hover transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-6 py-3 bg-button-bg text-button-text rounded-full font-semibold hover:bg-button-hover transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isImporting ? 'Importing...' : 'Import Audit Report'}
               </button>
             </div>
 
             {/* Add Course Form */}
-            <div className="border border-panel-border rounded-2xl p-6 bg-panel-bg">
+            <div className="border border-panel-border rounded-3xl p-6 bg-panel-bg">
               <h3 className="font-semibold text-heading mb-4 text-base">Add Extra Course</h3>
               <p className="text-sm text-text-secondary mb-4">
                 Use this only for extra courses not shown in your audit report (e.g. courses from placement or skip tests).
@@ -365,7 +374,7 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
                       onChange={(e) => handleCourseSearchChange(e.target.value)}
                       onFocus={() => setShowDropdown(true)}
                       onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
-                      className="w-full px-4 py-3 bg-input-bg border border-panel-border rounded-xl text-text-primary outline-none focus:border-white focus:ring-2 focus:ring-white/20 transition-all"
+                      className="w-full px-4 py-3 bg-input-bg border border-panel-border rounded-full text-text-primary outline-none focus:border-white focus:ring-2 focus:ring-white/20 transition-all"
                       disabled={isSaving}
                     />
                     {showDropdown && filteredCourseOptions.length > 0 && (
@@ -391,7 +400,7 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="w-full px-6 py-3 bg-button-bg text-button-text rounded-xl font-semibold hover:bg-button-hover transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full px-6 py-3 bg-button-bg text-button-text rounded-full font-semibold hover:bg-button-hover transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSaving ? 'Adding...' : 'Add Course'}
                 </button>
@@ -405,27 +414,37 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
                 <button
                   type="button"
                   onClick={() => setShowTransfer((prev) => !prev)}
-                  className={`px-3 py-1.5 text-xs font-semibold rounded-xl border transition-colors cursor-pointer ${showTransfer ? 'bg-hover-bg text-text-primary border-panel-border-strong' : 'border-panel-border-strong text-text-secondary hover:bg-hover-bg'}`}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-full border transition-colors cursor-pointer ${showTransfer ? 'bg-hover-bg text-text-primary border-panel-border-strong' : 'border-panel-border-strong text-text-secondary hover:bg-hover-bg'}`}
                 >
                   Transfer
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowExtra((prev) => !prev)}
-                  className={`px-3 py-1.5 text-xs font-semibold rounded-xl border transition-colors cursor-pointer ${showExtra ? 'bg-hover-bg text-text-primary border-panel-border-strong' : 'border-panel-border-strong text-text-secondary hover:bg-hover-bg'}`}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-full border transition-colors cursor-pointer ${showExtra ? 'bg-hover-bg text-text-primary border-panel-border-strong' : 'border-panel-border-strong text-text-secondary hover:bg-hover-bg'}`}
                 >
                   Extra
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowTaken((prev) => !prev)}
-                  className={`px-3 py-1.5 text-xs font-semibold rounded-xl border transition-colors cursor-pointer ${showTaken ? 'bg-hover-bg text-text-primary border-panel-border-strong' : 'border-panel-border-strong text-text-secondary hover:bg-hover-bg'}`}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-full border transition-colors cursor-pointer ${showTaken ? 'bg-hover-bg text-text-primary border-panel-border-strong' : 'border-panel-border-strong text-text-secondary hover:bg-hover-bg'}`}
                 >
                   Taken
                 </button>
               </div>
               {loading ? (
-                <p className="text-text-secondary">Loading...</p>
+                <div className="space-y-2 animate-pulse">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="flex items-center justify-between px-4 py-3 bg-input-bg border border-panel-border rounded-xl">
+                      <div className="flex-1 space-y-1.5">
+                        <div className="h-4 w-24 rounded bg-input-disabled" />
+                        <div className="h-3 w-40 rounded bg-input-disabled" />
+                      </div>
+                      <div className="ml-3 h-7 w-14 rounded-full bg-input-disabled shrink-0" />
+                    </div>
+                  ))}
+                </div>
               ) : courses.length === 0 ? (
                 <p className="text-text-secondary">No completed courses yet.</p>
               ) : filteredListedCourses.length === 0 ? (
@@ -441,7 +460,7 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
                         <div className="flex items-baseline gap-2">
                           <div className="font-semibold text-text-primary">{course.courseCode}</div>
                           {course.semesterTaken && (
-                            <div className="text-xs font-medium bg-badge-blue-bg text-badge-blue-text px-2 py-0.5 rounded-lg whitespace-nowrap">
+                            <div className="text-xs font-medium bg-badge-blue-bg text-badge-blue-text px-2 py-0.5 rounded-full whitespace-nowrap">
                               {course.semesterTaken}
                             </div>
                           )}
@@ -449,9 +468,9 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
                         {course.title && <div className="text-sm text-text-secondary">{course.title}</div>}
                       </div>
                       <button
-                        onClick={() => handleDeleteCourse(course.id)}
+                        onClick={() => requestDeleteCourse(course.id)}
                         disabled={isDeleting === course.id}
-                        className="ml-3 px-2.5 py-1.5 rounded-xl border border-red-400 text-red-500 hover:bg-red-500/10 text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                        className="ml-3 px-2.5 py-1.5 rounded-full border border-red-400 text-red-500 hover:bg-red-500/10 text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
                       >
                         {isDeleting === course.id ? 'Deleting...' : 'Delete'}
                       </button>
@@ -462,6 +481,16 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
             </div>
           </div>
       </div>
+
+      <ConfirmModal
+        isOpen={isDeleteConfirmOpen}
+        title="Delete Course"
+        message="Remove this course from your completed courses? This cannot be undone."
+        confirmLabel="Delete"
+        isConfirming={!!isDeleting}
+        onCancel={() => { setIsDeleteConfirmOpen(false); setCourseToDelete(null); }}
+        onConfirm={() => void handleDeleteCourse()}
+      />
     </div>
   );
 }

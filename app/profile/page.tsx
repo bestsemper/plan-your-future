@@ -25,7 +25,7 @@ export default async function Profile() {
 
   return (
     <div className="max-w-5xl mx-auto">
-      <div className="bg-panel-bg p-4 md:p-8 rounded-2xl border border-panel-border mb-8 flex flex-col md:flex-row md:justify-between items-stretch md:items-start gap-6">
+      <div className="bg-panel-bg p-4 md:p-8 rounded-3xl border border-panel-border mb-8 flex flex-col md:flex-row md:justify-between items-stretch md:items-start gap-6">
         <div className="min-w-0 flex-1">
           <div className="flex flex-col sm:flex-row items-center sm:items-center gap-4 md:gap-6 mb-6 text-center sm:text-left">
             <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-uva-orange flex items-center justify-center text-white text-2xl md:text-3xl font-bold uppercase shrink-0">
@@ -62,7 +62,7 @@ export default async function Profile() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-panel-bg p-6 rounded-xl border border-panel-border">
+        <div className="bg-panel-bg p-6 rounded-3xl border border-panel-border">
           <h2 className="text-xl font-bold mb-5 text-heading">Activity Stats</h2>
           <div className="space-y-4">
             <div className="flex justify-between border-b pb-3 border-panel-border">

@@ -48,7 +48,7 @@ export default async function UserProfilePage({
           </div>
         </div>
 
-        <div className="bg-panel-bg p-6 rounded-xl border border-panel-border">
+        <div className="bg-panel-bg p-6 rounded-3xl border border-panel-border">
           <h2 className="text-xl font-bold mb-5 text-heading">Academic Info</h2>
           <div className="space-y-4">
             <div className="flex justify-between border-b pb-3 border-panel-border">
@@ -97,7 +97,7 @@ export default async function UserProfilePage({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-panel-bg p-6 rounded-xl border border-panel-border">
+        <div className="bg-panel-bg p-6 rounded-3xl border border-panel-border">
           <h2 className="text-xl font-bold mb-5 text-heading">Activity</h2>
           <div className="space-y-4">
             <div className="flex justify-between border-b pb-3 border-panel-border">
@@ -107,7 +107,7 @@ export default async function UserProfilePage({
           </div>
         </div>
 
-        <div className="bg-panel-bg p-6 rounded-xl border border-panel-border">
+        <div className="bg-panel-bg p-6 rounded-3xl border border-panel-border">
           <h2 className="text-xl font-bold mb-5 text-heading">Badges</h2>
           <div className="flex gap-3 flex-wrap">
             <div className="bg-badge-orange-bg text-uva-orange px-3 py-2 rounded-lg flex items-center gap-2 text-sm font-bold border border-uva-orange/30">

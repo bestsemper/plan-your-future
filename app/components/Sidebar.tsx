@@ -137,7 +137,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
                 href={link.href}
                 data-tutorial-target={tutorialTargetByHref[link.href]}
                 onClick={() => setMobileNavOpen(false)}
-                className={`flex items-center gap-3 px-4 py-2.5 transition-colors font-medium rounded-xl border ${
+                className={`flex items-center gap-3 px-4 py-2.5 transition-colors font-medium rounded-2xl border ${
                   isActive(link.href)
                     ? "bg-white text-slate-900 border-black/15"
                     : "text-white/75 hover:text-white hover:bg-black/20 border-transparent hover:border-white/10"
@@ -158,7 +158,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
                 type="button"
                 onClick={() => setMenuOpen((prev) => !prev)}
                 data-tutorial-target="account-menu-toggle"
-                className="w-full flex items-center space-x-3 rounded-xl hover:bg-black/20 p-2.5 transition-colors border border-transparent hover:border-white/10 cursor-pointer"
+                className="w-full flex items-center space-x-3 rounded-2xl hover:bg-black/20 p-2.5 transition-colors border border-transparent hover:border-white/10 cursor-pointer"
               >
                 <div className="w-8 h-8 rounded-full bg-uva-orange flex items-center justify-center text-white font-bold uppercase">
                   {user.displayName.charAt(0)}
@@ -170,7 +170,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
               </button>
 
               {menuOpen && (
-                <div className="absolute left-0 right-0 bottom-full mb-2 rounded-xl border border-white/10 bg-[#1c243c] shadow-lg p-1.5 z-20">
+                <div className="absolute left-0 right-0 bottom-full mb-2 rounded-2xl border border-white/10 bg-[#1c243c] shadow-lg p-1.5 z-20">
                   <Link
                     href="/profile"
                     data-tutorial-target="account-menu-profile"
@@ -178,7 +178,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
                       setMenuOpen(false);
                       setMobileNavOpen(false);
                     }}
-                    className="block rounded-lg px-3 py-2 text-sm font-medium text-white/75 hover:text-white hover:bg-white/10"
+                    className="block rounded-xl px-3 py-2 text-sm font-medium text-white/75 hover:text-white hover:bg-white/10"
                   >
                     Profile
                   </Link>
@@ -189,7 +189,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
                         setMenuOpen(false);
                         setMobileNavOpen(false);
                       }}
-                      className="w-full text-left rounded-lg px-3 py-2 text-sm font-medium text-white/75 hover:text-white hover:bg-white/10 cursor-pointer"
+                      className="w-full text-left rounded-xl px-3 py-2 text-sm font-medium text-white/75 hover:text-white hover:bg-white/10 cursor-pointer"
                     >
                       Sign Out
                     </button>
@@ -198,7 +198,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
               )}
             </div>
           ) : (
-            <Link href="/login" className="mt-1 flex items-center justify-center w-full text-sm text-uva-blue bg-white hover:bg-white/90 py-2.5 rounded-xl transition-colors font-bold shadow-sm border border-black/10">
+            <Link href="/login" className="mt-1 flex items-center justify-center w-full text-sm text-uva-blue bg-white hover:bg-white/90 py-2.5 rounded-2xl transition-colors font-bold shadow-sm border border-black/10">
               Sign In
             </Link>
           )}
@@ -219,7 +219,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
                 key={link.href}
                 href={link.href}
                 data-tutorial-target={tutorialTargetByHref[link.href]}
-                className={`flex items-center gap-3 px-4 py-2.5 transition-colors font-medium rounded-xl border ${
+                className={`flex items-center gap-3 px-4 py-2.5 transition-colors font-medium rounded-2xl border ${
                   isActive(link.href)
                     ? "bg-white text-slate-900 border-black/15"
                     : "text-white/75 hover:text-white hover:bg-black/20 border-transparent hover:border-white/10"
@@ -233,7 +233,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
               <button
                 type="button"
                 onClick={startTutorial}
-                className="w-full flex items-center gap-3 px-4 py-2.5 transition-colors font-medium rounded-xl border text-white/75 hover:text-white hover:bg-black/20 border-transparent hover:border-white/10 cursor-pointer"
+                className="w-full flex items-center gap-3 px-4 py-2.5 transition-colors font-medium rounded-2xl border text-white/75 hover:text-white hover:bg-black/20 border-transparent hover:border-white/10 cursor-pointer"
               >
                 <Icon name="help-circle" color="currentColor" width={18} height={18} />
                 Help & Tutorial
@@ -249,7 +249,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
                 type="button"
                 onClick={() => setMenuOpen((prev) => !prev)}
                 data-tutorial-target="account-menu-toggle"
-                className="w-full flex items-center space-x-3 rounded-xl hover:bg-black/20 p-2.5 transition-colors border border-transparent hover:border-white/10 cursor-pointer"
+                className="w-full flex items-center space-x-3 rounded-2xl hover:bg-black/20 p-2.5 transition-colors border border-transparent hover:border-white/10 cursor-pointer"
               >
                 <div className="w-8 h-8 rounded-full bg-uva-orange flex items-center justify-center text-white font-bold uppercase">
                   {user.displayName.charAt(0)}
@@ -261,19 +261,19 @@ export default function Sidebar({ user }: { user: { computingId: string, display
               </button>
 
               {menuOpen && (
-                <div className="absolute left-0 right-0 bottom-full mb-2 rounded-xl border border-white/10 bg-[#1c243c] shadow-lg p-1.5 z-20">
+                <div className="absolute left-0 right-0 bottom-full mb-2 rounded-2xl border border-white/10 bg-[#1c243c] shadow-lg p-1.5 z-20">
                   <Link
                     href="/profile"
                     data-tutorial-target="account-menu-profile"
                     onClick={() => setMenuOpen(false)}
-                    className="block rounded-lg px-3 py-2 text-sm font-medium text-white/75 hover:text-white hover:bg-white/10"
+                    className="block rounded-xl px-3 py-2 text-sm font-medium text-white/75 hover:text-white hover:bg-white/10"
                   >
                     Profile
                   </Link>
                   <form action={logout} suppressHydrationWarning>
                     <button
                       type="submit"
-                      className="w-full text-left rounded-lg px-3 py-2 text-sm font-medium text-white/75 hover:text-white hover:bg-white/10 cursor-pointer"
+                      className="w-full text-left rounded-xl px-3 py-2 text-sm font-medium text-white/75 hover:text-white hover:bg-white/10 cursor-pointer"
                     >
                       Sign Out
                     </button>
@@ -282,7 +282,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
               )}
             </div>
           ) : (
-            <Link href="/login" className="mt-1 flex items-center justify-center w-full text-sm text-uva-blue bg-white hover:bg-white/90 py-2.5 rounded-xl transition-colors font-bold shadow-sm border border-black/10">
+            <Link href="/login" className="mt-1 flex items-center justify-center w-full text-sm text-uva-blue bg-white hover:bg-white/90 py-2.5 rounded-2xl transition-colors font-bold shadow-sm border border-black/10">
               Sign In
             </Link>
           )}

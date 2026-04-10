@@ -943,7 +943,30 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
   }, [layout]); // Important: must re-run when layout is ready so container ref is not null
 
   if (loading) {
-    return <div className="text-gray-600 p-4">Loading...</div>;
+    return (
+      <div className="w-full h-full flex items-center justify-center animate-pulse">
+        <div className="flex flex-col items-center gap-6 w-full px-8">
+          {/* Simulated top row of nodes */}
+          <div className="flex items-center justify-center gap-6">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="h-10 w-[90px] rounded-2xl bg-input-disabled" />
+            ))}
+          </div>
+          {/* Simulated mid row */}
+          <div className="flex items-center justify-center gap-6">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="h-10 w-[90px] rounded-2xl bg-input-disabled" />
+            ))}
+          </div>
+          {/* Simulated bottom row */}
+          <div className="flex items-center justify-center gap-6">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-10 w-[90px] rounded-2xl bg-input-disabled" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
@@ -1053,7 +1076,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
           contentClassName="-inset-x-0.75"
           className="w-full"
           trigger={
-            <div className="relative bg-panel-bg/90 backdrop-blur p-0.5 rounded-xl border border-panel-border shadow-sm" data-tutorial-target="prereq-tree-course-search">
+            <div className="relative bg-panel-bg/90 backdrop-blur p-0.5 rounded-3xl border border-panel-border shadow-sm" data-tutorial-target="prereq-tree-course-search">
               <Icon
                 name="search"
                 color="currentColor"
@@ -1095,8 +1118,8 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
       </div>
 
       {/* Zoom Controls - Right Side */}
-      <div className="absolute top-4 right-4 z-10 bg-panel-bg/90 backdrop-blur p-0.5 rounded-xl border border-panel-border shadow-sm flex items-center">
-        <div className="flex bg-panel-bg rounded-lg overflow-hidden">
+      <div className="absolute top-4 right-4 z-10 bg-panel-bg/90 backdrop-blur p-0.5 rounded-full border border-panel-border shadow-sm flex items-center">
+        <div className="flex bg-panel-bg rounded-full overflow-hidden">
           <button 
             onClick={() => handleZoom(0.2)} 
             className="flex items-center justify-center p-2.5 text-text-tertiary cursor-pointer transition-colors"
@@ -1496,7 +1519,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
                 fill={isDark ? (activeNodeId === id ? "#7b8a97" : isDirectlyConnected ? "#4b5563" : "#1f2937") : (activeNodeId === id ? "#e5e7eb" : isDirectlyConnected ? "#ececf1" : "#ffffff")}
                 stroke={isDark ? (activeNodeId === id ? "#6b7280" : isDirectlyConnected ? "#6b7280" : "#6b7280") : (activeNodeId === id ? "#9ca3af" : isDirectlyConnected ? "#d1d5db" : "#d1d5db")}
                 strokeWidth={activeNodeId === id ? 2.5 : isDirectlyConnected ? 2 : strokeWidth}
-                rx={8}
+                rx={24}
                 onMouseEnter={(e) => {
                   if (!clickedNodeId) {
                     // Normal hover behavior when no node is clicked
@@ -1571,7 +1594,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
         return (
           <div
             ref={popupRef}
-            className="fixed bottom-5 right-5 z-[1000] min-w-[200px] max-w-[250px] bg-panel-bg border border-panel-border-strong rounded-lg p-3 text-xs shadow-lg pointer-events-auto"
+            className="fixed bottom-5 right-5 z-[1000] min-w-[200px] max-w-[250px] bg-panel-bg border border-panel-border-strong rounded-3xl p-3 text-xs shadow-lg pointer-events-auto"
           >
             <div className="font-bold mb-2 text-sm text-primary">
               {targetId}
