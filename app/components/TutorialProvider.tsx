@@ -188,6 +188,16 @@ const tutorialSteps: TutorialStep[] = [
     progressEvents: ["planImportCompleted"],
   },
   {
+    id: "plan_imported",
+    featureId: "plan",
+    title: "Plan imported",
+    body: "Your plan is now in Plan Builder. Use this dropdown to switch between plans anytime.",
+    primaryCta: "Continue",
+    secondaryCta: "Skip",
+    route: "/plan",
+    targetSelector: '[data-tutorial-target="plan-selector"]',
+  },
+  {
     id: "plan_skip_warning",
     featureId: "plan",
     title: "You can import this later",
@@ -391,6 +401,7 @@ const tutorialSteps: TutorialStep[] = [
     body: "You can now write a question, add tags, and attach your plan. When done, click Post.",
     primaryCta: "Done",
     route: "/forum/questions",
+    targetSelector: '[data-tutorial-target="ask-question-page"]',
   },
 
   {
@@ -417,6 +428,7 @@ const orderedFlowStepIds = [
   "plan_choose_mode",
   "plan_choose_file",
   "plan_submit",
+  "plan_imported",
   "courses_feature",
   "courses_search_input",
   "courses_select_specific_class",
@@ -958,17 +970,18 @@ export default function TutorialProvider({
             <rect width="100%" height="100%" fill="rgba(0,0,0,0.58)" mask="url(#tutorial-spotlight-mask)" />
             {highlightRect && (
               <g className="tutorial-spotlight-ring">
-                {/* Outer glow */}
+                {/* Inner glow (only inside) */}
                 <rect
-                  x={highlightRect.left}
-                  y={highlightRect.top}
-                  width={highlightRect.width}
-                  height={highlightRect.height}
-                  rx={highlightRect.borderRadius}
-                  ry={highlightRect.borderRadius}
+                  x={highlightRect.left + 2}
+                  y={highlightRect.top + 2}
+                  width={Math.max(0, highlightRect.width - 4)}
+                  height={Math.max(0, highlightRect.height - 4)}
+                  rx={Math.max(0, highlightRect.borderRadius - 2)}
+                  ry={Math.max(0, highlightRect.borderRadius - 2)}
                   fill="none"
-                  stroke="rgba(229,114,0,0.18)"
-                  strokeWidth="12"
+                  stroke="var(--color-uva-orange)"
+                  strokeWidth="4"
+                  className="tutorial-inner-glow"
                 />
                 {/* Main orange ring */}
                 <rect

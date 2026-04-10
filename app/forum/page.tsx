@@ -308,9 +308,9 @@ export default function ForumPage() {
           isOpen={isSortDropdownOpen}
           onOpenChange={setIsSortDropdownOpen}
           align="right"
+          tutorialTarget="forum-sort-button"
           trigger={
             <button
-              data-tutorial-target="forum-sort-button"
               type="button"
               className="inline-flex items-center h-8 gap-1.5 px-3 text-xs font-semibold text-text-primary hover:bg-hover-bg rounded-full transition-colors cursor-pointer"
             >

@@ -214,38 +214,25 @@ body {
   background-clip: padding-box;
 }
 
-.tutorial-target-elevated {
-  position: relative;
-  z-index: 95;
+.tutorial-inner-glow {
+  animation: tutorial-inner-glow-pulse 1.2s ease-in-out infinite;
 }
 
-.tutorial-target-highlight {
-  position: relative;
-  z-index: 95;
-  outline: 4px solid var(--color-uva-orange);
-  outline-offset: 4px;
-  box-shadow: 0 0 0 3px rgba(229, 114, 0, 0.18), 0 0 0 8px rgba(229, 114, 0, 0.08);
-  animation: tutorial-pulse 1.2s ease-in-out infinite;
-}
-
-@keyframes tutorial-pulse {
+@keyframes tutorial-inner-glow-pulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(229, 114, 0, 0.5);
+    opacity: 0;
+    stroke-width: 0;
+  }
+  10% {
+    opacity: 0.8;
+    stroke-width: 0;
   }
   70% {
-    box-shadow: 0 0 0 10px rgba(229, 114, 0, 0);
+    opacity: 0.4;
+    stroke-width: 8;
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(229, 114, 0, 0);
+    opacity: 0;
+    stroke-width: 8;
   }
-}
-
-.tutorial-spotlight-ring {
-  animation: tutorial-spotlight-pulse 1.2s ease-in-out infinite;
-}
-
-@keyframes tutorial-spotlight-pulse {
-  0% { opacity: 1; }
-  70% { opacity: 0.5; }
-  100% { opacity: 1; }
 }

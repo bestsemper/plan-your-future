@@ -802,10 +802,10 @@ function CourseDescriptionContent({
                 <DropdownMenu
                   isOpen={isPlanDropdownOpen}
                   onOpenChange={setIsPlanDropdownOpen}
+                  tutorialTarget="courses-plan-select"
                   trigger={
                     <button
                       type="button"
-                      data-tutorial-target="courses-plan-select"
                       className="h-9 px-3 border border-panel-border rounded-full bg-input-bg text-text-primary text-sm text-left cursor-pointer flex items-center justify-between gap-2 focus:outline-none hover:border-panel-border-strong transition-all min-w-36"
                     >
                       <span className="truncate">{selectedPlan ? selectedPlan.title : 'Select plan'}</span>
@@ -834,10 +834,10 @@ function CourseDescriptionContent({
                 <DropdownMenu
                   isOpen={isSemesterDropdownOpen}
                   onOpenChange={setIsSemesterDropdownOpen}
+                  tutorialTarget="courses-semester-select"
                   trigger={
                     <button
                       type="button"
-                      data-tutorial-target="courses-semester-select"
                       disabled={!selectedPlan}
                       className="h-9 px-3 border border-panel-border rounded-full bg-input-bg text-text-primary text-sm text-left cursor-pointer flex items-center justify-between gap-2 focus:outline-none hover:border-panel-border-strong transition-all min-w-40 disabled:opacity-50 disabled:cursor-not-allowed"
                     >

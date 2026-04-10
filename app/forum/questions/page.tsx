@@ -106,7 +106,7 @@ export default function ForumQuestionsPage() {
   }
 
   return (
-    <div className="w-full pt-0 pb-6">
+    <div className="w-full pt-0 pb-6" data-tutorial-target="ask-question-page">
       <div className="mb-6 border-b border-panel-border pb-4 flex items-center justify-between gap-4">
         <div className="flex-1 min-w-0">
           <h1 className="text-3xl font-bold text-heading">Ask a Question</h1>

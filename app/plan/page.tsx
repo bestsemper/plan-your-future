@@ -1364,6 +1364,7 @@ export default function PlanBuilderPage() {
               }}
               disabled={optimisticPlans.length === 0}
               className="flex-1"
+              tutorialTarget="plan-selector"
               trigger={
                 <button
                   type="button"
