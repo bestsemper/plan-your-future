@@ -486,21 +486,17 @@ function featureProgressLabel(featureId: FeatureId): string {
   return `Feature ${index + 1} of ${orderedFeatureIds.length}`;
 }
 
-function emitHighlight(target: HTMLElement | null, shouldHighlight: boolean, borderRadius?: number) {
+function emitHighlight(target: HTMLElement | null, shouldHighlight: boolean) {
   if (!target) {
     return;
   }
 
   if (shouldHighlight) {
-    target.classList.add("tutorial-target-highlight");
-    if (borderRadius !== undefined) {
-      target.style.borderRadius = `${borderRadius}px`;
-    }
+    target.classList.add("tutorial-target-elevated");
     return;
   }
 
-  target.classList.remove("tutorial-target-highlight");
-  target.style.borderRadius = "";
+  target.classList.remove("tutorial-target-elevated");
 }
 
 function findVisibleTarget(selector: string): HTMLElement | null {
@@ -620,15 +616,17 @@ export default function TutorialProvider({
       target.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
     }
 
-    // Check if there's an open dropdown; if so, highlight the dropdown content instead
+    // Expand highlight to include any open dropdown content inside the target
     let highlightTarget = targetRect;
-    const dropdownRoot = target.closest("[data-dropdown-root]") ?? target;
-    const dropdownContent = dropdownRoot.querySelector("[data-tutorial-dropdown-content]") as HTMLElement | null;
-    if (dropdownContent) {
+    const dropdownContents = Array.from(target.querySelectorAll("[data-tutorial-dropdown-content]")) as HTMLElement[];
+    for (const dropdownContent of dropdownContents) {
       const dr = dropdownContent.getBoundingClientRect();
       if (dr.width > 0 && dr.height > 0) {
-        // Dropdown is open, highlight the dropdown content instead of the button
-        highlightTarget = dr;
+        const uTop = Math.min(highlightTarget.top, dr.top);
+        const uLeft = Math.min(highlightTarget.left, dr.left);
+        const uRight = Math.max(highlightTarget.right, dr.right);
+        const uBottom = Math.max(highlightTarget.bottom, dr.bottom);
+        highlightTarget = { top: uTop, left: uLeft, right: uRight, bottom: uBottom, width: uRight - uLeft, height: uBottom - uTop } as DOMRect;
       }
     }
 
@@ -655,31 +653,34 @@ export default function TutorialProvider({
       if (firstChild) computedRadius = getRadius(firstChild);
     }
     
-    const padding = 10;
+    const padding = 8;
     const paddedHeight = highlightTarget.height + padding * 2;
     const paddedWidth = highlightTarget.width + padding * 2;
-    const originalHalfSize = Math.min(highlightTarget.width, highlightTarget.height) / 2;
     const paddedHalfSize = Math.min(paddedWidth, paddedHeight) / 2;
-    
-    // Preserve the original roundedness ratio
-    // If original radius is >= 95% of half-size, it's fully rounded, so keep it fully rounded
-    const isFullyRounded = computedRadius >= originalHalfSize * 0.95;
+
+    // Use the ORIGINAL target rect (not expanded) for roundedness detection so that
+    // including a tall dropdown never inflates the half-size and creates a circle.
+    const dropdownExpanded = highlightTarget !== (targetRect as DOMRect);
+    const originalHalfSize = Math.min(targetRect.width, targetRect.height) / 2;
+    const isFullyRounded = !dropdownExpanded && computedRadius >= originalHalfSize * 0.95;
+
+    // Clamp radius to 32 so a rounded-full child (border-radius: 9999px) in the else
+    // branch can never push svgRadius up to paddedHalfSize and create a circle.
+    const clampedRadius = Math.min(computedRadius, 32);
+
     let svgRadius: number;
-    let orangeHighlightRadius: number;
-    
     if (isFullyRounded) {
-      // Keep fully rounded elements fully rounded at the new size
       svgRadius = paddedHalfSize;
-      orangeHighlightRadius = originalHalfSize;
+    } else if (dropdownExpanded) {
+      // When the dropdown is included, use the element's actual radius so the combined
+      // rect doesn't look over-rounded relative to the original element.
+      svgRadius = clampedRadius;
     } else {
-      // Background highlight radius should not depend on container size—just the element's radius + offset
-      orangeHighlightRadius = computedRadius;
-      svgRadius = computedRadius + 10; // +10 to make bg highlight slightly more rounded than orange
+      svgRadius = clampedRadius + 8;
     }
 
-    // Apply the radius to the highlighted element
     if (highlightedElementRef.current) {
-      emitHighlight(highlightedElementRef.current, true, orangeHighlightRadius);
+      emitHighlight(highlightedElementRef.current, true);
     }
 
     setHighlightRect({
@@ -955,6 +956,34 @@ export default function TutorialProvider({
               </mask>
             </defs>
             <rect width="100%" height="100%" fill="rgba(0,0,0,0.58)" mask="url(#tutorial-spotlight-mask)" />
+            {highlightRect && (
+              <g className="tutorial-spotlight-ring">
+                {/* Outer glow */}
+                <rect
+                  x={highlightRect.left}
+                  y={highlightRect.top}
+                  width={highlightRect.width}
+                  height={highlightRect.height}
+                  rx={highlightRect.borderRadius}
+                  ry={highlightRect.borderRadius}
+                  fill="none"
+                  stroke="rgba(229,114,0,0.18)"
+                  strokeWidth="12"
+                />
+                {/* Main orange ring */}
+                <rect
+                  x={highlightRect.left}
+                  y={highlightRect.top}
+                  width={highlightRect.width}
+                  height={highlightRect.height}
+                  rx={highlightRect.borderRadius}
+                  ry={highlightRect.borderRadius}
+                  fill="none"
+                  stroke="var(--color-uva-orange)"
+                  strokeWidth="4"
+                />
+              </g>
+            )}
           </svg>
           <div className={`pointer-events-auto fixed ${tutorialCardPositionClass} w-full max-w-xl rounded-3xl border border-panel-border bg-panel-bg shadow-2xl`}>
             <div className="px-6 py-4 border-b border-panel-border flex items-center justify-between gap-4">

@@ -1075,8 +1075,9 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
           onOpenChange={setShowCourseSearchDropdown}
           contentClassName="-inset-x-0.75"
           className="w-full"
+          tutorialTarget="prereq-tree-course-search"
           trigger={
-            <div className="relative bg-panel-bg/90 backdrop-blur p-0.5 rounded-3xl border border-panel-border shadow-sm" data-tutorial-target="prereq-tree-course-search">
+            <div className="relative bg-panel-bg/90 backdrop-blur p-0.5 rounded-3xl border border-panel-border shadow-sm">
               <Icon
                 name="search"
                 color="currentColor"
@@ -1519,7 +1520,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
                 fill={isDark ? (activeNodeId === id ? "#7b8a97" : isDirectlyConnected ? "#4b5563" : "#1f2937") : (activeNodeId === id ? "#e5e7eb" : isDirectlyConnected ? "#ececf1" : "#ffffff")}
                 stroke={isDark ? (activeNodeId === id ? "#6b7280" : isDirectlyConnected ? "#6b7280" : "#6b7280") : (activeNodeId === id ? "#9ca3af" : isDirectlyConnected ? "#d1d5db" : "#d1d5db")}
                 strokeWidth={activeNodeId === id ? 2.5 : isDirectlyConnected ? 2 : strokeWidth}
-                rx={24}
+                rx={20}
                 onMouseEnter={(e) => {
                   if (!clickedNodeId) {
                     // Normal hover behavior when no node is clicked

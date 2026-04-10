@@ -1743,7 +1743,7 @@ export default function PlanBuilderPage() {
 
       {isImportAuditOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setIsImportAuditOpen(false)}>
-          <div className="bg-panel-bg-alt border border-panel-border rounded-3xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-panel-bg-alt border border-panel-border rounded-3xl p-6 w-full max-w-md" data-tutorial-target="plan-import-container" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-bold text-xl text-heading">Import Plan</h2>
               <button onClick={() => setIsImportAuditOpen(false)} className="text-text-muted hover:text-text-secondary cursor-pointer" aria-label="Close import plan">
@@ -1751,7 +1751,7 @@ export default function PlanBuilderPage() {
               </button>
             </div>
 
-            <div className="space-y-3" data-tutorial-target="plan-import-container">
+            <div className="space-y-3">
               <p className="text-sm text-text-secondary">
                 Open Stellic → Plan your Path → Download Plan → Create plan report
               </p>

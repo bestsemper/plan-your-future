@@ -214,6 +214,11 @@ body {
   background-clip: padding-box;
 }
 
+.tutorial-target-elevated {
+  position: relative;
+  z-index: 95;
+}
+
 .tutorial-target-highlight {
   position: relative;
   z-index: 95;
@@ -225,7 +230,7 @@ body {
 
 @keyframes tutorial-pulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(229, 114, 0, 0.35);
+    box-shadow: 0 0 0 0 rgba(229, 114, 0, 0.5);
   }
   70% {
     box-shadow: 0 0 0 10px rgba(229, 114, 0, 0);
@@ -233,4 +238,14 @@ body {
   100% {
     box-shadow: 0 0 0 0 rgba(229, 114, 0, 0);
   }
+}
+
+.tutorial-spotlight-ring {
+  animation: tutorial-spotlight-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes tutorial-spotlight-pulse {
+  0% { opacity: 1; }
+  70% { opacity: 0.5; }
+  100% { opacity: 1; }
 }

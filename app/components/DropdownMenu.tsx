@@ -15,6 +15,7 @@ type DropdownMenuProps = {
   contentClassName?: string;
   onClear?: () => void;
   showClearButton?: boolean;
+  tutorialTarget?: string;
 };
 
 // DropdownMenuContent Props
@@ -47,6 +48,7 @@ export function DropdownMenu({
   contentClassName = '',
   onClear,
   showClearButton = false,
+  tutorialTarget,
 }: DropdownMenuProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -71,7 +73,7 @@ export function DropdownMenu({
   }, [isOpen, onOpenChange]);
 
   return (
-    <div className={`relative ${className}`} ref={containerRef} data-dropdown-root>
+    <div className={`relative ${className}`} ref={containerRef} data-dropdown-root data-tutorial-target={tutorialTarget || undefined}>
       <div className="relative" onClick={() => !disabled && onOpenChange(!isOpen)}>
         {trigger}
         {showClearButton && onClear && (

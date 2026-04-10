@@ -324,12 +324,13 @@ export default function CoursesPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Search Panel */}
         <div className="lg:col-span-1">
-          <div className="bg-panel-bg p-6 rounded-3xl border border-panel-border" data-tutorial-target="courses-search-input">
+          <div className="bg-panel-bg p-6 rounded-3xl border border-panel-border">
             <label className="block text-sm font-semibold text-heading mb-3">Search Courses</label>
             <DropdownMenu
               isOpen={showDropdown && filteredCourses.length > 0}
               onOpenChange={setShowDropdown}
               className="w-full"
+              tutorialTarget="courses-search-input"
               trigger={
                 <input
                   ref={searchInputRef}

@@ -207,8 +207,9 @@ export default function PrerequisitesPage() {
           <DropdownMenu
             isOpen={showDropdown && filteredDepartments.length > 0}
             onOpenChange={setShowDropdown}
+            tutorialTarget="prereq-search-input"
             trigger={
-              <div className="relative" data-tutorial-target="prereq-search-input">
+              <div className="relative">
                 <span className="sr-only">Search departments</span>
                 <Icon
                   name="search"
