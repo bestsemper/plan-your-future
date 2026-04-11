@@ -5,11 +5,9 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "./Icon";
 import { logout } from "../actions";
-import { useTutorial } from "./TutorialProvider";
 
 export default function Sidebar({ user }: { user: { computingId: string, displayName: string } | null }) {
   const pathname = usePathname();
-  const { canStartTutorial, startTutorial } = useTutorial();
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const desktopMenuRef = useRef<HTMLDivElement>(null);
@@ -229,16 +227,6 @@ export default function Sidebar({ user }: { user: { computingId: string, display
                 {link.label}
               </Link>
             ))}
-            {user && canStartTutorial && (
-              <button
-                type="button"
-                onClick={startTutorial}
-                className="w-full flex items-center gap-3 px-4 py-2.5 transition-colors font-medium rounded-2xl border text-white/75 hover:text-white hover:bg-black/20 border-transparent hover:border-white/10 cursor-pointer"
-              >
-                <Icon name="help-circle" color="currentColor" width={18} height={18} />
-                Help & Tutorial
-              </button>
-            )}
           </nav>
         </div>
 

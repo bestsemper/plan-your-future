@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Sidebar from "./components/Sidebar";
+import HelpButton from "./components/HelpButton";
 import { ThemeProvider } from "next-themes";
 import AttachedPlanModalProvider from "./components/AttachedPlan";
 import TutorialProvider from "./components/TutorialProvider";
@@ -46,6 +47,7 @@ export default async function RootLayout({
                   </div>
                 </div>
               </main>
+              <HelpButton />
             </AttachedPlanModalProvider>
           </TutorialProvider>
         </ThemeProvider>
