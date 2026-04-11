@@ -52,7 +52,6 @@ const tutorialSteps: TutorialStep[] = [
     body: "You will complete setup by importing completed courses, importing your plan, then checking key app features.",
     primaryCta: "Start tutorial",
     secondaryCta: "Not now",
-    route: "/",
   },
 
   {
@@ -62,7 +61,6 @@ const tutorialSteps: TutorialStep[] = [
     body: "Click your account button in the sidebar footer.",
     primaryCta: "Waiting for click",
     secondaryCta: "Skip",
-    route: "/",
     targetSelector: '[data-tutorial-target="account-menu-toggle"]',
     advanceOnTargetClick: true,
   },
@@ -73,7 +71,6 @@ const tutorialSteps: TutorialStep[] = [
     body: "Click the highlighted Profile option.",
     primaryCta: "Waiting for click",
     secondaryCta: "Skip",
-    route: "/",
     targetSelector: '[data-tutorial-target="account-menu-profile"]',
     advanceOnTargetClick: true,
   },
