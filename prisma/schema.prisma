@@ -29,6 +29,7 @@ model User {
   badges      UserBadge[]
   forumPostViews ForumPostView[]
   votes       Vote[]
+  passwordResetTokens PasswordResetToken[]
 }
 
 model CompletedCourse {
@@ -170,4 +171,24 @@ model UserBadge {
   earnedAt DateTime @default(now())
   badge    Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PendingSignup {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  computingId    String
+  hashedPassword String
+  displayName    String
+  token          String   @unique
+  expiresAt      DateTime
+  createdAt      DateTime @default(now())
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
