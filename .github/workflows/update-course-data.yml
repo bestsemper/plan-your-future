@@ -1,0 +1,41 @@
+name: Update Course Data
+
+on:
+  schedule:
+    - cron: '0 6 1 * *'  # 6 AM UTC on the 1st of every month
+  workflow_dispatch:       # allow manual trigger from GitHub Actions tab
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install playwright requests
+          playwright install chromium --with-deps
+
+      - name: Fetch majors and schools
+        run: python scripts/fetch_majors_and_schools.py
+
+      - name: Fetch course details
+        run: python scripts/fetch_course_details.py
+
+      - name: Extract prerequisites
+        run: python scripts/extract_prerequisites.py
+
+      - name: Commit and push if data changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/
+          git diff --staged --quiet || git commit -m "chore: update course data [$(date +'%Y-%m-%d')]"
+          git push
