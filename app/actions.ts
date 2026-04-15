@@ -5,7 +5,11 @@ import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import fs from 'fs';
 import path from 'path';
-import { scryptSync, randomBytes, timingSafeEqual } from 'crypto';
+import { scrypt, randomBytes, timingSafeEqual } from 'crypto';
+import { promisify } from 'util';
+import { sendVerificationEmail, sendPasswordResetEmail } from '../lib/resend';
+
+const scryptAsync = promisify(scrypt);
 
 const DEFAULT_PLAN_START_YEAR = 2025;
 const FORUM_VIEW_WINDOW_MS = 15 * 60 * 1000;
@@ -300,20 +304,20 @@ function parseStellicCoursesFromText(text: string): ParsedStellicCourse[] {
   return results;
 }
 
-function hashPassword(password: string): string {
+async function hashPassword(password: string): Promise<string> {
   const salt = randomBytes(16).toString('hex');
-  const derivedKey = scryptSync(password, salt, 64).toString('hex');
+  const derivedKey = (await scryptAsync(password, salt, 64) as Buffer).toString('hex');
   return `${salt}:${derivedKey}`;
 }
 
-function verifyPassword(password: string, hash: string): boolean {
+async function verifyPassword(password: string, hash: string): Promise<boolean> {
   if (!hash || !hash.includes(':')) return false;
   const [salt, key] = hash.split(':');
   try {
     const keyBuffer = Buffer.from(key, 'hex');
-    const derivedKey = scryptSync(password, salt, 64);
+    const derivedKey = await scryptAsync(password, salt, 64) as Buffer;
     return timingSafeEqual(keyBuffer, derivedKey);
-  } catch (error) {
+  } catch {
     return false;
   }
 }
@@ -355,7 +359,7 @@ export async function login(email: string, password: string) {
     return { error: 'Incorrect email or password.' };
   }
 
-  if (!verifyPassword(password, user.password)) {
+  if (!await verifyPassword(password, user.password)) {
     return { error: 'Incorrect email or password.' };
   }
 
@@ -391,7 +395,6 @@ export async function initiatePasswordReset(email: string) {
     data: { userId: user.id, token, expiresAt },
   });
 
-  const { sendPasswordResetEmail } = await import('../lib/resend');
   await sendPasswordResetEmail(emailLower, token);
 
   return { success: true };
@@ -408,7 +411,7 @@ export async function resetPassword(token: string, newPassword: string) {
     return { error: 'This link has expired or is invalid. Please request a new one.' };
   }
 
-  const hashedPassword = hashPassword(newPassword);
+  const hashedPassword = await hashPassword(newPassword);
   await prisma.user.update({
     where: { id: record.userId },
     data: { password: hashedPassword },
@@ -429,38 +432,33 @@ export async function initiateSignup(email: string, password: string, displayNam
   }
 
   const computingId = emailLower.split('@')[0];
+  const now = new Date();
 
-  const existingUser = await prisma.user.findUnique({ where: { computingId } });
+  // Run independent lookups + password hash in parallel
+  const [existingUser, existingPending, hashedPassword] = await Promise.all([
+    prisma.user.findUnique({ where: { computingId } }),
+    prisma.pendingSignup.findUnique({ where: { email: emailLower } }),
+    hashPassword(password),
+  ]);
+
   if (existingUser) {
     return { error: 'An account with this email already exists. Please log in.' };
   }
 
-  const now = new Date();
-  const existingPending = await prisma.pendingSignup.findUnique({ where: { email: emailLower } });
   if (existingPending && existingPending.expiresAt > now) {
     return { error: 'A verification email was already sent. Please check your inbox or wait 15 minutes to try again.' };
   }
 
-  if (existingPending) {
-    await prisma.pendingSignup.delete({ where: { email: emailLower } });
-  }
-
-  const hashedPassword = hashPassword(password);
   const token = randomBytes(32).toString('hex');
   const expiresAt = new Date(now.getTime() + 15 * 60 * 1000);
 
-  await prisma.pendingSignup.create({
-    data: {
-      email: emailLower,
-      computingId,
-      hashedPassword,
-      displayName: displayName?.trim() || computingId,
-      token,
-      expiresAt,
-    },
+  // Upsert to handle the expired-pending case without a separate delete
+  await prisma.pendingSignup.upsert({
+    where: { email: emailLower },
+    update: { computingId, hashedPassword, displayName: displayName?.trim() || computingId, token, expiresAt, resendCount: 0, lastResentAt: null },
+    create: { email: emailLower, computingId, hashedPassword, displayName: displayName?.trim() || computingId, token, expiresAt },
   });
 
-  const { sendVerificationEmail } = await import('../lib/resend');
   try {
     await sendVerificationEmail(emailLower, token);
   } catch (err) {
@@ -511,7 +509,6 @@ export async function resendVerificationEmail(email: string) {
     },
   });
 
-  const { sendVerificationEmail } = await import('../lib/resend');
   try {
     await sendVerificationEmail(emailLower, token);
   } catch (err) {
