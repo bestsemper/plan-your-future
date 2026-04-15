@@ -13,11 +13,15 @@ export async function GET(request: Request) {
       );
     }
 
-    const { nodes, edges } = buildCourseDag(department);
+    const { nodes, edges, coreqEdges } = buildCourseDag(department);
     
     return NextResponse.json({
       nodes: Array.from(nodes.values()),
       edges: Array.from(edges.entries()).map(([parent, children]) => ({
+        parent,
+        children: Array.from(children),
+      })),
+      coreqEdges: Array.from((coreqEdges || new Map()).entries()).map(([parent, children]) => ({
         parent,
         children: Array.from(children),
       })),

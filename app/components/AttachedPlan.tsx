@@ -336,9 +336,13 @@ function AttachedPlan({
                 <h3 className="text-2xl font-bold text-heading break-words whitespace-pre-wrap">{plan.title}</h3>
                 <p className="text-sm text-text-secondary mt-1 mb-4">
                   Plan by{' '}
-                  <Link href={`/profile/${plan.ownerComputingId}?from=${encodeURIComponent(pathname)}`} className="text-text-primary font-semibold hover:underline">
-                    {plan.ownerDisplayName}
-                  </Link>
+                  {plan.ownerComputingId && plan.ownerDisplayName !== 'Anonymous User' ? (
+                    <Link href={`/profile/${plan.ownerComputingId}?from=${encodeURIComponent(pathname)}`} className="text-text-primary font-semibold hover:underline">
+                      {plan.ownerDisplayName}
+                    </Link>
+                  ) : (
+                    <span className="text-text-primary font-semibold">{plan.ownerDisplayName}</span>
+                  )}
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -444,9 +448,13 @@ function AttachedPlan({
               <h4 className="text-2xl font-bold text-heading break-words whitespace-pre-wrap">{plan.title}</h4>
               <p className="text-sm text-text-secondary mt-1 mb-4">
                 Plan by{' '}
-                <Link href={`/profile/${plan.ownerComputingId}?from=${encodeURIComponent(pathname)}`} className="text-text-primary font-semibold hover:underline">
-                  {plan.ownerDisplayName}
-                </Link>
+                {plan.ownerComputingId && plan.ownerDisplayName !== 'Anonymous User' ? (
+                  <Link href={`/profile/${plan.ownerComputingId}?from=${encodeURIComponent(pathname)}`} className="text-text-primary font-semibold hover:underline">
+                    {plan.ownerDisplayName}
+                  </Link>
+                ) : (
+                  <span className="text-text-primary font-semibold">{plan.ownerDisplayName}</span>
+                )}
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

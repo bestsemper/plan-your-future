@@ -33,7 +33,7 @@ INSTRUCTOR_PERMISSION_PATTERN = re.compile(
 )
 
 DESCRIPTION_REQUISITE_SENTENCE_PATTERN = re.compile(
-    r"((?:Pre-?requisites?|Prereq(?:uisite)?s?|Co-?requisites?)\s*:\s*.*?\.)(?:\s|$)",
+    r"((?:Pre-?requisites?|Prereq(?:uisite)?s?|Co-?requisites?)\s*(?:-|:)\s*.*?(?:\.|$))(?:\s|$)",
     re.IGNORECASE,
 )
 
@@ -41,21 +41,21 @@ DESCRIPTION_REQUISITE_SENTENCE_PATTERN = re.compile(
 # Matches inline concurrent requirement sentences that lack a formal label, e.g.:
 # "CHEM 1410, 1610, or 1810 must be taken concurrently or prior to CHEM 1411."
 DESCRIPTION_INLINE_CONCURRENT_PATTERN = re.compile(
-    r'([A-Z]{2,6}\s+\d+[^.]*?must\s+be\s+taken\s+concurrently[^.]*\.)',
+    r'([A-Z]{2,6}\s+\d+[^.]*?must\s+be\s+taken\s+concurrently[^.]*(?:\.|$))',
     re.IGNORECASE,
 )
 
 # Regex patterns for requisite prefixes
 PREREQ_PREFIX_PATTERN = r'(?:prerequisites?|prereqs?)(?:\s*[:\-]?)\s*'
 REQUISITE_LABEL_PATTERN = re.compile(
-    r'(?P<label>'
+    r'(?:^|(?<=[:;.,\n\(\)\[\]\-])\s*)(?P<label>'
     r'(?:recommended\s+)?prerequisite\s*/\s*corequisite|'
     r'(?:recommended\s+)?prerequisite\s+or\s+corequisite|'
     r'(?:recommended\s+)?pre\s*(?:-|/)?\s*or\s+co\s*(?:-|/)?\s*requisites?|'
     r'(?:recommended\s+)?pre\s*(?:-|/)?\s*co\s*(?:-|/)?\s*requisites?|'
     r'(?:recommended\s+)?(?:pre|prerequisite)(?:-|/)requisites?|'
     r'(?:recommended\s+)?prerequisites?|(?:recommended\s+)?pre(?:-)?requisites?|(?:recommended\s+)?prereqs?|'
-    r'co\s*(?:-|/)?\s*requisites?|co(?:-)?requisites?|coreqs?'
+    r'co\s*(?:-|/)?\s*requisites?|co\s*(?:-|/)?\s*reqs?|co(?:-)?requisites?|coreqs?'
     r')(?=\s*[:\-]|\s+[A-Z(\d]|\s+[a-z])(?:\s*[:\-]?)\s*',
     re.IGNORECASE,
 )
@@ -367,7 +367,8 @@ def extract_major_program_requirements(enrollment_requirements: str) -> List[Any
     def normalize_freeform_requirement(raw: str) -> str:
         text = normalize_requirement_text(raw)
         text = text.replace('\u2013', '-').replace('\u2014', '-')
-        text = re.sub(r'\s*[-/]\s*', ' ', text)
+        text = re.sub(r'\s*-\s*', ' ', text)  # Replace hyphens with space
+        text = re.sub(r'\s*/\s*', ' OR ', text)  # Replace slashes with OR
         text = re.sub(r'\s+', ' ', text).strip(' ,')
         text = text.lower()
         text = re.sub(r'\bgrad\b', 'graduate', text)
@@ -787,7 +788,7 @@ def classify_requisite_label(label: str) -> str:
     normalized = normalize_requirement_text(label).lower()
     normalized = normalized.replace('-', ' ').replace('/', ' ')
     normalized = re.sub(r'\s+', ' ', normalized).strip()
-    if 'coreq' in normalized or 'corequisite' in normalized or 'co requisite' in normalized:
+    if 'coreq' in normalized or 'corequisite' in normalized or 'co requisite' in normalized or 'co req' in normalized:
         return 'corequisite'
     return 'prerequisite'
 
@@ -798,37 +799,46 @@ def extract_requisite_sentences_from_description(description: str) -> List[str]:
         return []
 
     normalized = " ".join(str(description).split())
-    matches = DESCRIPTION_REQUISITE_SENTENCE_PATTERN.findall(normalized)
-    if not matches:
-        # Also look for inline concurrent requirement sentences without a formal label.
-        # e.g. "CHEM 1410, 1610, or 1810 must be taken concurrently or prior to CHEM 1411."
-        inline_raw = DESCRIPTION_INLINE_CONCURRENT_PATTERN.findall(normalized)
-        # Strip the "or prior to COURSE" context tail since that names the target course,
-        # not an additional requirement. E.g. strip " or prior to CHEM 1411.".
-        matches = [
-            re.sub(r'\s+(?:or\s+)?prior\s+to\s+[A-Z]{2,6}[^,.]*\.?', '', m, flags=re.IGNORECASE).strip()
-            for m in inline_raw
-        ]
-        matches = [m for m in matches if m]
-    if not matches:
-        return []
+    # Split into sentences
+    sentences = re.split(r'(?<=[.!?])\s+', normalized)
+    matches = []
+    
+    for sentence in sentences:
+        # Check for explicit prerequisite or corequisite statements
+        has_req_label = bool(re.search(r'\b(?:pre[- ]?req|pre[- ]?requisite|co[- ]?req|co[- ]?requisite)s?\b', sentence, re.IGNORECASE))
+        # Look for inline concurrent phrasing safely
+        has_inline_concurrent = bool(DESCRIPTION_INLINE_CONCURRENT_PATTERN.search(sentence))
+        
+        if has_req_label or has_inline_concurrent:
+            # Exclude sentences that just mention prerequisites descriptively or negatively
+            if re.search(r'\b(?:serve\s+as|satisfy|satisfies|not\s+a\s+|does\s+not|without\s+the\s+prerequisite)\b', sentence, re.IGNORECASE):
+                continue
+            
+            # Strip target-tail from concurrent phrases
+            clean_sentence = sentence
+            if has_inline_concurrent:
+                inline_raw = DESCRIPTION_INLINE_CONCURRENT_PATTERN.findall(clean_sentence)
+                for m in inline_raw:
+                    clean_sentence = re.sub(r'\s+(?:or\s+)?prior\s+to\s+[A-Z]{2,6}[^,.]*(?:\.|$)', '', clean_sentence, flags=re.IGNORECASE).strip()
 
+            snippet = normalize_requirement_text(clean_sentence)
+            if snippet:
+                matches.append(snippet)
+
+    # Deduplicate while preserving order
     snippets: List[str] = []
     seen: set[str] = set()
     for match in matches:
-        snippet = normalize_requirement_text(match)
-        if not snippet:
-            continue
-        key = snippet.lower()
+        key = match.lower()
         if key in seen:
             continue
         seen.add(key)
-        snippets.append(snippet)
+        snippets.append(match)
 
     return snippets
 
 
-def classify_requisite_text(text: str) -> str:
+def classify_requisite_text(text: str, default: str = 'prerequisite') -> str:
     """Classify requirement text as prerequisite/corequisite/exclusion/other by content cues."""
     restriction_language = bool(re.search(
         r'\b(?:may\s+not\s+enroll\s+if|cannot\s+enroll\s+if|can\'t\s+enroll\s+if|not\s+eligible\s+to\s+enroll|credit\s+not\s+granted(?:\s+for)?|not\s+open\s+to|restricted\s+to)\b',
@@ -841,12 +851,33 @@ def classify_requisite_text(text: str) -> str:
             return 'exclusion'
         return 'other'
 
-    concurrent_language = bool(re.search(
-        r'\b(?:coreq(?:s)?|corequisite(?:s)?|co[-\s]?requisite(?:s)?|concurrent(?:ly)?|currently\s+enrolled|must\s+be\s+taken\s+concurrently|or\s+currently\s+enrolled)\b',
+    # Check for explicit prerequisite language (gives priority if text starts with "Completed")
+    prerequisite_language = bool(re.search(
+        r'\b(?:completed|passed|prior\s+to|prerequisite(?:s)?|pre[-\s]?requisite(?:s)?|prereq(?:s)?)\b',
         text,
         re.IGNORECASE,
     ))
-    return 'corequisite' if concurrent_language else 'prerequisite'
+    
+    # Check for corequisite language
+    concurrent_language = bool(re.search(
+        r'\b(?:coreq(?:s)?|corequisite(?:s)?|co[-\s]?requisite(?:s)?|co[-\s]?req(?:s)?|concurrent(?:ly)?|currently\s+enrolled|must\s+be\s+taken\s+concurrently|or\s+currently\s+enrolled)\b',
+        text,
+        re.IGNORECASE,
+    ))
+    
+    # If both prerequisite and concurrent language are present, prioritize prerequisite if text starts with "Completed"
+    # (e.g., "Completed LAW 6003 AND previously completed or are currently enrolled in LAW 7009" is a prerequisite with coreq options)
+    if prerequisite_language and concurrent_language:
+        if re.search(r'^\s*completed', text, re.IGNORECASE):
+            return 'prerequisite'
+    
+    # Otherwise use the signals in order: concurrent, then prerequisite
+    if concurrent_language:
+        return 'corequisite'
+    if prerequisite_language:
+        return 'prerequisite'
+        
+    return default
 
 
 def split_requisite_subsnippets(raw_snippet: str, default_kind: str) -> List[Tuple[str, str]]:
@@ -860,16 +891,15 @@ def split_requisite_subsnippets(raw_snippet: str, default_kind: str) -> List[Tup
         if not normalized_piece:
             continue
 
-        inferred_kind = classify_requisite_text(normalized_piece)
-        # For the first piece, use the default_kind from the label unless inference clearly contradicts it
-        # Only override if inference detects a fundamentally different category (e.g., exclusion/other)
-        if index == 0:
-            if inferred_kind in ('exclusion', 'other'):
-                kind = inferred_kind
-            else:
+        inferred_kind = classify_requisite_text(normalized_piece, default='unknown')
+        
+        if inferred_kind != 'unknown':
+            if index == 0 and inferred_kind in ('prerequisite', 'corequisite') and default_kind in ('prerequisite', 'corequisite'):
                 kind = default_kind
+            else:
+                kind = inferred_kind
         else:
-            kind = inferred_kind
+            kind = default_kind
         
         key = (kind, normalized_piece.lower())
         if key in seen:
@@ -954,86 +984,83 @@ def extract_requirement_snippets(description: str, enrollment_requirements: str)
 
     description_text = description.strip()
     if description_text:
-        # If no courses found in enrollment requirements, process description directly  
-        if not enrollment_has_courses:
-            # Try to extract labeled snippets directly from description first
-            labeled_snippets = extract_labeled_snippets(description_text)
-            for kind, snippet in labeled_snippets:
+        # Use extract_labeled_snippets for description as well to catch all requisite labels
+        description_labeled_snippets = extract_labeled_snippets(description_text)
+        if description_labeled_snippets:
+            for kind, snippet in description_labeled_snippets:
                 key = (kind, snippet.lower())
-                if key not in seen:
-                    seen.add(key)
-                    snippets.append((kind, snippet))
-        
-        # Also check for legacy pattern-based extraction for edge cases
-        description_requisite_sentences = extract_requisite_sentences_from_description(description_text)
-        if not description_requisite_sentences:
-            # Fallback for cases where catalog text omits terminal periods.
-            description_requisite_sentences = [snippet for _, snippet in extract_labeled_snippets(description_text)]
+                if key in seen:
+                    continue
+                seen.add(key)
+                snippets.append((kind, snippet))
+        else:
+            # Fallback to legacy pattern-based extraction for edge cases
+            description_requisite_sentences = extract_requisite_sentences_from_description(description_text)
 
-        for sentence in description_requisite_sentences:
-            description_has_courses = bool(extract_course_codes(sentence))
-            
-            # When enrollment_requirements explicitly specifies courses, do not add
-            # description snippets that also mention courses. Enrollment requirements
-            # take priority to avoid conflicting course prerequisites (AND vs OR).
-            if enrollment_has_courses and description_has_courses:
-                continue
-            
-            if not description_has_courses:
-                continue
-            
-            # Check for restriction/exclusion clause
-            restriction_match = RESTRICTION_TAIL_PATTERN.search(sentence)
-            if restriction_match:
-                # Extract the exclusion clause (the part after "not eligible to enroll", etc.)
-                restrict_start = restriction_match.start()
-                pre_restriction_text = sentence[:restrict_start]
-                exclusion_text = sentence[restrict_start:]
+            for sentence in description_requisite_sentences:
+                description_has_courses = bool(extract_course_codes(sentence))
                 
-                # Look for "; and students" pattern to find where the exclusion truly starts
-                conj_match = re.search(r';\s+and\s+students\b', pre_restriction_text, re.IGNORECASE)
-                if conj_match:
-                    # Truncate prior text at the semicolon before "and students"
-                    pre_restriction_text = pre_restriction_text[:conj_match.start()].strip()
-                    # The exclusion is everything from "and students" onward
-                    exclusion_text = sentence[conj_match.start():].strip('; ')
+                # If the description has courses, but enrollment_requirements only covers ONE side of the requisites (Coreq only or Prereq only), we should still include it.
+                # To be safe, we will allow description snippets to fall through unless they are EXACTLY the same requisite type and the enrollment requirements also had them.
+                # E.g. AIRS 4200 has Prereq in desc, Coreq in enroll. We don't want to skip Prereqs just because enroll has Coreqs.
+                if enrollment_has_courses and description_has_courses:
+                    pass # Allow description to bring in missing reqs. Redundancy is handled later.
                 
-                # Process prerequisite part (before restriction)
-                if extract_course_codes(pre_restriction_text):
-                    normalized = normalize_requirement_text(pre_restriction_text)
-                    inferred_kind = 'prerequisite'
+                if not description_has_courses:
+                    continue
+                
+                # Check for restriction/exclusion clause
+                restriction_match = RESTRICTION_TAIL_PATTERN.search(sentence)
+                if restriction_match:
+                    # Extract the exclusion clause (the part after "not eligible to enroll", etc.)
+                    restrict_start = restriction_match.start()
+                    pre_restriction_text = sentence[:restrict_start]
+                    exclusion_text = sentence[restrict_start:]
+                    
+                    # Look for "; and students" pattern to find where the exclusion truly starts
+                    conj_match = re.search(r';\s+and\s+students\b', pre_restriction_text, re.IGNORECASE)
+                    if conj_match:
+                        # Truncate prior text at the semicolon before "and students"
+                        pre_restriction_text = pre_restriction_text[:conj_match.start()].strip()
+                        # The exclusion is everything from "and students" onward
+                        exclusion_text = sentence[conj_match.start():].strip('; ')
+                    
+                    # Process prerequisite part (before restriction)
+                    if extract_course_codes(pre_restriction_text):
+                        normalized = normalize_requirement_text(pre_restriction_text)
+                        inferred_kind = 'prerequisite'
+                        key = (inferred_kind, normalized.lower())
+                        if key not in seen:
+                            seen.add(key)
+                            snippets.append((inferred_kind, normalized))
+                    
+                    # Process exclusion part (after "are not eligible")
+                    if extract_course_codes(exclusion_text):
+                        normalized = normalize_requirement_text(exclusion_text)
+                        key = ('exclusion', normalized.lower())
+                        if key not in seen:
+                            seen.add(key)
+                            snippets.append(('exclusion', normalized))
+                    
+                    continue  # Skip normal processing for this sentence
+                
+                # Normal prerequisite processing (no restrictions)
+                # Use extract_labeled_snippets to properly split on requisite labels
+                labeled_snippets = extract_labeled_snippets(sentence)
+                if labeled_snippets:
+                    for kind, snippet in labeled_snippets:
+                        key = (kind, snippet.lower())
+                        if key not in seen:
+                            seen.add(key)
+                            snippets.append((kind, snippet))
+                else:
+                    # Fallback for unlabeled sentences
+                    normalized = normalize_requirement_text(sentence)
+                    inferred_kind = classify_requisite_text(sentence)
                     key = (inferred_kind, normalized.lower())
                     if key not in seen:
                         seen.add(key)
                         snippets.append((inferred_kind, normalized))
-                
-                # Process exclusion part (after "are not eligible")
-                if extract_course_codes(exclusion_text):
-                    normalized = normalize_requirement_text(exclusion_text)
-                    key = ('exclusion', normalized.lower())
-                    if key not in seen:
-                        seen.add(key)
-                        snippets.append(('exclusion', normalized))
-                
-                continue  # Skip normal processing for this sentence
-            
-            # Normal prerequisite processing (no restrictions)
-            # Use extract_labeled_snippets to properly split on requisite labels
-            labeled_snippets = extract_labeled_snippets(sentence)
-            if labeled_snippets:
-                for kind, snippet in labeled_snippets:
-                    key = (kind, snippet.lower())
-                    if key not in seen:
-                        seen.add(key)
-                        snippets.append((kind, snippet))
-            else:
-                # Fallback for unlabeled sentences
-                normalized = normalize_requirement_text(sentence)
-                inferred_kind = classify_requisite_text(sentence)
-                key = (inferred_kind, normalized.lower())
-                if key not in seen:
-                    seen.add(key)
-                    snippets.append((inferred_kind, normalized))
 
     return snippets
 
@@ -1289,112 +1316,75 @@ def tokenize_prerequisite(text: str, default_subject: Optional[str] = None) -> L
     # Replace level-based course references with tokenizable pseudo-courses.
     text = replace_level_phrases_for_tokenization(text)
     
-    # Check for count pattern first (e.g., "2 of the following" or "ONE of the following")
-    count_match = re.search(
-        r'(?:at\s+least\s+)?(\d+|one|two|three|four|five|six|seven|eight|nine|ten)\s+(?:of\s+(?:the\s+)?following|from\s+the\s+following|courses?\s+from)',
-        text,
-        re.IGNORECASE,
-    )
-
-    # Normalize for consistent matching and parsing.
-    text = text.upper()
-
-    # Preserve explicit comma-plus-conjunction patterns before generic comma handling.
+    # Replace explicit operators to regular AND/OR.
+    text = re.sub(r'\bAND/OR\b', ' OR ', text)
+    text = re.sub(r'\s*/\s*', ' OR ', text)  # Replace "/" with " OR " (e.g., "KOR 2020/2060" -> "KOR 2020 OR 2060")
     text = re.sub(r'\s*,\s*AND\b', ' AND ', text)
     text = re.sub(r'\s*,\s*OR\b', ' OR ', text)
-
-    # Treat comma-separated course lists as OR options.
     text = re.sub(r'\s*,\s*', ' OR ', text)
-    text = re.sub(r'\bAND/OR\b', ' OR ', text)
-
-    # Normalize explicit operators.
     text = re.sub(r'\bAND\b', ' AND ', text)
     text = re.sub(r'\bOR\b', ' OR ', text)
     text = re.sub(r'(?:\bOR\b\s*){2,}', ' OR ', text)
     text = re.sub(r'(?:\bAND\b\s*){2,}', ' AND ', text)
     
+    # Process COUNT markers before tokenizing
+    def count_repl(m):
+        raw_count = m.group(1).lower()
+        count_val = COUNT_WORD_TO_NUMBER.get(raw_count, int(raw_count) if raw_count.isdigit() else 1)
+        return f" COUNT:{count_val} "
+        
+    text = re.sub(
+        r'(?:at\s+least\s+)?(\d+|one|two|three|four|five|six|seven|eight|nine|ten)\s+(?:of\s+(?:the\s+)?following|from\s+the\s+following|courses?\s+from)',
+        count_repl,
+        text,
+        flags=re.IGNORECASE
+    )
+
     # Tokenize
     tokens: List[str] = []
     pattern = re.compile(
-        r'__LEVEL__[A-Z]{2,6}\s*\d{3,4}[A-Z]?|\(|\)|\bAND\b|\bOR\b|\b[A-Z]{2,6}\s*\d{3,4}[A-Z]?\b|\b\d{4}\b',
+        r'COUNT:\d+|__LEVEL__[A-Z]{2,6}\s*\d{3,4}[A-Z]?|\(|\)|\bAND\b|\bOR\b|\b[A-Z]{2,6}\s*\d{3,4}[A-Z]?\b|\b\d{4}\b',
         re.IGNORECASE,
     )
     last_dept = None
 
-    # If we found a count pattern, add it as a special token
-    if count_match:
-        raw_count = count_match.group(1).lower()
-        count_value = COUNT_WORD_TO_NUMBER.get(raw_count, int(raw_count) if raw_count.isdigit() else 1)
-        tokens.append(f"COUNT:{count_value}")
-        # Parse text after the count constraint
-        text_after = text[count_match.end():]
-        for match in pattern.finditer(text_after):
-            token = match.group(0).strip().upper()
-            if not token:
-                continue
+    for match in pattern.finditer(text):
+        token = match.group(0).strip().upper()
+        if not token:
+            continue
+            
+        if token.startswith('COUNT:'):
+            tokens.append(token)
+            continue
 
-            # Handle level-based courses
-            if token.startswith('__LEVEL__'):
-                token_without_level = token[9:]  # Remove '__LEVEL__' prefix
-                course_match = re.match(r'^([A-Z]{2,6})\s*(\d{3,4}[A-Z]?)$', token_without_level)
-                if course_match:
-                    dept, num = course_match.groups()
-                    if dept not in INVALID_SUBJECT_CODES:
-                        tokens.append(f"__LEVEL__{dept} {num}")
-                        last_dept = dept
-                continue
-
-            course_match = re.match(r'^([A-Z]{2,6})\s*(\d{3,4}[A-Z]?)$', token)
+        # Handle level-based courses
+        if token.startswith('__LEVEL__'):
+            token_without_level = token[9:]  # Remove '__LEVEL__' prefix
+            course_match = re.match(r'^([A-Z]{2,6})\s*(\d{3,4}[A-Z]?)$', token_without_level)
             if course_match:
                 dept, num = course_match.groups()
                 if dept not in INVALID_SUBJECT_CODES:
-                    tokens.append(f"{dept} {num}")
+                    tokens.append(f"__LEVEL__{dept} {num}")
                     last_dept = dept
-                continue
+            continue
 
-            if re.match(r'^\d{4}$', token):
-                if last_dept:
-                    tokens.append(f"{last_dept} {token}")
-                elif default_subject:
-                    tokens.append(f"{default_subject} {token}")
-                continue
+        course_match = re.match(r'^([A-Z]{2,6})\s*(\d{3,4}[A-Z]?)$', token)
+        if course_match:
+            dept, num = course_match.groups()
+            if dept not in INVALID_SUBJECT_CODES:
+                tokens.append(f"{dept} {num}")
+                last_dept = dept
+            continue
 
-            if token in ('AND', 'OR', '(', ')'):
-                tokens.append(token)
-    else:
-        for match in pattern.finditer(text):
-            token = match.group(0).strip().upper()
-            if not token:
-                continue
+        if re.match(r'^\d{4}$', token):
+            if last_dept:
+                tokens.append(f"{last_dept} {token}")
+            elif default_subject:
+                tokens.append(f"{default_subject} {token}")
+            continue
 
-            # Handle level-based courses
-            if token.startswith('__LEVEL__'):
-                token_without_level = token[9:]  # Remove '__LEVEL__' prefix
-                course_match = re.match(r'^([A-Z]{2,6})\s*(\d{3,4}[A-Z]?)$', token_without_level)
-                if course_match:
-                    dept, num = course_match.groups()
-                    if dept not in INVALID_SUBJECT_CODES:
-                        tokens.append(f"__LEVEL__{dept} {num}")
-                        last_dept = dept
-                continue
-
-            course_match = re.match(r'^([A-Z]{2,6})\s*(\d{3,4}[A-Z]?)$', token)
-            if course_match:
-                dept, num = course_match.groups()
-                if dept not in INVALID_SUBJECT_CODES:
-                    tokens.append(f"{dept} {num}")
-                    last_dept = dept
-                continue
-
-            if re.match(r'^\d{4}$', token):
-                if last_dept:
-                    tokens.append(f"{last_dept} {token}")
-                elif default_subject:
-                    tokens.append(f"{default_subject} {token}")
-                continue
-
-            if token in ('AND', 'OR', '(', ')'):
-                tokens.append(token)
+        if token in ('AND', 'OR', '(', ')'):
+            tokens.append(token)
     
     # Filter out orphan operators - operators that don't connect to courses
     # This removes noise like "OR" from "grade of C- or better"
@@ -1917,7 +1907,10 @@ def deduplicate_overlapping_snippets(snippets: List[str]) -> List[str]:
                     # j has more courses, remove i
                     kept_indices.discard(i)
                     break
-                # If same number of courses, keep both (they may represent different logical structures)
+                else:
+                    # If same number of courses, keep the one from enrollment_requirements (likely shorter/cleaner)
+                    # or just drop j since they represent the same set of courses
+                    kept_indices.discard(j)
     
     return [snippets[i] for i in sorted(kept_indices)]
 
@@ -1952,6 +1945,7 @@ def process_course_requirements(
         equivalent_course_map,
     )
     corequisite_tree = build_course_requirement_tree(course_code, corequisite_snippets, equivalent_course_map)
+    other_requirement_tree = build_other_requirement_tree(all_requirement_texts) if all_requirement_texts else None
     
     # Build exclusion tree with NOT operator
     if exclusion_snippets:
@@ -1976,14 +1970,6 @@ def process_course_requirements(
             prerequisite_tree = OperatorNode(type='AND', children=[prerequisite_tree, coreq_wrapped])
         else:
             prerequisite_tree = coreq_wrapped
-
-    # Prevent impossible duplication between combined tree and any other requirements
-    if prerequisite_tree is not None:
-        # No need to check corequisites in separate tree anymore since they're embedded
-        pass
-
-    other_requirement_tree = build_other_requirement_tree(all_requirement_texts)
-    other_requirement_tree = assign_default_credit_subject(other_requirement_tree, course_code)
     return prerequisite_tree, other_requirement_tree
 
 
@@ -2177,6 +2163,56 @@ def main():
         courses_with_other_requirements
     )
     
+    # Post-processing: Remove courses from prerequisites if they're also corequisites
+    def remove_coreqs_from_prereqs(courses_dict):
+        """Remove courses from prerequisite trees if they appear as corequisites."""
+        for course_code, prereq_tree in courses_dict.items():
+            # Extract all corequisite courses from the tree
+            coreq_courses = set()
+            def extract_coreqs(node):
+                if node is None:
+                    return
+                if isinstance(node, dict) and node.get('type') == 'COREQ':
+                    # Found a COREQ node, extract all courses within it
+                    def collect_courses(n):
+                        if n is None:
+                            return
+                        if isinstance(n, dict):
+                            if n.get('type') == 'course':
+                                coreq_courses.add(n.get('code'))
+                            for child in n.get('children', []):
+                                collect_courses(child)
+                    collect_courses(node)
+                elif isinstance(node, dict):
+                    for child in node.get('children', []):
+                        extract_coreqs(child)
+            
+            extract_coreqs(prereq_tree)
+            
+            # Remove corequisite courses from prerequisite tree
+            def remove_from_tree(node):
+                if node is None:
+                    return node
+                if isinstance(node, dict):
+                    if node.get('type') == 'course' and node.get('code') in coreq_courses:
+                        return None
+                    if node.get('type') in ('AND', 'OR', 'COUNT'):
+                        new_children = [remove_from_tree(child) for child in node.get('children', [])]
+                        new_children = [c for c in new_children if c is not None]
+                        if not new_children:
+                            return None
+                        if len(new_children) == 1:
+                            return new_children[0]
+                        node['children'] = new_children
+                    return node
+                return node
+            
+            courses_dict[course_code] = remove_from_tree(prereq_tree)
+        
+        return courses_dict
+    
+    courses_with_prereqs = remove_coreqs_from_prereqs(courses_with_prereqs)
+
     # Save results to JSON
     output_data = {
         "metadata": {

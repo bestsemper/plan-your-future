@@ -18,6 +18,7 @@ model User {
   currentAcademicYear Int?
   gradYear    Int?
   bio         String?
+  profileVisibility String       @default("hidden") // "hidden" or "public"
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
   courses     CompletedCourse[]
@@ -28,6 +29,7 @@ model User {
   badges      UserBadge[]
   forumPostViews ForumPostView[]
   votes       Vote[]
+  passwordResetTokens PasswordResetToken[]
 }
 
 model CompletedCourse {
@@ -95,6 +97,8 @@ model ForumPost {
   attachedPlanId String?
   planSnapshot   Json?         // Snapshot of attached plan at time of posting
   viewCount      Int           @default(0)
+  isAnonymous    Boolean       @default(true)
+  tags           String[]      @default([])
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   answers        ForumAnswer[]
@@ -128,6 +132,7 @@ model ForumAnswer {
   body           String
   attachedPlanId String?
   planSnapshot   Json?     // Snapshot of attached plan at time of posting
+  isAnonymous    Boolean   @default(true)
   deletedAt      DateTime?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
@@ -166,4 +171,26 @@ model UserBadge {
   earnedAt DateTime @default(now())
   badge    Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PendingSignup {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  computingId    String   @unique
+  hashedPassword String
+  displayName    String
+  token          String   @unique
+  expiresAt      DateTime
+  createdAt      DateTime @default(now())
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

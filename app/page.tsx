@@ -16,7 +16,7 @@ export default async function Home() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-panel-bg p-6 rounded-xl border border-panel-border flex flex-col justify-between">
+        <div className="bg-panel-bg p-6 rounded-3xl border border-panel-border flex flex-col justify-between">
           <div>
             <h2 className="text-2xl font-semibold mb-3 text-heading">Your Plans</h2>
             {!user ? (
@@ -53,7 +53,7 @@ export default async function Home() {
           </Link>
         </div>
 
-        <div className="bg-panel-bg p-6 rounded-xl border border-panel-border flex flex-col justify-between">
+        <div className="bg-panel-bg p-6 rounded-3xl border border-panel-border flex flex-col justify-between">
           <div>
             <h2 className="text-2xl font-semibold mb-3 text-heading">Recent Forum Activity</h2>
             <p className="text-text-secondary mb-6">

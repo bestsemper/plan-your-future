@@ -18,7 +18,7 @@
   --heading-text: #232D4B;
 
   /* interaction */
-  --hover-bg: #f3f4f6;
+  --hover-bg: #e5e7eb;
   --hover-text: #111827;
 
   /* inputs */
@@ -190,7 +190,7 @@ body {
 /* subtle custom scrollbar */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(35, 45, 75, 0.28) transparent;
+  scrollbar-color: var(--panel-border-strong) transparent;
 }
 
 *::-webkit-scrollbar {
@@ -203,13 +203,36 @@ body {
 }
 
 *::-webkit-scrollbar-thumb {
-  background: rgba(35, 45, 75, 0.24);
+  background: var(--panel-border-strong);
   border-radius: 999px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background: rgba(35, 45, 75, 0.38);
+  background: var(--text-tertiary);
   background-clip: padding-box;
+}
+
+.tutorial-inner-glow {
+  animation: tutorial-inner-glow-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes tutorial-inner-glow-pulse {
+  0% {
+    opacity: 0;
+    stroke-width: 0;
+  }
+  10% {
+    opacity: 0.8;
+    stroke-width: 0;
+  }
+  70% {
+    opacity: 0.4;
+    stroke-width: 8;
+  }
+  100% {
+    opacity: 0;
+    stroke-width: 8;
+  }
 }

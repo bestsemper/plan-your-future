@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { TreeVisualization } from "./TreeVisualization";
 import { Icon } from "../components/Icon";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from "../components/DropdownMenu";
 import { getCurrentUser } from "../actions";
 
 interface DepartmentInfo {
@@ -18,8 +19,9 @@ export default function PrerequisitesPage() {
   const [showInfoTooltip, setShowInfoTooltip] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
   const [isHoveringInfo, setIsHoveringInfo] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [departmentsLoaded, setDepartmentsLoaded] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const dropdownContainerRef = useRef<HTMLDivElement>(null);
   const infoButtonRef = useRef<HTMLButtonElement>(null);
 
   // Fetch departments on mount and auto-select user's major
@@ -44,32 +46,7 @@ export default function PrerequisitesPage() {
         }
       }
     }
-    fetchDepartmentsAndMajor();
-  }, []);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      const isClickInsideInput = searchInputRef.current && searchInputRef.current.contains(e.target as Node);
-      const isClickInsideDropdown = dropdownContainerRef.current && dropdownContainerRef.current.contains(e.target as Node);
-      
-      if (!isClickInsideInput && !isClickInsideDropdown) {
-        setShowDropdown(false);
-      }
-    };
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setShowDropdown(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
+    fetchDepartmentsAndMajor().finally(() => setDepartmentsLoaded(true));
   }, []);
 
   // Close info tooltip when clicking outside (mobile only) or when unhover (desktop)
@@ -125,52 +102,94 @@ export default function PrerequisitesPage() {
   };
 
   // Filter departments based on search text
-  const filteredDepartments = departments
-    .filter(
-      (dept) =>
-        dept.fullName.toLowerCase().includes(searchText.toLowerCase()) ||
-        dept.mnemonic.toLowerCase().includes(searchText.toLowerCase())
-    )
-    .sort((a, b) => {
-      const lowerSearch = searchText.toLowerCase();
-      const aStartsFullName = a.fullName.toLowerCase().startsWith(lowerSearch);
-      const bStartsFullName = b.fullName.toLowerCase().startsWith(lowerSearch);
-      const aStartsMnemonic = a.mnemonic.toLowerCase().startsWith(lowerSearch);
-      const bStartsMnemonic = b.mnemonic.toLowerCase().startsWith(lowerSearch);
+  const filteredDepartments = useMemo(() => {
+    return departments
+      .filter(
+        (dept) =>
+          dept.fullName.toLowerCase().includes(searchText.toLowerCase()) ||
+          dept.mnemonic.toLowerCase().includes(searchText.toLowerCase())
+      )
+      .sort((a, b) => {
+        const lowerSearch = searchText.toLowerCase();
+        const aStartsFullName = a.fullName.toLowerCase().startsWith(lowerSearch);
+        const bStartsFullName = b.fullName.toLowerCase().startsWith(lowerSearch);
+        const aStartsMnemonic = a.mnemonic.toLowerCase().startsWith(lowerSearch);
+        const bStartsMnemonic = b.mnemonic.toLowerCase().startsWith(lowerSearch);
 
-      // Prioritize prefix matches on mnemonic first, then fullName
-      if (aStartsMnemonic && !bStartsMnemonic) return -1;
-      if (!aStartsMnemonic && bStartsMnemonic) return 1;
-      if (aStartsFullName && !bStartsFullName) return -1;
-      if (!aStartsFullName && bStartsFullName) return 1;
+        // Prioritize prefix matches on mnemonic first, then fullName
+        if (aStartsMnemonic && !bStartsMnemonic) return -1;
+        if (!aStartsMnemonic && bStartsMnemonic) return 1;
+        if (aStartsFullName && !bStartsFullName) return -1;
+        if (!aStartsFullName && bStartsFullName) return 1;
 
-      return a.mnemonic.localeCompare(b.mnemonic);
-    });
+        return a.mnemonic.localeCompare(b.mnemonic);
+      });
+  }, [departments, searchText]);
 
   const handleSelectDepartment = (dept: DepartmentInfo) => {
     setSelectedDepartment(dept);
     setSearchText("");
     setShowDropdown(false);
+    setIsSearching(false);
   };
 
+  const handleClearDepartment = () => {
+    setSelectedDepartment(null);
+    setSearchText("");
+    setShowDropdown(false);
+    setIsSearching(false);
+  };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      // Select the first item in the filtered list
+      if (filteredDepartments.length > 0) {
+        handleSelectDepartment(filteredDepartments[0]);
+      } else {
+        setShowDropdown(false);
+      }
+    }
+  };
+
+  if (!departmentsLoaded) {
+    return (
+      <div className="w-full h-full pt-0 flex flex-col min-w-0 animate-pulse">
+        <div className="mb-6 flex flex-col gap-4 border-b border-panel-border pb-4 w-full min-w-0 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-center gap-2">
+            <div className="h-9 w-56 rounded bg-input-disabled" />
+            <div className="w-6 h-6 rounded-full bg-input-disabled shrink-0" />
+          </div>
+          <div className="h-[42px] w-full lg:max-w-xs rounded-full bg-input-disabled" />
+        </div>
+        <div className="bg-panel-bg rounded-3xl border border-panel-border flex-1 flex items-center justify-center min-h-[300px]">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-12 h-12 rounded-full bg-input-disabled" />
+            <div className="h-5 w-40 rounded bg-input-disabled" />
+            <div className="h-4 w-64 rounded bg-input-disabled" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-full pt-0 flex flex-col min-w-0">
       <div className="mb-6 flex flex-col gap-4 border-b border-panel-border pb-4 w-full min-w-0 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-2 min-w-0">
           <h1 className="text-3xl font-bold text-heading">Prerequisites Tree</h1>
-          <div className="relative w-5 h-5 mt-1 flex-shrink-0">
+          <div className="relative mt-1 flex-shrink-0">
             <button
+              data-tutorial-target="prereq-info-button"
               ref={infoButtonRef}
               type="button"
               onClick={handleInfoClick}
               onMouseEnter={handleInfoMouseEnter}
               onMouseLeave={handleInfoMouseLeave}
-              className="w-5 h-5 flex items-center justify-center text-text-tertiary hover:text-text-secondary focus:text-text-secondary transition-colors cursor-help"
+              className="flex items-center justify-center w-6 h-6 rounded-full text-text-tertiary hover:text-text-secondary focus:text-text-secondary transition-colors cursor-help"
               aria-label="Information about the prerequisites tree"
             >
-              <Icon 
+              <Icon
                 name="info"
                 color="currentColor"
                 width={20}
@@ -185,62 +204,71 @@ export default function PrerequisitesPage() {
           </div>
         </div>
         <div className="relative w-full lg:flex-1 lg:max-w-xs">
-          <span className="sr-only">Search departments</span>
-          <Icon
-            name="search"
-            color="currentColor"
-            width={16}
-            height={16}
-            className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-text-tertiary"
-          />
-          <input
-            ref={searchInputRef}
-            type="text"
-            placeholder="Search departments..."
-            value={searchText}
-            onChange={(e) => {
-              setSearchText(e.target.value);
-              setShowDropdown(true);
-            }}
-            onFocus={() => setShowDropdown(true)}
-            suppressHydrationWarning
-            className="w-full h-[42px] pl-10 pr-4 border border-panel-border rounded-full bg-input-bg text-text-primary outline-none focus:border-uva-blue/40 focus:ring-2 focus:ring-uva-blue/15"
-          />
-          
-          {showDropdown && filteredDepartments.length > 0 && (
-            <div
-              ref={dropdownContainerRef}
-              className="absolute left-0 right-0 mt-2 z-30 rounded-xl border border-panel-border bg-panel-bg shadow-lg overflow-hidden"
-            >
-              <div className="max-h-64 overflow-y-auto">
-                {filteredDepartments.map((dept) => (
-                  <button
-                    key={dept.mnemonic}
-                    onClick={() => handleSelectDepartment(dept)}
-                    className={`block w-full text-left px-4 py-3 border-b border-panel-border last:border-b-0 hover:bg-hover-bg transition-colors ${
-                      selectedDepartment?.mnemonic === dept.mnemonic
-                        ? "bg-badge-blue-bg text-badge-blue-text font-medium"
-                        : "text-text-primary"
-                    }`}
-                  >
-                    <p className="text-sm font-semibold line-clamp-1">{dept.fullName}</p>
-                    <p className="text-xs text-text-secondary mt-0.5">{dept.mnemonic}</p>
-                  </button>
-                ))}
+          <DropdownMenu
+            isOpen={showDropdown && filteredDepartments.length > 0}
+            onOpenChange={setShowDropdown}
+            tutorialTarget="prereq-search-input"
+            trigger={
+              <div className="relative">
+                <span className="sr-only">Search departments</span>
+                <Icon
+                  name="search"
+                  color="currentColor"
+                  width={16}
+                  height={16}
+                  className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-text-tertiary"
+                />
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  placeholder="Search departments..."
+                  value={selectedDepartment && !isSearching ? selectedDepartment.fullName : searchText}
+                  onChange={(e) => {
+                    setIsSearching(true);
+                    setSearchText(e.target.value);
+                    setShowDropdown(true);
+                  }}
+                  onKeyDown={handleKeyDown}
+                  onClick={() => {
+                    setIsSearching(true);
+                    setShowDropdown(true);
+                  }}
+                  onBlur={() => {
+                    setTimeout(() => {
+                      if (!searchText) setIsSearching(false);
+                      setShowDropdown(false);
+                    }, 100);
+                  }}
+                  suppressHydrationWarning
+                  className="w-full h-[42px] pl-10 pr-10 border border-panel-border rounded-full bg-input-bg text-text-primary outline-none transition-colors"
+                />
               </div>
-            </div>
-          )}
+            }
+          >
+            <DropdownMenuContent maxHeight="max-h-64">
+              {filteredDepartments.map((dept) => (
+                <DropdownMenuItem
+                  key={dept.mnemonic}
+                  onClick={() => handleSelectDepartment(dept)}
+                  description={dept.mnemonic}
+                  selected={selectedDepartment?.mnemonic === dept.mnemonic}
+                >
+                  {dept.fullName}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
       {selectedDepartment ? (
-        <div className="bg-panel-bg rounded-xl border border-panel-border overflow-hidden flex flex-col h-[calc(100vh-100px)] w-full">
+        <div className="bg-panel-bg rounded-3xl border border-panel-border overflow-hidden flex flex-col h-[calc(100vh-100px)] w-full">
           <div className="flex-1 overflow-hidden min-w-0 min-h-0 relative">
             <TreeVisualization department={selectedDepartment.mnemonic} departmentFullName={selectedDepartment.fullName} />
           </div>
         </div>
       ) : (
-        <div className="bg-panel-bg border border-panel-border rounded-xl p-12 text-center">
+        <div className="bg-panel-bg border border-panel-border rounded-3xl p-12 text-center">
           <Icon name="grid" color="currentColor" width={48} height={48} className="w-12 h-12 mx-auto mb-4 text-text-muted opacity-50" alt="No" />
           <p className="text-lg font-medium text-heading mb-2">No Department Selected</p>
           <p className="text-sm text-text-secondary">Select a department from the search bar to view its prerequisites tree</p>

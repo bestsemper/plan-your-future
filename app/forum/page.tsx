@@ -3,6 +3,13 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
+
+const emitTutorialEvent = (name: string) => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  window.dispatchEvent(new CustomEvent('tutorial:step-event', { detail: { name } }));
+};
 import { Icon } from '@/app/components/Icon';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from '@/app/components/DropdownMenu';
 import { getForumPageData, voteOnForumPost } from '../actions';
@@ -16,6 +23,8 @@ type ForumAnswerItem = {
   authorDisplayName: string;
   authorId: string;
   authorComputingId: string;
+  isAnonymous: boolean;
+  profileVisibility: string;
   voteScore: number;
   currentUserVote: 1 | -1 | 0;
 };
@@ -33,6 +42,9 @@ type ForumPostItem = {
   authorDisplayName: string;
   authorId: string;
   authorComputingId: string;
+  isAnonymous: boolean;
+  profileVisibility: string;
+  tags: string[];
   attachedPlan: { id: string; title: string } | null;
   answers: ForumAnswerItem[];
 };
@@ -65,8 +77,7 @@ export default function ForumPage() {
 
   const [search, setSearch] = useState('');
   const [appliedSearch, setAppliedSearch] = useState('');
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const searchContainerRef = useRef<HTMLDivElement | null>(null);
+  const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
 
   const loadData = async () => {
     const res = await getForumPageData();
@@ -115,7 +126,7 @@ export default function ForumPage() {
       .slice(0, 6);
   }, [posts, search]);
 
-  const showSuggestions = isSearchFocused && suggestedPosts.length > 0;
+  const showSuggestions = isSearchDropdownOpen && suggestedPosts.length > 0;
 
   const getOptimisticVoteUpdate = (currentVote: 1 | -1 | 0, clickedValue: 1 | -1) => {
     const nextVote: 1 | -1 | 0 = currentVote === clickedValue ? 0 : clickedValue;
@@ -174,33 +185,50 @@ export default function ForumPage() {
 
   if (!dataLoaded) {
     return (
-      <div className="w-full pt-0 pb-6 animate-pulse overflow-x-hidden">
-        <div className="mb-6 border-b border-panel-border pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div className="h-9 w-64 rounded bg-input-disabled" />
-          <div className="flex items-center gap-3 w-full lg:w-auto lg:min-w-[460px]">
-            <div className="h-10 flex-1 rounded bg-input-disabled" />
-            <div className="h-[42px] w-28 shrink-0 rounded bg-input-disabled" />
+      <div className="w-full min-w-0 pt-0 animate-pulse">
+        <div className="mb-4 border-b border-panel-border pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 min-w-0">
+          <div className="h-9 w-64 rounded bg-input-disabled max-w-full" />
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full lg:w-auto lg:min-w-[460px] min-w-0">
+            <div className="h-10 flex-1 min-w-[200px] rounded bg-input-disabled" />
+            <div className="h-[42px] w-28 shrink-0 rounded-full bg-input-disabled" />
           </div>
         </div>
 
-        <div className="mb-6">
-          <div className="h-12 w-full rounded-xl bg-input-disabled" />
+        <div className="mb-2 flex items-center justify-end">
+          <div className="h-8 w-32 rounded bg-input-disabled" />
         </div>
 
-        <div className="space-y-4">
+        <div className="flex flex-col">
           {Array.from({ length: 2 }).map((_, i) => (
-            <div key={i} className="bg-panel-bg border border-panel-border p-5 rounded-xl flex gap-4">
-              <div className="w-24 shrink-0 space-y-2">
-                <div className="h-4 w-full rounded bg-input-disabled" />
-                <div className="h-4 w-full rounded bg-input-disabled" />
-                <div className="h-4 w-full rounded bg-input-disabled" />
-              </div>
-              <div className="flex-1 space-y-3">
-                <div className="h-7 w-4/5 rounded bg-input-disabled" />
-                <div className="h-4 w-1/2 rounded bg-input-disabled" />
-                <div className="h-4 w-full rounded bg-input-disabled" />
-                <div className="h-4 w-3/4 rounded bg-input-disabled" />
-              </div>
+            <div key={i} className="flex flex-col min-w-0">
+              
+              <article className="p-4 mt-1 mb-1 rounded-3xl border border-panel-border bg-panel-bg min-w-0">
+                <div className="flex flex-col min-w-0 space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-3">
+                    <div className="h-7 w-3/4 rounded bg-input-disabled" />
+                    <div className="h-4 w-32 rounded bg-input-disabled sm:shrink-0 mt-1 sm:mt-0" />
+                  </div>
+
+                  <div className="flex flex-wrap gap-1.5">
+                    <div className="h-6 w-16 rounded-full bg-input-disabled" />
+                    <div className="h-6 w-20 rounded-full bg-input-disabled" />
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="h-4 w-full rounded bg-input-disabled" />
+                    <div className="h-4 w-5/6 rounded bg-input-disabled" />
+                    <div className="h-4 w-4/5 rounded bg-input-disabled" />
+                  </div>
+
+                  <div className="flex flex-wrap-reverse items-center justify-between gap-3 pt-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <div className="h-8 w-20 rounded-full bg-input-disabled" />
+                      <div className="h-8 w-24 rounded-full bg-input-disabled" />
+                    </div>
+                    <div className="h-8 w-32 rounded-full bg-input-disabled" />
+                  </div>
+                </div>
+              </article>
             </div>
           ))}
         </div>
@@ -209,107 +237,111 @@ export default function ForumPage() {
   }
 
   return (
-    <div className="w-full pt-0 pb-6 overflow-x-hidden">
-      <div className="mb-6 border-b border-panel-border pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <h1 className="text-3xl font-bold text-heading">Forum</h1>
-        <div className="flex items-center gap-3 w-full lg:w-auto lg:min-w-[460px]">
-          <div
-            ref={searchContainerRef}
-            className="relative flex-1"
-            onBlur={(e) => {
-              if (!searchContainerRef.current?.contains(e.relatedTarget as Node | null)) {
-                setIsSearchFocused(false);
+    <div className="w-full min-w-0 pt-0">
+      <div className="mb-4 border-b border-panel-border pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 min-w-0">
+        <h1 className="text-3xl font-bold text-heading truncate min-w-0">Forum</h1>
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full lg:w-auto lg:min-w-[460px] min-w-0">
+          <div className="relative flex-1 min-w-[200px]">
+            <DropdownMenu
+              isOpen={showSuggestions}
+              onOpenChange={setIsSearchDropdownOpen}
+              trigger={
+                <div className="relative" data-tutorial-target="forum-search-input">
+                  <span className="sr-only">Search the forum</span>
+                  <Icon
+                    name="search"
+                    color="currentColor"
+                    width={16}
+                    height={16}
+                    className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-text-tertiary"
+                  />
+                  <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => {
+                      setSearch(e.target.value);
+                      setIsSearchDropdownOpen(true);
+                    }}
+                    onClick={() => setIsSearchDropdownOpen(true)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        setAppliedSearch(search);
+                        setIsSearchDropdownOpen(false);
+                      }
+                    }}
+                    placeholder="Search the forum"
+                    className="w-full h-[42px] pl-10 pr-4 border border-panel-border rounded-full bg-input-bg text-text-primary outline-none"
+                  />
+                </div>
               }
-            }}
-          >
-            <span className="sr-only">Search the forum</span>
-            <Icon
-              name="search"
-              color="currentColor"
-              width={16}
-              height={16}
-              className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-text-tertiary"
-            />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              onFocus={() => setIsSearchFocused(true)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  setAppliedSearch(search);
-                  setIsSearchFocused(false);
-                }
-              }}
-              placeholder="Search the forum"
-              className="w-full h-[42px] pl-10 pr-4 border border-panel-border rounded-full bg-input-bg text-text-primary outline-none"
-            />
-
-            {showSuggestions && (
-              <div className="absolute left-0 right-0 mt-2 z-30 rounded-xl border border-panel-border bg-panel-bg shadow-lg overflow-hidden">
+            >
+              <DropdownMenuContent maxHeight="max-h-64">
                 {suggestedPosts.map((post) => (
-                  <Link
+                  <DropdownMenuItem
                     key={post.id}
-                    href={getForumPostHref(post.postNumber, post.title)}
-                    className="block px-4 py-3 border-b border-panel-border last:border-b-0 hover:bg-hover-bg transition-colors"
+                    onClick={() => {
+                      router.push(getForumPostHref(post.postNumber, post.title));
+                      setIsSearchDropdownOpen(false);
+                    }}
+                    description={`by ${post.authorDisplayName}`}
                   >
-                    <p className="text-sm font-semibold text-heading line-clamp-1">{post.title}</p>
-                    <p className="text-xs text-text-secondary mt-0.5 line-clamp-1">
-                      by {post.authorDisplayName}
-                    </p>
-                  </Link>
+                    {post.title}
+                  </DropdownMenuItem>
                 ))}
-              </div>
-            )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           <Link
+            data-tutorial-target="forum-ask-question"
             href="/forum/questions"
-            className="h-[42px] px-5 inline-flex items-center justify-center bg-button-bg text-button-text rounded-full hover:bg-button-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-button-bg/20 font-semibold transition-colors cursor-pointer whitespace-nowrap"
+            className="h-[42px] px-5 shrink-0 inline-flex items-center justify-center bg-button-bg text-button-text rounded-full hover:bg-button-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-button-bg/20 font-semibold transition-colors cursor-pointer whitespace-nowrap"
           >
             Ask Question
           </Link>
         </div>
       </div>
 
-      <div className="mb-4 flex items-center justify-end">
-        <div className="text-sm">
-          <DropdownMenu
-            isOpen={isSortDropdownOpen}
-            onOpenChange={setIsSortDropdownOpen}
-            align="right"
-            trigger={
-              <button
-                type="button"
-                className="inline-flex items-center gap-2 px-3 py-2 border border-panel-border rounded-xl bg-input-bg text-text-primary cursor-pointer hover:border-panel-border-strong transition-colors"
-              >
-                <span>Sort: {sortBy === 'recent' ? 'Most Recent' : 'Highest Upvoted'}</span>
-                <Icon name="chevron-down" color="currentColor" width={16} height={16} className={`w-4 h-4 text-text-secondary transition-transform duration-200 ${isSortDropdownOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
-              </button>
-            }
-          >
-            <DropdownMenuContent className="w-48">
-              <DropdownMenuItem
-                selected={sortBy === 'recent'}
-                onClick={() => {
-                  setSortBy('recent');
-                  setIsSortDropdownOpen(false);
-                }}
-              >
-                Most Recent
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                selected={sortBy === 'upvoted'}
-                onClick={() => {
-                  setSortBy('upvoted');
-                  setIsSortDropdownOpen(false);
-                }}
-              >
-                Highest Upvoted
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+      <div className="flex items-center justify-end gap-1.5">
+        <span className="text-xs font-medium text-text-tertiary">Sort by:</span>
+        <DropdownMenu
+          isOpen={isSortDropdownOpen}
+          onOpenChange={setIsSortDropdownOpen}
+          align="right"
+          tutorialTarget="forum-sort-button"
+          trigger={
+            <button
+              type="button"
+              className="inline-flex items-center h-8 gap-1.5 px-3 text-xs font-semibold text-text-primary hover:bg-hover-bg rounded-full transition-colors cursor-pointer"
+            >
+              <span>{sortBy === 'recent' ? 'Most Recent' : 'Highest Upvoted'}</span>
+              <Icon name="chevron-down" color="currentColor" width={12} height={12} className={`w-3.5 h-3.5 text-text-secondary transition-transform duration-200 ${isSortDropdownOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
+            </button>
+          }
+        >
+          <DropdownMenuContent>
+            <DropdownMenuItem
+              selected={sortBy === 'recent'}
+              onClick={() => {
+                setSortBy('recent');
+                setIsSortDropdownOpen(false);
+                emitTutorialEvent('forumSortSelected');
+              }}
+            >
+              Most Recent
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              selected={sortBy === 'upvoted'}
+              onClick={() => {
+                setSortBy('upvoted');
+                setIsSortDropdownOpen(false);
+                emitTutorialEvent('forumSortSelected');
+              }}
+            >
+              Highest Upvoted
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {error && (
@@ -318,76 +350,91 @@ export default function ForumPage() {
         </div>
       )}
 
-      <div className="space-y-4">
-        {sortedPosts.map((post) => {
+      <div className="flex flex-col min-w-0">
+        {sortedPosts.map((post, index) => {
           const postHref = getForumPostHref(post.postNumber, post.title);
 
           return (
-            <article
-              key={post.id}
-              role="link"
-              tabIndex={0}
-              onClick={() => router.push(postHref)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                  event.preventDefault();
-                  router.push(postHref);
-                }
-              }}
-              className="bg-panel-bg border border-panel-border p-5 rounded-xl cursor-pointer hover:border-panel-border-strong transition-colors"
-            >
-              <div className="grid grid-cols-[40px_minmax(0,1fr)] gap-4 items-start">
-                <div
-                  className="inline-flex flex-col items-center gap-1 pt-0.5"
-                  onClick={(event) => event.stopPropagation()}
-                  onKeyDown={(event) => event.stopPropagation()}
-                >
-                  <button
-                    type="button"
-                    onClick={() => handlePostVote(post.id, 1)}
-                    disabled={isVoting}
-                    aria-label="Like post"
-                    className={`inline-flex items-center justify-center w-8 h-8 rounded-full border transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
-                      post.currentUserPostVote === 1
-                        ? 'border-uva-orange text-uva-orange bg-badge-orange-bg'
-                        : 'border-panel-border text-text-secondary hover:bg-hover-bg'
-                    }`}
-                  >
-                    <Icon name="chevron-up" color="currentColor" width={16} height={16} className="w-4 h-4" aria-hidden="true" />
-                  </button>
-
-                  <span className="min-w-8 text-center text-sm font-bold text-text-primary">{post.voteScore}</span>
-
-                  <button
-                    type="button"
-                    onClick={() => handlePostVote(post.id, -1)}
-                    disabled={isVoting}
-                    aria-label="Unlike post"
-                    className={`inline-flex items-center justify-center w-8 h-8 rounded-full border transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
-                      post.currentUserPostVote === -1
-                        ? 'border-red-400 text-red-500 bg-red-500/10'
-                        : 'border-panel-border text-text-secondary hover:bg-hover-bg'
-                    }`}
-                  >
-                    <Icon name="chevron-down" color="currentColor" width={16} height={16} className="w-4 h-4" aria-hidden="true" />
-                  </button>
-                </div>
-
-                <div className="min-w-0">
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <h2 className="text-base font-semibold text-heading break-words">
+            <div key={post.id} className="flex flex-col min-w-0">
+              
+              <article
+                role="link"
+                tabIndex={0}
+                onClick={() => router.push(postHref)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    router.push(postHref);
+                  }
+                }}
+                className="p-4 mt-4 rounded-3xl border border-panel-border bg-panel-bg cursor-pointer transition-colors min-w-0"
+              >
+                <div className="flex flex-col min-w-0">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1 sm:gap-3 mb-2 min-w-0">
+                    <h2 className="text-lg font-bold text-heading break-words min-w-0">
                       {post.title}
-                      <span className="ml-2 font-medium text-text-secondary">by {post.authorDisplayName}</span>
                     </h2>
-                    <p className="text-xs text-text-tertiary whitespace-nowrap shrink-0">asked {formatRelativeTime(post.createdAt)}</p>
+                    <p className="text-xs text-text-tertiary sm:whitespace-nowrap sm:shrink-0 min-w-0 break-words sm:break-normal line-clamp-2 sm:line-clamp-none">asked {formatRelativeTime(post.createdAt)} by {post.authorDisplayName}</p>
                   </div>
 
-                  <p className="text-sm text-text-secondary break-words line-clamp-2">{post.body}</p>
+                  {/* Tags display */}
+                  {post.tags.length > 0 && (
+                    <div className="mb-2 flex flex-wrap gap-1.5">
+                      {post.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="inline-flex items-center gap-1 bg-uva-orange/15 text-uva-orange px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
 
-                  <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-                    <div className="flex flex-wrap items-center gap-3 text-sm text-text-secondary">
-                      <span><span className="font-semibold text-text-primary">{post.viewCount}</span> views</span>
-                      <span><span className="font-semibold text-text-primary">{post.answers.length}</span> replies</span>
+                  <p className="text-sm text-text-secondary break-words line-clamp-3 mb-4">{post.body}</p>
+
+                  <div className="flex flex-wrap-reverse items-center justify-between gap-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <div
+                        className={`flex items-center h-8 gap-0 border rounded-full p-0.5 transition-colors ${
+                          post.currentUserPostVote === 1 ? 'bg-uva-orange/10 border-uva-orange/30' :
+                          post.currentUserPostVote === -1 ? 'bg-red-500/10 border-red-500/30' :
+                          'bg-panel-bg border-panel-border'
+                        }`}
+                        onClick={(event) => event.stopPropagation()}
+                        onKeyDown={(event) => event.stopPropagation()}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => handlePostVote(post.id, 1)}
+                          disabled={isVoting}
+                          aria-label="Like post"
+                          className={`inline-flex items-center justify-center h-full aspect-square rounded-full transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                            post.currentUserPostVote === 1 ? 'text-uva-orange' : 'text-text-secondary hover:bg-hover-bg'
+                          }`}
+                        >
+                          <Icon name="chevron-up" color="currentColor" width={14} height={14} className="w-4 h-4" aria-hidden="true" />
+                        </button>
+
+                        <span className="min-w-4 text-center text-xs font-bold text-text-primary">{post.voteScore}</span>
+
+                        <button
+                          type="button"
+                          onClick={() => handlePostVote(post.id, -1)}
+                          disabled={isVoting}
+                          aria-label="Unlike post"
+                          className={`inline-flex items-center justify-center h-full aspect-square rounded-full transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                            post.currentUserPostVote === -1 ? 'text-red-500' : 'text-text-secondary hover:bg-hover-bg'
+                          }`}
+                        >
+                          <Icon name="chevron-down" color="currentColor" width={14} height={14} className="w-4 h-4" aria-hidden="true" />
+                        </button>
+                      </div>
+
+                      <div className="flex items-center justify-center h-8 gap-1.5 px-3 bg-panel-bg border border-panel-border rounded-full hover:bg-hover-bg transition-colors">
+                        <Icon name="forum" color="currentColor" width={16} height={16} className="w-4 h-4 text-text-secondary" aria-hidden="true" />
+                        <span className="text-xs font-semibold text-text-secondary">{post.answers.length}</span>
+                      </div>
                     </div>
 
                     {post.attachedPlan && (
@@ -397,16 +444,16 @@ export default function ForumPage() {
                           event.stopPropagation();
                           handleOpenAttachedPlan(post.attachedPlan!.id);
                         }}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-input-disabled text-xs font-semibold text-text-secondary hover:bg-hover-bg transition-colors cursor-pointer"
+                        className="inline-flex items-center h-8 gap-1.5 px-3 rounded-full bg-panel-bg border border-panel-border text-xs font-semibold text-text-secondary cursor-pointer hover:bg-hover-bg transition-colors max-w-full"
                       >
-                        <span className="uppercase tracking-wide text-[10px]">Attached Plan</span>
-                        <span className="text-text-primary">{post.attachedPlan.title}</span>
+                        <span className="uppercase tracking-wide text-[10px] shrink-0">Attached Plan</span>
+                        <span className="text-text-primary truncate max-w-[120px] sm:max-w-xs">{post.attachedPlan.title}</span>
                       </button>
                     )}
                   </div>
                 </div>
-              </div>
-            </article>
+              </article>
+          </div>
           );
         })}
       </div>

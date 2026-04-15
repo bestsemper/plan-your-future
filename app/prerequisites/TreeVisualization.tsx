@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, useRef } from "react";
 import { Icon } from "../components/Icon";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from "../components/DropdownMenu";
 
 interface TreeVisualizationProps {
   department: string;
@@ -12,12 +13,14 @@ interface Course {
   id: string;
   label: string;
   title?: string;
+  type?: string;
   prereqs: string[];
 }
 
 interface DagData {
   nodes: Course[];
   edges: Array<{ parent: string; children: string[] }>;
+  coreqEdges?: Array<{ parent: string; children: string[] }>;
 }
 
 export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department, departmentFullName }) => {
@@ -37,7 +40,6 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
   const panStartRef = useRef<{ x: number; y: number; scrollX: number; scrollY: number } | null>(null);
   const svgContainerRef = useRef<HTMLDivElement>(null);
   const popupRef = useRef<HTMLDivElement>(null);
-  const courseSearchContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!department) return;
@@ -71,10 +73,11 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
   // Handle clicking outside the popup to close it
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
+      const clickedOutsidePopup = popupRef.current ? !popupRef.current.contains(event.target as Node) : true;
+      if (clickedOutsidePopup) {
         const target = event.target as HTMLElement;
         // Don't close if clicking on a node (they have their own click handler)
-        if (!target.closest('rect[data-node-id]')) {
+        if (!target.closest('[data-node-id]')) {
           setClickedNodeId(null);
           setHoveredNodeId(null);
           setHoverPos(null);
@@ -106,21 +109,6 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
     };
   }, []);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (!courseSearchContainerRef.current) return;
-      if (!courseSearchContainerRef.current.contains(event.target as Node)) {
-        setShowCourseSearchDropdown(false);
-        setCourseSearchText("");
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
   const layout = useMemo(() => {
     if (!dagData || dagData.nodes.length === 0) return null;
 
@@ -138,9 +126,11 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
     // Build edges map
     const edgesMap = new Map<string, Set<string>>();
     const reverseEdgesMap = new Map<string, Set<string>>();
+    const coreqMap = new Map<string, Set<string>>();
     dagData.nodes.forEach((course) => {
       edgesMap.set(course.id, new Set());
       reverseEdgesMap.set(course.id, new Set());
+      coreqMap.set(course.id, new Set());
     });
     dagData.edges.forEach((edge) => {
       edge.children.forEach((child) => {
@@ -148,6 +138,17 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
         reverseEdgesMap.get(child)?.add(edge.parent);
       });
     });
+    
+    // Build coreq map (directional - parent has child as coreq)
+    // dagData.coreqEdges is an array from the API
+    if (dagData.coreqEdges && dagData.coreqEdges.length > 0) {
+      dagData.coreqEdges.forEach((edge) => {
+        edge.children.forEach((child) => {
+          // Only add in the direction specified: parent requires child
+          coreqMap.get(edge.parent)?.add(child);
+        });
+      });
+    }
 
     // Extract course level from course code (e.g., "CS 2100" -> 2000)
     function getCourseLevel(courseId: string): number {
@@ -251,11 +252,27 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
       sortedCourseLevels.set(level, sorted);
     }
 
+    // Build coreq groups - track which courses are corequisites of each other (directional: parent -> child only)
+    const coreqGroup = new Map<string, Set<string>>();
+    dagData.nodes.forEach(course => {
+      coreqGroup.set(course.id, new Set());
+    });
+    if (dagData.coreqEdges) {
+      dagData.coreqEdges.forEach((edge) => {
+        edge.children.forEach((child) => {
+          // Only add in the direction specified: parent requires child
+          coreqGroup.get(edge.parent)?.add(child);
+        });
+      });
+    }
+
     // Group levels into rows, separating by depth level WITHIN each course level
+    // Also keep corequisites together in the same row
     const levelRows = new Map<number, string[]>(); // rowIndex -> courseIds
     let currentRowIndex = 0;
     let currentRowCount = 0;
     let lastDepth = -1;
+    const placedCourses = new Set<string>();
 
     for (const level of sortedLevels) {
       const coursesAtLevel = sortedCourseLevels.get(level)!;
@@ -269,11 +286,37 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
       }
       
       // Add courses from this level, creating new rows when depth changes or we hit maxNodesPerLevel
+      // Group corequisites together
       for (const courseId of coursesAtLevel) {
+        if (placedCourses.has(courseId)) continue; // Already placed as part of a coreq group
+        
         const depth = Math.floor(depthMap.get(courseId) || 0);
         
-        // Move to next row if depth changes OR if we've hit max nodes per row
-        if ((lastDepth >= 0 && depth !== lastDepth) || currentRowCount >= maxNodesPerLevel) {
+        // Get corequisites for this course that are also in this level
+        // BUT exclude any that have prerequisite relationships with this course
+        const coreqs = Array.from(coreqGroup.get(courseId) || []).filter(
+          c => coursesAtLevel.includes(c) && !placedCourses.has(c) &&
+               !edgesMap.get(courseId)?.has(c) && // No prereq FROM courseId TO c
+               !edgesMap.get(c)?.has(courseId)     // No prereq FROM c TO courseId
+        );
+        
+        // Check if adding this course and its coreqs would exceed row size
+        const groupSize = 1 + coreqs.length;
+        
+        // Check if this course has prerequisite relationships with any courses already placed in current row
+        const currentRowCourses = levelRows.get(currentRowIndex) || [];
+        const hasConflictInRow = currentRowCourses.some(existingCourse => {
+          return edgesMap.get(courseId)?.has(existingCourse) || 
+                 edgesMap.get(existingCourse)?.has(courseId);
+        });
+        
+        // Move to next row if depth changes OR if we've hit max nodes per row OR if group won't fit
+        // OR if there's a prerequisite relationship with existing courses in the row
+        if (
+          (lastDepth >= 0 && depth !== lastDepth) || 
+          (currentRowCount > 0 && currentRowCount + groupSize > maxNodesPerLevel) ||
+          (currentRowCount > 0 && hasConflictInRow)
+        ) {
           currentRowIndex++;
           currentRowCount = 0;
         }
@@ -281,10 +324,131 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
         if (!levelRows.has(currentRowIndex)) {
           levelRows.set(currentRowIndex, []);
         }
+        
+        // Add the course and its corequisites together
         levelRows.get(currentRowIndex)!.push(courseId);
+        placedCourses.add(courseId);
         currentRowCount++;
+        
+        // Add corequisites right after
+        for (const coreq of coreqs) {
+          if (currentRowCount >= maxNodesPerLevel) {
+            currentRowIndex++;
+            currentRowCount = 0;
+            if (!levelRows.has(currentRowIndex)) {
+              levelRows.set(currentRowIndex, []);
+            }
+          }
+          levelRows.get(currentRowIndex)!.push(coreq);
+          placedCourses.add(coreq);
+          currentRowCount++;
+        }
+        
         lastDepth = depth;
       }
+    }
+
+    // Post-processing: Ensure no two courses with direct edges are in the same row
+    // This guarantees prerequisites are always above dependents
+    // Also reorganize within rows to keep coreq pairs adjacent
+    let maxIterations = 10;
+    let changed = true;
+    while (changed && maxIterations-- > 0) {
+      changed = false;
+      
+      for (let rowIdx of Array.from(levelRows.keys()).sort((a, b) => a - b)) {
+        const courseList = levelRows.get(rowIdx) || [];
+        if (courseList.length === 0) continue;
+        
+        // Find all conflicting pairs in this row
+        const conflicts: Array<[string, string]> = [];
+        for (let i = 0; i < courseList.length; i++) {
+          for (let j = i + 1; j < courseList.length; j++) {
+            const c1 = courseList[i];
+            const c2 = courseList[j];
+            
+            // Check if there's an edge between them
+            if (edgesMap.get(c1)?.has(c2) || edgesMap.get(c2)?.has(c1)) {
+              conflicts.push([c1, c2]);
+            }
+          }
+        }
+        
+        // If there are conflicts, move the dependent course to the immediately next row
+        if (conflicts.length > 0) {
+          changed = true;
+          let remainingCourses = [...courseList];
+          const coursesToMove: string[] = [];
+          
+          for (const [c1, c2] of conflicts) {
+            // Determine which has higher depth (is a dependent)
+            // If c2 depends on c1, then c1 -> c2 in edgesMap
+            // So edgesMap.get(c1) will contain c2
+            const c1IsPrecedent = edgesMap.get(c1)?.has(c2) || false;
+            const courseToMove = c1IsPrecedent ? c2 : c1;
+            
+            // Remove from current row if still there
+            const idx = remainingCourses.indexOf(courseToMove);
+            if (idx >= 0) {
+              remainingCourses.splice(idx, 1);
+              coursesToMove.push(courseToMove);
+            }
+          }
+          
+          levelRows.set(rowIdx, remainingCourses);
+          
+          // Add moved courses to the immediately next row (rowIdx + 1)
+          if (coursesToMove.length > 0) {
+            const nextRowIdx = rowIdx + 1;
+            if (!levelRows.has(nextRowIdx)) {
+              levelRows.set(nextRowIdx, []);
+            }
+            levelRows.get(nextRowIdx)!.unshift(...coursesToMove);
+          }
+        }
+      }
+    }
+    
+    // Post-processing: Reorganize courses within rows to group corequisites together
+    // This keeps related courses adjacent while maintaining row constraints
+    for (const rowIdx of Array.from(levelRows.keys())) {
+      const courseList = levelRows.get(rowIdx) || [];
+      if (courseList.length <= 1) continue;
+      
+      // Sort courses: group coreq pairs together
+      const sorted: string[] = [];
+      const used = new Set<string>();
+      
+      for (const courseId of courseList) {
+        if (used.has(courseId)) continue;
+        
+        sorted.push(courseId);
+        used.add(courseId);
+        
+        // Find and add any corequisites of this course that are in the same row
+        // Check both directions: A is coreq of B, or B is coreq of A
+        const coreqs = Array.from(courseList).filter(c => {
+          if (c === courseId || used.has(c)) return false;
+          
+          // Check if A -> B or B -> A in coreqGroup
+          const aIsCoreqOfB = coreqGroup.get(courseId)?.has(c) || false;
+          const bIsCoreqOfA = coreqGroup.get(c)?.has(courseId) || false;
+          const isBidirectional = aIsCoreqOfB || bIsCoreqOfA;
+          
+          // Also check coreqMap for bidirectional display relationships
+          const aInCoreqMap = coreqMap?.get(courseId)?.has(c) || false;
+          const bInCoreqMap = coreqMap?.get(c)?.has(courseId) || false;
+          
+          return isBidirectional || aInCoreqMap || bInCoreqMap;
+        });
+        
+        for (const coreq of coreqs) {
+          sorted.push(coreq);
+          used.add(coreq);
+        }
+      }
+      
+      levelRows.set(rowIdx, sorted);
     }
 
     const maxRowIndex = Math.max(...Array.from(levelRows.keys()), 0);
@@ -560,10 +724,65 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
       });
     });
 
+    // Create coreq edge lines (directed edges, simpler than prereq edges)
+    const coreqEdgeLines: {
+      waypoints: Array<{ x: number; y: number }>;
+      parentId?: string;
+      childId?: string;
+    }[] = [];
+    
+    if (dagData.coreqEdges && dagData.coreqEdges.length > 0) {
+      // coreqEdges is an Array<{ parent: string, children: string[] }>
+      dagData.coreqEdges.forEach((edge: { parent: string; children: string[] }) => {
+        const parentId = edge.parent;
+        const parentPos = positionMap.get(parentId);
+        if (!parentPos) return;
+
+        edge.children.forEach((childId: string) => {
+          const childPos = positionMap.get(childId);
+          if (!childPos) return;
+
+          // Check if courses are in the same row (same Y position)
+          const sameRow = Math.abs(parentPos.y - childPos.y) < 5;
+          
+          let waypoints;
+          
+          if (sameRow) {
+            // Same row: horizontal line from parent to child
+            waypoints = [
+              { x: parentPos.x + (parentPos.x < childPos.x ? nodeW / 2 : -nodeW / 2), y: parentPos.y },
+              { x: childPos.x + (childPos.x < parentPos.x ? nodeW / 2 : -nodeW / 2), y: childPos.y }
+            ];
+          } else {
+            // Different rows: connect from parent edge center to child edge center
+            const parentAboveChild = parentPos.y < childPos.y;
+            
+            if (parentAboveChild) {
+              // Parent above: spawn from bottom center of parent, to top center of child
+              waypoints = [
+                { x: parentPos.x, y: parentPos.y + nodeH / 2 },
+                { x: childPos.x, y: childPos.y - nodeH / 2 }
+              ];
+            } else {
+              // Parent below: spawn from top center of parent, to bottom center of child
+              waypoints = [
+                { x: parentPos.x, y: parentPos.y - nodeH / 2 },
+                { x: childPos.x, y: childPos.y + nodeH / 2 }
+              ];
+            }
+          }
+
+          // Reverse waypoints so arrow points from coreq course TO the course that requires it
+          coreqEdgeLines.push({ waypoints: waypoints.reverse(), parentId, childId });
+        });
+      });
+    }
+
     // Create positioned nodes
     const positionedNodes = dagData.nodes.map((course) => ({
       id: course.id,
       label: course.label,
+      type: course.type,
       x: positionMap.get(course.id)?.x || 0,
       y: positionMap.get(course.id)?.y || 0,
     }));
@@ -571,6 +790,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
     return {
       nodes: positionedNodes,
       edges: edgeLines,
+      coreqEdges: coreqEdgeLines,
       totalWidth,
       totalHeight,
       nodeW,
@@ -580,6 +800,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
       arrowMarkerSize,
       edgesMap,
       reverseEdgesMap,
+      coreqMap,
     };
   }, [dagData]);
 
@@ -617,8 +838,13 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
   };
 
   const filteredCourseMatches = useMemo(() => {
+    if (!dagData) return [];
+    
     const query = courseSearchText.trim().toLowerCase();
-    if (!query || !dagData) return [];
+    if (!query) {
+      // If no query, show all courses sorted by ID
+      return dagData.nodes.sort((a, b) => a.id.localeCompare(b.id));
+    }
 
     return dagData.nodes
       .filter((node) => {
@@ -669,6 +895,10 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
     setHoveredNodeId(null);
     setHoverPos({ x: 0, y: 0 });
     setShowCourseSearchDropdown(false);
+    setCourseSearchText("");
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('tutorial:step-event', { detail: { name: 'prereqTreeCourseSelected' } }));
+    }
     setTimeout(() => focusNodeInViewport(nodeId), 0);
   };
 
@@ -713,7 +943,30 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
   }, [layout]); // Important: must re-run when layout is ready so container ref is not null
 
   if (loading) {
-    return <div className="text-gray-600 p-4">Loading...</div>;
+    return (
+      <div className="w-full h-full flex items-center justify-center animate-pulse">
+        <div className="flex flex-col items-center gap-6 w-full px-8">
+          {/* Simulated top row of nodes */}
+          <div className="flex items-center justify-center gap-6">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="h-10 w-[90px] rounded-2xl bg-input-disabled" />
+            ))}
+          </div>
+          {/* Simulated mid row */}
+          <div className="flex items-center justify-center gap-6">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="h-10 w-[90px] rounded-2xl bg-input-disabled" />
+            ))}
+          </div>
+          {/* Simulated bottom row */}
+          <div className="flex items-center justify-center gap-6">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-10 w-[90px] rounded-2xl bg-input-disabled" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
@@ -724,7 +977,7 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
     return <div className="text-gray-600 p-4">No courses to display</div>;
   }
 
-  const { nodes, edges, totalWidth, totalHeight, nodeW, nodeH, nodeFontSize, strokeWidth, arrowMarkerSize, edgesMap, reverseEdgesMap } = layout;
+  const { nodes, edges, coreqEdges, totalWidth, totalHeight, nodeW, nodeH, nodeFontSize, strokeWidth, arrowMarkerSize, edgesMap, reverseEdgesMap, coreqMap } = layout;
   
   // Helper function to darken a color
   const darkenColor = (color: string, factor: number) => {
@@ -746,67 +999,128 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
     return '#' + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
   };
 
+  // Helper function to create arrowhead polygon string
+  const createArrowhead = (x: number, y: number, angle: number, size: number) => {
+    const baseOffsetDist = size * 1.5;
+    const baseX = x - Math.cos(angle) * baseOffsetDist;
+    const baseY = y - Math.sin(angle) * baseOffsetDist;
+    const perpAngle = angle + Math.PI / 2;
+    const arrowWidth = size * 0.4;
+    const leftX = baseX + Math.cos(perpAngle) * arrowWidth;
+    const leftY = baseY + Math.sin(perpAngle) * arrowWidth;
+    const rightX = baseX - Math.cos(perpAngle) * arrowWidth;
+    const rightY = baseY - Math.sin(perpAngle) * arrowWidth;
+    return `${x},${y} ${leftX},${leftY} ${rightX},${rightY}`;
+  };
+
   const visibleSearchMatches = filteredCourseMatches.slice(0, 25);
-  const showSearchPanel = showCourseSearchDropdown && courseSearchText.trim().length > 0;
+  const showSearchPanel = showCourseSearchDropdown;
+
+  const formatNodeLabel = (id: string, isPostreq = false, depth = 0): string => {
+    const node = dagData?.nodes.find(n => n.id === id);
+    if (!node) return id;
+    if (node.type === 'or' || node.type === 'and') {
+      const relatedEdges = isPostreq ? edgesMap?.get(id) : reverseEdgesMap?.get(id);
+      const children = Array.from(relatedEdges || new Set<string>()) as string[];
+      const formatted = children.map(c => formatNodeLabel(c, isPostreq, depth + 1));
+      const joinStr = node.type === 'or' ? ' OR ' : ' AND ';
+      
+      const out = formatted.join(joinStr);
+      if (node.label === 'OR' || node.label === 'AND') {
+        return depth > 0 && children.length > 1 ? `(${out})` : out;
+      } else {
+        return `${node.label} (${formatted.join(', ')})`;
+      }
+    }
+    return node.id;
+  };
+
+  const formatPrerequisiteLabel = (requirement: string): { label: string; value: string } => {
+    const trimmed = requirement.trim();
+    
+    if (/^\(\d+ OF\)/.test(trimmed)) {
+      const match = trimmed.match(/^\((\d+) OF\)/);
+      return {
+        label: `${match?.[1] || ''} Of`,
+        value: trimmed.replace(/^\(\d+ OF\)\s*/, ''),
+      };
+    }
+    
+    if (trimmed.includes(' OR ')) {
+      return {
+        label: 'One Of',
+        value: trimmed,
+      };
+    }
+    
+    if (trimmed.includes(' AND ')) {
+      return {
+        label: 'All Of',
+        value: trimmed,
+      };
+    }
+    
+    return {
+      label: '',
+      value: trimmed,
+    };
+  };
 
   return (
     <div className="w-full h-full flex flex-col bg-panel-bg absolute inset-0 overflow-hidden min-w-0 min-h-0">
       {/* Search Bar - Left Side */}
-      <div className="absolute top-4 left-4 right-40 z-10 bg-panel-bg/90 backdrop-blur p-0.5 rounded-xl border border-panel-border shadow-sm sm:right-44 md:right-40 lg:w-80 lg:right-auto">
-        <div
-          ref={courseSearchContainerRef}
-          className="relative"
-          onMouseDown={(e) => e.stopPropagation()}
-        >
-          <Icon
-            name="search"
-            color="currentColor"
-            width={16}
-            height={16}
-            className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-text-tertiary"
-          />
-          <input
-            type="text"
-            placeholder="Search courses in tree"
-            value={courseSearchText}
-            onChange={(e) => {
-              setCourseSearchText(e.target.value);
-              setShowCourseSearchDropdown(true);
-            }}
-            onFocus={() => setShowCourseSearchDropdown(true)}
-            className="w-full h-[40px] pl-10 pr-4 rounded-lg bg-input-bg text-text-primary outline-none"
-          />
-
-          {showSearchPanel && (
-            <div className="absolute -inset-x-0.75 mt-2 z-30 rounded-xl border border-panel-border bg-panel-bg shadow-lg overflow-hidden">
-              <div className="max-h-64 overflow-y-auto">
-                {visibleSearchMatches.length > 0 ? (
-                  visibleSearchMatches.map((course) => (
-                    <button
-                      key={course.id}
-                      onClick={() => handleSelectCourseFromSearch(course.id)}
-                      className={`block w-full text-left px-4 py-3 border-b border-panel-border last:border-b-0 hover:bg-hover-bg transition-colors ${
-                        clickedNodeId === course.id
-                          ? 'bg-badge-blue-bg text-badge-blue-text font-medium'
-                          : 'text-text-primary'
-                      }`}
-                    >
-                      <p className="text-sm font-semibold line-clamp-1">{course.label}</p>
-                      <p className="text-xs text-text-secondary mt-0.5 line-clamp-1">{course.title || course.id}</p>
-                    </button>
-                  ))
-                ) : (
-                  <div className="px-4 py-3 text-sm text-text-secondary">No matching courses found</div>
-                )}
-              </div>
+      <div className="absolute top-4 left-4 right-40 z-10 lg:w-80 lg:right-auto">
+        <DropdownMenu
+          isOpen={showSearchPanel}
+          onOpenChange={setShowCourseSearchDropdown}
+          contentClassName="-inset-x-0.75"
+          className="w-full"
+          tutorialTarget="prereq-tree-course-search"
+          trigger={
+            <div className="relative bg-panel-bg/90 backdrop-blur p-0.5 rounded-3xl border border-panel-border shadow-sm">
+              <Icon
+                name="search"
+                color="currentColor"
+                width={16}
+                height={16}
+                className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-text-tertiary"
+              />
+              <input
+                type="text"
+                placeholder="Search courses in tree"
+                value={courseSearchText}
+                onChange={(e) => {
+                  setCourseSearchText(e.target.value);
+                  setShowCourseSearchDropdown(true);
+                }}
+                onClick={() => setShowCourseSearchDropdown(true)}
+                className="w-full h-[40px] pl-10 pr-4 rounded-full bg-input-bg text-text-primary outline-none"
+              />
             </div>
-          )}
-        </div>
+          }
+        >
+          <DropdownMenuContent maxHeight="max-h-64">
+            {visibleSearchMatches.length > 0 ? (
+              visibleSearchMatches.map((course) => (
+                <DropdownMenuItem
+                  key={course.id}
+                  selected={clickedNodeId === course.id}
+                  onClick={() => handleSelectCourseFromSearch(course.id)}
+                  description={course.title || course.id}
+                >
+                  {course.label}
+                </DropdownMenuItem>
+              ))
+            ) : (
+              <div className="px-3 py-2 text-sm text-text-secondary">No matching courses found</div>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Zoom Controls - Right Side */}
-      <div className="absolute top-4 right-4 z-10 bg-panel-bg/90 backdrop-blur p-0.5 rounded-xl border border-panel-border shadow-sm flex items-center">
-        <div className="flex bg-panel-bg rounded-lg overflow-hidden">
+      <div className="absolute top-4 right-4 z-10 bg-panel-bg/90 backdrop-blur p-0.5 rounded-full border border-panel-border shadow-sm flex items-center">
+        <div className="flex bg-panel-bg rounded-full overflow-hidden">
           <button 
             onClick={() => handleZoom(0.2)} 
             className="flex items-center justify-center p-2.5 text-text-tertiary cursor-pointer transition-colors"
@@ -877,14 +1191,30 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
         </defs>
 
         {/* Draw edges */}
-        {edges
-          .sort((edgeA: any, edgeB: any) => {
-            const activeNodeId = clickedNodeId || hoveredNodeId;
-            const aConnected = activeNodeId && (edgeA.parentId === activeNodeId || edgeA.childId === activeNodeId);
-            const bConnected = activeNodeId && (edgeB.parentId === activeNodeId || edgeB.childId === activeNodeId);
-            // Non-highlighted edges first (false = 0, true = 1), highlighted edges last
-            return (aConnected ? 1 : 0) - (bConnected ? 1 : 0);
-          })
+        {(() => {
+          // Create a Set of coreq edge keys for fast lookup
+          const coreqEdgeKeys = new Set<string>();
+          coreqEdges.forEach(coreq => {
+            coreqEdgeKeys.add(`${coreq.parentId}=>${coreq.childId}`);
+          });
+          
+          return edges
+            .filter((edge: any) => {
+              const edgeKey = `${edge.parentId}=>${edge.childId}`;
+              // Exclude any edges that are corequisite edges
+              if (coreqEdgeKeys.has(edgeKey)) {
+                return false;
+              }
+              return true;
+            })
+            .sort((edgeA: any, edgeB: any) => {
+              const activeNodeId = clickedNodeId || hoveredNodeId;
+              const aConnected = activeNodeId && (edgeA.parentId === activeNodeId || edgeA.childId === activeNodeId);
+              const bConnected = activeNodeId && (edgeB.parentId === activeNodeId || edgeB.childId === activeNodeId);
+              // Non-highlighted edges first (false = 0, true = 1), highlighted edges last
+              return (aConnected ? 1 : 0) - (bConnected ? 1 : 0);
+            })
+        })()
           .map((edge: any, idx) => {
           // Check if this edge is connected to hovered or clicked node
           const activeNodeId = clickedNodeId || hoveredNodeId;
@@ -911,136 +1241,215 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
           // Darken color in light mode, lighten in dark mode when connected to active (hovered or clicked) node
           const displayColor = isConnectedToActive ? (isDark ? lightenColor(edgeColor, 0.15) : darkenColor(edgeColor, 0.4)) : edgeColor;
 
-          // Helper function to create arrowhead polygon string
-          const createArrowhead = (x: number, y: number, angle: number, size: number) => {
-            // Arrowhead tip points at the target node
-            // The base is offset back along the incoming direction
-            const baseOffsetDist = size * 1.5; // length of arrow
-            const baseX = x - Math.cos(angle) * baseOffsetDist;
-            const baseY = y - Math.sin(angle) * baseOffsetDist;
-            
-            // Create a skinny arrowhead - perpendicular to the angle
-            const perpAngle = angle + Math.PI / 2;
-            const arrowWidth = size * 0.4; // skinny arrow
-            
-            const leftX = baseX + Math.cos(perpAngle) * arrowWidth;
-            const leftY = baseY + Math.sin(perpAngle) * arrowWidth;
-            
-            const rightX = baseX - Math.cos(perpAngle) * arrowWidth;
-            const rightY = baseY - Math.sin(perpAngle) * arrowWidth;
-            
-            // Tip at (x, y), base is the left and right points
-            return `${x},${y} ${leftX},${leftY} ${rightX},${rightY}`;
-          };
-
           // Multi-waypoint path through gaps - create smooth Bezier segments with perfect continuity
           const waypoints = edge.waypoints;
           const numPoints = waypoints.length;
-          const p_prev = waypoints[numPoints - 2];
           const p_end = waypoints[numPoints - 1];
           
-          // Helper to calculate control points that never point upward (pass horizontal line test)
-          const calculateControlPoints = (p0: { x: number; y: number }, p1: { x: number; y: number }, p2?: { x: number; y: number } | null, p_1?: { x: number; y: number } | null) => {
-            // For curves that pass the horizontal line test, ensure all points are monotonic in y
-            // Keep horizontal offset minimal to avoid overshooting the bundled edge
-            
-            const dx = p1.x - p0.x;
-            const dy = p1.y - p0.y;
-            
+          let pathData = `M ${waypoints[0].x} ${waypoints[0].y}`;
+          
+          if (numPoints === 2) {
+            // Base case: 2 points
+            const dy = p_end.y - waypoints[0].y;
             const tension = dy * 0.5;
+            let cp0x = waypoints[0].x;
+            let cp0y = waypoints[0].y + tension;
+            let cp1x = p_end.x;
+            let cp1y = p_end.y - tension;
             
-            // First control point - minimal horizontal offset, mostly vertical
-            const cp0x = p0.x; // Reduced from 0.15
-            const cp0y = p0.y + tension;
-            
-            // Second control point - minimal horizontal offset, mostly vertical
-            const cp1x = p1.x; // Reduced from 0.15
-            const cp1y = p1.y - tension;
-            
-            // Ensure monotonicity: cp0_y <= cp1_y
+            // Allow monotonicity
             if (cp0y > cp1y) {
-              const midY = (p0.y + p1.y) / 2;
-              return { cp0x, cp0y: midY * 0.75 + p0.y * 0.25, cp1x, cp1y: p1.y * 0.75 + midY * 0.25 };
+              const midY = (waypoints[0].y + p_end.y) / 2;
+              cp0y = midY;
+              cp1y = midY;
             }
             
-            return { cp0x, cp0y, cp1x, cp1y };
-          };
-          
-          // Get control points of the last segment to compute angle
-          let cp_prevX, cp_prevY, cp_endX, cp_endY;
-          if (numPoints === 2) {
-            const controls = calculateControlPoints(waypoints[0], p_end);
-            cp_prevX = controls.cp0x;
-            cp_prevY = controls.cp0y;
-            cp_endX = controls.cp1x;
-            cp_endY = controls.cp1y;
+            // Re-calculate line stop since angle changes depending on cp1
+            const dxEnd = p_end.x - cp1x;
+            const dyEnd = p_end.y - cp1y;
+            const angle = Math.atan2(dyEnd, dxEnd);
+            const lineStopOffsetDist = arrowMarkerSize * 1.5;
+            const lineStopX = p_end.x - Math.cos(angle) * lineStopOffsetDist;
+            const lineStopY = p_end.y - Math.sin(angle) * lineStopOffsetDist;
+            
+            pathData += ` C ${cp0x} ${cp0y}, ${cp1x} ${cp1y}, ${lineStopX} ${lineStopY}`;
+            
+            return (
+              <g key={`edge-${edge.parentId}-${edge.childId}`}>
+                <path
+                  d={pathData}
+                  fill="none"
+                  stroke={displayColor}
+                  strokeWidth={isConnectedToActive ? strokeWidth * 2 : strokeWidth}
+                  opacity={isConnectedToActive ? 1 : 0.7}
+                />
+                <polygon
+                  points={createArrowhead(p_end.x, p_end.y, angle, arrowMarkerSize)}
+                  fill={displayColor}
+                  opacity={isConnectedToActive ? 1 : 0.7}
+                />
+              </g>
+            );
           } else {
-            const controls = calculateControlPoints(p_prev, p_end, null, waypoints[numPoints - 3]);
-            cp_prevX = controls.cp0x;
-            cp_prevY = controls.cp0y;
-            cp_endX = controls.cp1x;
-            cp_endY = controls.cp1y;
+            // Complex case
+            // Create nice splines passing near the waypoints
+            // Waypoints are alternating top/bottom of gaps
+            for (let i = 1; i < numPoints - 1; i++) {
+              const p0 = waypoints[i - 1];
+              const p1 = waypoints[i];
+              
+              const dy = p1.y - p0.y;
+              // If it's a tight gap constraint (e.g. going from top to bottom of a row), use strong tension to go straight down
+              const isGapInternal = Math.abs(p0.x - p1.x) < 5 && Math.abs(dy) <= nodeH + 20;
+              const curTension = isGapInternal ? dy * 0.2 : dy * 0.5;
+              
+              let cp0x = p0.x;
+              let cp0y = p0.y + curTension;
+              let cp1x = p1.x;
+              let cp1y = p1.y - curTension;
+              
+              // Allow monotonicity
+              if (cp0y > cp1y && !isGapInternal) {
+                const midY = (p0.y + p1.y) / 2;
+                cp0y = midY;
+                cp1y = midY;
+              }
+              
+              pathData += ` C ${cp0x} ${cp0y}, ${cp1x} ${cp1y}, ${p1.x} ${p1.y}`;
+            }
+            
+            // Final leg
+            const p0 = waypoints[numPoints - 2];
+            const dyEndTension = p_end.y - p0.y;
+            const finalTension = dyEndTension * 0.5;
+            let cp0xFinal = p0.x;
+            let cp0yFinal = p0.y + finalTension;
+            let cp1xFinal = p_end.x;
+            let cp1yFinal = p_end.y - finalTension;
+            
+            if (cp0yFinal > cp1yFinal) {
+              const midY = (p0.y + p_end.y) / 2;
+              cp0yFinal = midY;
+              cp1yFinal = midY;
+            }
+            
+            const dxEnd = p_end.x - cp1xFinal;
+            const dyEnd = p_end.y - cp1yFinal;
+            const angle = Math.atan2(dyEnd, dxEnd);
+            const lineStopOffsetDist = arrowMarkerSize * 1.5;
+            const lineStopX = p_end.x - Math.cos(angle) * lineStopOffsetDist;
+            const lineStopY = p_end.y - Math.sin(angle) * lineStopOffsetDist;
+            
+            pathData += ` C ${cp0xFinal} ${cp0yFinal}, ${cp1xFinal} ${cp1yFinal}, ${lineStopX} ${lineStopY}`;
+            
+            return (
+              <g key={`edge-${edge.parentId}-${edge.childId}`}>
+                <path
+                  d={pathData}
+                  fill="none"
+                  stroke={displayColor}
+                  strokeWidth={isConnectedToActive ? strokeWidth * 2 : strokeWidth * 0.5}
+                  opacity={isConnectedToActive ? 1 : 0.7}
+                />
+                <polygon
+                  points={createArrowhead(p_end.x, p_end.y, angle, arrowMarkerSize)}
+                  fill={displayColor}
+                  opacity={isConnectedToActive ? 1 : 0.7}
+                />
+              </g>
+            );
           }
+        })}
+
+        {/* Draw corequisite edges (dashed) - rendered before nodes so they appear behind */}
+        {coreqEdges
+          .sort((edgeA: any, edgeB: any) => {
+            const activeNodeId = clickedNodeId || hoveredNodeId;
+            const aHighlighted = activeNodeId && edgeA.parentId === activeNodeId;
+            const bHighlighted = activeNodeId && edgeB.parentId === activeNodeId;
+            // Non-highlighted edges first (false = 0, true = 1), highlighted edges last
+            return (aHighlighted ? 1 : 0) - (bHighlighted ? 1 : 0);
+          })
+          .map((edge: any, idx) => {
+          const activeNodeId = clickedNodeId || hoveredNodeId;
+          // For coreq edges, only highlight if the parent (course with requirement) is clicked/hovered
+          const isConnectedToActive = activeNodeId && edge.parentId === activeNodeId;
           
-          const t = 0.95;
-          const coef1 = 3 * Math.pow(1 - t, 2);
-          const coef2 = 6 * (1 - t) * t;
-          const coef3 = 3 * Math.pow(t, 2);
-          const dx = coef1 * (cp_prevX - p_prev.x) + coef2 * (cp_endX - cp_prevX) + coef3 * (p_end.x - cp_endX);
-          const dy = coef1 * (cp_prevY - p_prev.y) + coef2 * (cp_endY - cp_prevY) + coef3 * (p_end.y - cp_endY);
-          const angle = Math.atan2(dy, dx);
+          // Use a muted color for coreq edges
+          const coreqColor = isDark ? "#9ca3af" : "#d1d5db";
+          const displayColor = isConnectedToActive ? (isDark ? "#e5e7eb" : "#6b7280") : coreqColor;
+
+          const waypoints = edge.waypoints;
+          const numPoints = waypoints.length;
+          const p_start = waypoints[0];
+          const p_end = waypoints[numPoints - 1];
           
-          // Calculate where the line stops (before the node) but arrow stays at node
+          // Calculate angle for arrow
+          const dx = p_end.x - p_start.x;
+          const dy = p_end.y - p_start.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          const angle = distance > 0 ? Math.atan2(dy, dx) : 0;
           const lineStopOffsetDist = arrowMarkerSize * 1.5;
           const lineStopX = p_end.x - Math.cos(angle) * lineStopOffsetDist;
           const lineStopY = p_end.y - Math.sin(angle) * lineStopOffsetDist;
           
-          // Build path string with smooth Bezier curves, ending before the node
+          // Simple path for coreq edges
           let pathData = `M ${waypoints[0].x} ${waypoints[0].y}`;
-          
-          // For 2 waypoints, use simple curve
           if (numPoints === 2) {
-            const controls = calculateControlPoints(waypoints[0], { x: lineStopX, y: lineStopY });
-            pathData = `M ${waypoints[0].x} ${waypoints[0].y} C ${controls.cp0x} ${controls.cp0y}, ${controls.cp1x} ${controls.cp1y}, ${lineStopX} ${lineStopY}`;
+            pathData += ` L ${lineStopX} ${lineStopY}`;
           } else {
-            // For multiple waypoints, create smooth connecting segments with perfect continuity
-            // Connect all waypoints except the last, then curve to line stop point
             for (let i = 1; i < numPoints - 1; i++) {
-              const p0 = waypoints[i - 1];
-              const p1 = waypoints[i];
-              const p_prev = i > 1 ? waypoints[i - 2] : null;
-              const p_next = i < numPoints - 2 ? waypoints[i + 1] : null;
-              
-              const controls = calculateControlPoints(p0, p1, p_next, p_prev);
-              
-              pathData += ` C ${controls.cp0x} ${controls.cp0y}, ${controls.cp1x} ${controls.cp1y}, ${p1.x} ${p1.y}`;
+              pathData += ` L ${waypoints[i].x} ${waypoints[i].y}`;
             }
-            
-            // Final segment to line stop point (not all the way to node)
-            const controls = calculateControlPoints(p_prev, { x: lineStopX, y: lineStopY }, null, waypoints[numPoints - 3]);
-            pathData += ` C ${controls.cp0x} ${controls.cp0y}, ${controls.cp1x} ${controls.cp1y}, ${lineStopX} ${lineStopY}`;
+            pathData += ` L ${lineStopX} ${lineStopY}`;
           }
 
           return (
-            <g key={`edge-${edge.parentId}-${edge.childId}`}>
+            <g key={`coreq-edge-${edge.parentId}-${edge.childId}`}>
               <path
                 d={pathData}
                 fill="none"
                 stroke={displayColor}
                 strokeWidth={isConnectedToActive ? strokeWidth * 2 : strokeWidth}
+                strokeDasharray="4,4"
                 opacity={isConnectedToActive ? 1 : 0.7}
               />
-              <polygon
-                points={createArrowhead(p_end.x, p_end.y, angle, isConnectedToActive ? arrowMarkerSize * 1.5 : arrowMarkerSize)}
-                fill={displayColor}
-                opacity={isConnectedToActive ? 1 : 0.7}
-              />
+              {distance > 0 && (
+                <polygon
+                  points={createArrowhead(p_end.x, p_end.y, angle, arrowMarkerSize)}
+                  fill={displayColor}
+                  opacity={isConnectedToActive ? 1 : 0.7}
+                />
+              )}
             </g>
           );
         })}
 
         {/* Draw nodes */}
-        {nodes.map(({ id, label, x, y }) => {
+        {nodes.map(({ id, label, x, y, type }) => {
+          const isOrNode = type === 'or';
+          const isAndNode = type === 'and';
+          const isLogicNode = isOrNode || isAndNode;
+          
+          const getTargetCourse = (startId: string): string => {
+            let curr = startId;
+            const visited = new Set<string>();
+            while (true) {
+              if (visited.has(curr)) return curr;
+              visited.add(curr);
+              const node = dagData?.nodes.find(n => n.id === curr);
+              if (node && node.type !== 'or' && node.type !== 'and') {
+                return curr;
+              }
+              const children = Array.from(edgesMap?.get(curr) || []);
+              if (children.length > 0) {
+                curr = children[0] as string;
+              } else {
+                return curr;
+              }
+            }
+          };
+          
           const prereqs = dagData?.nodes.find(n => n.id === id)?.prereqs || [];
           const postreqs = Array.from(edgesMap?.get(id) || new Set());
           
@@ -1048,6 +1457,59 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
           const activeNodeId = clickedNodeId || hoveredNodeId;
           const isDirectlyConnected = activeNodeId && (postreqs.includes(activeNodeId) || reverseEdgesMap?.get(id)?.has(activeNodeId));
           
+          if (isLogicNode) {
+            return (
+              <g key={id}>
+                <circle
+                  cx={x}
+                  cy={y}
+                  r={16}
+                  fill={isDark ? (activeNodeId === id ? "#7b8a97" : isDirectlyConnected ? "#4b5563" : "#1f2937") : (activeNodeId === id ? "#e5e7eb" : isDirectlyConnected ? "#ececf1" : "#ffffff")}
+                  stroke={isDark ? "#d97706" : "#f59e0b"}
+                  strokeWidth={2}
+                  onMouseEnter={(e) => {
+                    if (!clickedNodeId) {
+                      setHoveredNodeId(id);
+                      setHoverPos({ x: 0, y: 0 });
+                    }
+                  }}
+                  onMouseLeave={() => {
+                    if (!clickedNodeId) {
+                      setHoveredNodeId(null);
+                      setHoverPos(null);
+                    }
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const targetId = getTargetCourse(id);
+                    if (clickedNodeId === targetId) {
+                      setClickedNodeId(null);
+                      setHoveredNodeId(null);
+                      setHoverPos(null);
+                    } else {
+                      setClickedNodeId(targetId);
+                      setHoveredNodeId(null);
+                      setHoverPos({ x: 0, y: 0 });
+                    }
+                  }}
+                  data-node-id={id}
+                  style={{ cursor: "pointer" }}
+                />
+                <text
+                  x={x}
+                  y={y + 3}
+                  textAnchor="middle"
+                  fontSize={8}
+                  fill={isDark ? "#e5e7eb" : "#111827"}
+                  fontWeight="bold"
+                  className="pointer-events-none select-none"
+                >
+                  {label}
+                </text>
+              </g>
+            );
+          }
+
           return (
             <g key={id}>
               <rect
@@ -1055,10 +1517,10 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
                 y={y - nodeH / 2}
                 width={nodeW}
                 height={nodeH}
-                fill={isDark ? (activeNodeId === id ? "#4b5563" : isDirectlyConnected ? "#374151" : "#374151") : (activeNodeId === id ? "#e5e7eb" : isDirectlyConnected ? "#f3f4f6" : "#ffffff")}
+                fill={isDark ? (activeNodeId === id ? "#7b8a97" : isDirectlyConnected ? "#4b5563" : "#1f2937") : (activeNodeId === id ? "#e5e7eb" : isDirectlyConnected ? "#ececf1" : "#ffffff")}
                 stroke={isDark ? (activeNodeId === id ? "#6b7280" : isDirectlyConnected ? "#6b7280" : "#6b7280") : (activeNodeId === id ? "#9ca3af" : isDirectlyConnected ? "#d1d5db" : "#d1d5db")}
                 strokeWidth={activeNodeId === id ? 2.5 : isDirectlyConnected ? 2 : strokeWidth}
-                rx={strokeWidth * 2}
+                rx={20}
                 onMouseEnter={(e) => {
                   if (!clickedNodeId) {
                     // Normal hover behavior when no node is clicked
@@ -1104,53 +1566,102 @@ export const TreeVisualization: React.FC<TreeVisualizationProps> = ({ department
             </g>
           );
         })}
+
       </svg>
       </div>
       </div>
 
-      {(hoveredNodeId || clickedNodeId) && hoverPos && (
-        <div
-          ref={popupRef}
-          className="fixed bottom-5 right-5 z-[1000] min-w-[200px] max-w-[250px] bg-panel-bg border border-panel-border-strong rounded-lg p-3 text-xs shadow-lg pointer-events-auto"
-        >
-          <div className="font-bold mb-2 text-sm text-primary">
-            {clickedNodeId || hoveredNodeId}
-          </div>
-          <div className="text-xs mb-3 text-text-secondary italic max-h-20 overflow-y-auto">
-            {dagData?.nodes.find(n => n.id === (clickedNodeId || hoveredNodeId))?.title || dagData?.nodes.find(n => n.id === (clickedNodeId || hoveredNodeId))?.label}
-          </div>
-          
-          <div className="mb-2">
-            <div className="font-semibold text-primary mb-1">
-              Prerequisites:
+      {(hoveredNodeId || clickedNodeId) && hoverPos && !dagData?.nodes.find(n => n.id === (clickedNodeId || hoveredNodeId))?.type && (() => {
+        const targetId = clickedNodeId || hoveredNodeId;
+        const targetNode = dagData?.nodes.find(n => n.id === targetId);
+        
+        let allPrereqsList: string[] = [];
+        const rawPrereqs = Array.from(reverseEdgesMap?.get(targetId!) || new Set<string>());
+        const depOrs: string[] = (targetNode as any)?.departmentOrs || [];
+        
+
+        
+        // Filter out rawPrereqs that are part of a count node group
+        const standalonePrereqs = rawPrereqs.filter(prereq => {
+          return !depOrs.some(orStatement => {
+            // Check if this course is mentioned in any (N OF) group
+            const codes = (orStatement.match(/[A-Z]{2,6}\s*\d{3,4}[A-Z]?/g) || []).map(c => c.toUpperCase().replace(/\s+/g, ' '));
+            return codes.includes(String(prereq).toUpperCase().replace(/\s+/g, ' '));
+          });
+        });
+        
+        allPrereqsList = [...standalonePrereqs.map(p => formatNodeLabel(String(p), false, 0)), ...depOrs];
+
+        return (
+          <div
+            ref={popupRef}
+            className="fixed bottom-5 right-5 z-[1000] min-w-[200px] max-w-[250px] bg-panel-bg border border-panel-border-strong rounded-3xl p-3 text-xs shadow-lg pointer-events-auto"
+          >
+            <div className="font-bold mb-2 text-sm text-primary">
+              {targetId}
             </div>
-            <div className="pl-2 text-text-muted">
-              {(reverseEdgesMap?.get((clickedNodeId || hoveredNodeId)!) as Set<string> | undefined)?.size === 0 ? (
-                <span>None</span>
-              ) : (
-                Array.from(reverseEdgesMap?.get((clickedNodeId || hoveredNodeId)!) as Set<string> | Set<unknown>).map((prereq: string | unknown) => (
-                  <div key={prereq as string}>• {String(prereq)}</div>
-                ))
+            <div className="text-xs mb-1 text-text-secondary italic max-h-20 overflow-y-auto">
+              {targetNode?.title || targetNode?.label}
+            </div>
+            
+            <div className="flex flex-col">
+              {allPrereqsList.length > 0 && (
+                <div>
+                  <div className="font-semibold text-primary mt-1 mb-1">
+                    Prerequisites:
+                  </div>
+                  <div className="pl-2 text-text-muted">
+                    {allPrereqsList.map((item, i) => (
+                      <div key={i}>• {item}</div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {((coreqMap?.get(targetId!) as Set<string> | undefined)?.size || 0) > 0 && (() => {
+                const coreqOrs: string[] = (targetNode as any)?.coreqOrs || [];
+                const rawCoreqs = Array.from(coreqMap?.get(targetId!) as Set<string> | Set<unknown>);
+                const standaloneCoereqs = rawCoreqs.filter(coreq => {
+                  // If no coreqOrs, all are standalone
+                  if (!coreqOrs.length) return true;
+                  return !coreqOrs.some(orStatement => {
+                    const codes = (orStatement.match(/[A-Z]{2,6}\s*\d{3,4}[A-Z]?/g) || []).map(c => c.toUpperCase().replace(/\s+/g, ' '));
+                    return codes.includes(String(coreq).toUpperCase().replace(/\s+/g, ' '));
+                  });
+                });
+                
+                const allCoreqsList = [...standaloneCoereqs.map(c => formatNodeLabel(String(c), false, 0)), ...coreqOrs];
+
+                return (
+                  <div>
+                    <div className="font-semibold text-primary mt-1 mb-1">
+                      Corequisites:
+                    </div>
+                    <div className="pl-2 text-text-muted">
+                      {allCoreqsList.map((item, i) => (
+                        <div key={i}>• {item}</div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+              
+              {((edgesMap?.get(targetId!) as Set<string> | undefined)?.size || 0) > 0 && (
+                <div>
+                  <div className="font-semibold text-primary mt-1 mb-1">
+                    Required for:
+                  </div>
+                  <div className="pl-2 text-text-muted">
+                    {Array.from(edgesMap?.get(targetId!) as Set<string> | Set<unknown>).map((postreq: string | unknown) => (
+                      <div key={postreq as string}>• {formatNodeLabel(String(postreq), true, 0)}</div>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
           </div>
-          
-          <div>
-            <div className="font-semibold text-primary mb-1">
-              Required for:
-            </div>
-            <div className="pl-2 text-text-muted">
-              {(edgesMap?.get((clickedNodeId || hoveredNodeId)!) as Set<string> | undefined)?.size === 0 ? (
-                <span>None</span>
-              ) : (
-                Array.from(edgesMap?.get((clickedNodeId || hoveredNodeId)!) as Set<string> | Set<unknown>).map((postreq: string | unknown) => (
-                  <div key={postreq as string}>• {String(postreq)}</div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 };

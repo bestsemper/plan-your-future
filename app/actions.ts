@@ -29,6 +29,7 @@ const forumPostDetailInclude = {
       id: true,
       displayName: true,
       computingId: true,
+      profileVisibility: true,
     },
   },
   answers: {
@@ -45,6 +46,7 @@ const forumPostDetailInclude = {
           id: true,
           displayName: true,
           computingId: true,
+          profileVisibility: true,
         },
       },
       votes: {
@@ -316,73 +318,154 @@ function verifyPassword(password: string, hash: string): boolean {
   }
 }
 
-// MOCK AUTH: In a real app, this would integrate with NetBadge/SSO
-// For MVP, we'll just find or create a user by computingId
-export async function mockLogin(computingId: string, password: string) {
-  if (!computingId) return { error: "Computing ID is required" };
-  if (!password) return { error: "Password is required" };
-
-  let user = await prisma.user.findUnique({
-    where: { computingId }
-  });
-
-  if (!user || !user.password) {
-    return { error: "Incorrect login info." };
+// Helper: Get display author name for forum content.
+// Per-post/reply anonymity is the source of truth: if isAnonymous is false,
+// show the real author name even when profileVisibility is hidden.
+function getDisplayAuthor(
+  authorDisplayName: string,
+  isAnonymous: boolean,
+  profileVisibility: string
+): string {
+  // If post is anonymous, show "Anonymous User"
+  if (isAnonymous) {
+    return "Anonymous User";
   }
 
-  // Secure password verification
-  if (!verifyPassword(password, user.password)) {
-    return { error: "Incorrect login info." };
-  }
-
-  // Set session cookie mock here if needed
-  const cookieStore = await cookies();
-  cookieStore.set('computingId', user.computingId, { 
-    httpOnly: true, 
-    secure: process.env.NODE_ENV === 'production', 
-    path: '/' 
-  });
-  
-  return { success: true, user };
+  // Otherwise, show real name
+  return authorDisplayName;
 }
 
-export async function mockSignUp(computingId: string, password: string, displayName?: string) {
-  if (!computingId) return { error: "Computing ID is required" };
-  if (!password) return { error: "Password is required" };
+export async function login(email: string, password: string) {
+  if (!email) return { error: 'Email is required' };
+  if (!password) return { error: 'Password is required' };
 
-  let user = await prisma.user.findUnique({
-    where: { computingId }
+  const emailLower = email.toLowerCase().trim();
+  if (!emailLower.endsWith('@virginia.edu')) {
+    return { error: 'Please use your UVA email (@virginia.edu)' };
+  }
+
+  const computingId = emailLower.split('@')[0];
+
+  const user = await prisma.user.findUnique({ where: { computingId } });
+  if (!user || !user.password) {
+    return { error: 'Incorrect email or password.' };
+  }
+
+  if (!verifyPassword(password, user.password)) {
+    return { error: 'Incorrect email or password.' };
+  }
+
+  const cookieStore = await cookies();
+  cookieStore.set('computingId', user.computingId, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
   });
 
-  if (user) {
-    return { error: "Account already exists. Please log in." };
+  return { success: true };
+}
+
+export async function initiatePasswordReset(email: string) {
+  if (!email) return { error: 'Email is required' };
+
+  const emailLower = email.toLowerCase().trim();
+  if (!emailLower.endsWith('@virginia.edu')) {
+    return { error: 'Please use your UVA email (@virginia.edu)' };
+  }
+
+  const computingId = emailLower.split('@')[0];
+  const user = await prisma.user.findUnique({ where: { computingId } });
+
+  if (!user) return { success: true };
+
+  await prisma.passwordResetToken.deleteMany({ where: { userId: user.id } });
+
+  const token = randomBytes(32).toString('hex');
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+  await prisma.passwordResetToken.create({
+    data: { userId: user.id, token, expiresAt },
+  });
+
+  const { sendPasswordResetEmail } = await import('../lib/resend');
+  await sendPasswordResetEmail(emailLower, token);
+
+  return { success: true };
+}
+
+export async function resetPassword(token: string, newPassword: string) {
+  if (!token) return { error: 'Invalid reset link.' };
+  if (!newPassword || newPassword.length < 8) {
+    return { error: 'Password must be at least 8 characters.' };
+  }
+
+  const record = await prisma.passwordResetToken.findUnique({ where: { token } });
+  if (!record || record.expiresAt < new Date()) {
+    return { error: 'This link has expired or is invalid. Please request a new one.' };
+  }
+
+  const hashedPassword = hashPassword(newPassword);
+  await prisma.user.update({
+    where: { id: record.userId },
+    data: { password: hashedPassword },
+  });
+
+  await prisma.passwordResetToken.delete({ where: { token } });
+
+  return { success: true };
+}
+
+export async function initiateSignup(email: string, password: string, displayName?: string) {
+  if (!email) return { error: 'Email is required' };
+  if (!password) return { error: 'Password is required' };
+
+  const emailLower = email.toLowerCase().trim();
+  if (!emailLower.endsWith('@virginia.edu')) {
+    return { error: 'Please use your UVA email (@virginia.edu)' };
+  }
+
+  const computingId = emailLower.split('@')[0];
+
+  const existingUser = await prisma.user.findUnique({ where: { computingId } });
+  if (existingUser) {
+    return { error: 'An account with this email already exists. Please log in.' };
+  }
+
+  const now = new Date();
+  const existingPending = await prisma.pendingSignup.findUnique({ where: { email: emailLower } });
+  if (existingPending && existingPending.expiresAt > now) {
+    return { error: 'A verification email was already sent. Please check your inbox or wait 15 minutes to try again.' };
+  }
+
+  if (existingPending) {
+    await prisma.pendingSignup.delete({ where: { email: emailLower } });
   }
 
   const hashedPassword = hashPassword(password);
+  const token = randomBytes(32).toString('hex');
+  const expiresAt = new Date(now.getTime() + 15 * 60 * 1000);
 
-  user = await prisma.user.create({
+  await prisma.pendingSignup.create({
     data: {
+      email: emailLower,
       computingId,
-      displayName: displayName || computingId,
-      password: hashedPassword,
-      major: 'Undeclared'
-    }
+      hashedPassword,
+      displayName: displayName?.trim() || computingId,
+      token,
+      expiresAt,
+    },
   });
 
-  // Create an empty goal profile
-  await prisma.goalProfile.create({
-    data: { userId: user.id }
-  });
+  const { sendVerificationEmail } = await import('../lib/resend');
+  try {
+    await sendVerificationEmail(emailLower, token);
+  } catch (err) {
+    console.error('[initiateSignup] Failed to send verification email:', err);
+    await prisma.pendingSignup.deleteMany({ where: { email: emailLower } });
+    return { error: 'Failed to send verification email. Please try again later.' };
+  }
 
-  // Set session cookie mock here if needed
-  const cookieStore = await cookies();
-  cookieStore.set('computingId', user.computingId, { 
-    httpOnly: true, 
-    secure: process.env.NODE_ENV === 'production', 
-    path: '/' 
-  });
-  
-  return { success: true, user };
+  return { success: true };
 }
 
 export async function getCurrentUser() {
@@ -475,7 +558,36 @@ export async function logout() {
   redirect('/login');
 }
 
-export async function createForumPost(title: string, body: string, attachedPlanId?: string) {
+export async function updateProfileVisibility(profileVisibility: 'hidden' | 'public') {
+  const user = await getCurrentUser();
+  if (!user) {
+    return { error: 'Not authenticated.' };
+  }
+
+  if (profileVisibility !== 'hidden' && profileVisibility !== 'public') {
+    return { error: 'Invalid profile visibility setting.' };
+  }
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      profileVisibility: profileVisibility,
+    },
+  });
+
+  revalidatePath('/profile');
+  revalidatePath(`/profile/${user.computingId}`);
+
+  return { success: true };
+}
+
+export async function createForumPost(
+  title: string,
+  body: string,
+  attachedPlanId?: string,
+  isAnonymous: boolean = true,
+  tags: string[] = []
+) {
   const user = await getCurrentUser();
   if (!user) {
     return { error: 'You must be logged in to post.' };
@@ -536,6 +648,9 @@ export async function createForumPost(title: string, body: string, attachedPlanI
     };
   }
 
+  // Validate and deduplicate tags
+  const validatedTags = Array.from(new Set(tags.filter(tag => tag && tag.trim())));
+
   const post = await prisma.forumPost.create({
     data: {
       authorId: user.id,
@@ -543,6 +658,8 @@ export async function createForumPost(title: string, body: string, attachedPlanI
       body: trimmedBody,
       attachedPlanId: validatedPlanId,
       planSnapshot: planSnapshot,
+      isAnonymous: isAnonymous,
+      tags: validatedTags,
     },
   });
 
@@ -588,7 +705,13 @@ export async function deleteForumPost(postId: string) {
   return { success: true };
 }
 
-export async function addForumReply(postId: string, body: string, parentReplyId?: string, attachedPlanId?: string) {
+export async function addForumReply(
+  postId: string,
+  body: string,
+  parentReplyId?: string,
+  attachedPlanId?: string,
+  isAnonymous: boolean = true
+) {
   const user = await getCurrentUser();
   if (!user) {
     return { error: 'You must be logged in to reply.' };
@@ -666,6 +789,7 @@ export async function addForumReply(postId: string, body: string, parentReplyId?
       body: trimmedBody,
       attachedPlanId: validatedPlanId,
       planSnapshot: planSnapshot,
+      isAnonymous: isAnonymous,
     },
   });
 
@@ -828,6 +952,7 @@ export async function getForumPageData() {
           id: true,
           displayName: true,
           computingId: true,
+          profileVisibility: true,
         },
       },
       answers: {
@@ -844,6 +969,7 @@ export async function getForumPageData() {
               id: true,
               displayName: true,
               computingId: true,
+              profileVisibility: true,
             },
           },
           votes: {
@@ -857,44 +983,63 @@ export async function getForumPageData() {
     },
   });
 
-  const normalizedPosts = posts.map((post) => ({
-    currentUserPostVote: (() => {
-      const userVote = post.votes.find((vote) => vote.userId === currentUser?.id)?.value;
-      return userVote === 1 ? 1 : userVote === -1 ? -1 : 0;
-    })() as 1 | -1 | 0,
-    id: post.id,
-    postNumber: post.postNumber,
-    title: post.title,
-    body: post.body,
-    voteScore: post.votes.reduce((sum, vote) => sum + vote.value, 0),
-    voteCount: post.votes.length,
-    viewCount: post.viewCount,
-    createdAt: post.createdAt.toISOString(),
-    authorDisplayName: post.author.displayName,
-    authorId: post.author.id,
-    authorComputingId: post.author.computingId,
-    canDelete: currentUser?.id === post.authorId,
-    attachedPlan: post.attachedPlan,
-    answers: post.answers.map((answer) => {
-      const userVote = answer.votes.find((vote) => vote.userId === currentUser?.id)?.value;
-      const currentUserVote: 1 | -1 | 0 = userVote === 1 ? 1 : userVote === -1 ? -1 : 0;
+  const normalizedPosts = posts.map((post) => {
+    const displayAuthor = getDisplayAuthor(
+      post.author.displayName,
+      post.isAnonymous,
+      post.author.profileVisibility
+    );
 
-      return {
-        id: answer.id,
-        parentId: answer.parentId,
-        body: answer.body,
-        attachedPlan: answer.attachedPlan,
-        isDeleted: Boolean(answer.deletedAt),
-        canDelete: currentUser?.id === answer.authorId && !answer.deletedAt,
-        createdAt: answer.createdAt.toISOString(),
-        authorDisplayName: answer.author.displayName,
-        authorId: answer.author.id,
-        authorComputingId: answer.author.computingId,
-        voteScore: answer.votes.reduce((sum, vote) => sum + vote.value, 0),
-        currentUserVote,
-      };
-    }),
-  }));
+    return {
+      currentUserPostVote: (() => {
+        const userVote = post.votes.find((vote) => vote.userId === currentUser?.id)?.value;
+        return userVote === 1 ? 1 : userVote === -1 ? -1 : 0;
+      })() as 1 | -1 | 0,
+      id: post.id,
+      postNumber: post.postNumber,
+      title: post.title,
+      body: post.body,
+      voteScore: post.votes.reduce((sum, vote) => sum + vote.value, 0),
+      voteCount: post.votes.length,
+      viewCount: post.viewCount,
+      createdAt: post.createdAt.toISOString(),
+      authorDisplayName: displayAuthor,
+      authorId: post.author.id,
+      authorComputingId: post.author.computingId,
+      isAnonymous: post.isAnonymous,
+      profileVisibility: post.author.profileVisibility,
+      tags: post.tags,
+      canDelete: currentUser?.id === post.authorId,
+      attachedPlan: post.attachedPlan,
+      answers: post.answers.map((answer) => {
+        const userVote = answer.votes.find((vote) => vote.userId === currentUser?.id)?.value;
+        const currentUserVote: 1 | -1 | 0 = userVote === 1 ? 1 : userVote === -1 ? -1 : 0;
+        
+        const displayAnswerAuthor = getDisplayAuthor(
+          answer.author.displayName,
+          answer.isAnonymous,
+          answer.author.profileVisibility
+        );
+
+        return {
+          id: answer.id,
+          parentId: answer.parentId,
+          body: answer.body,
+          attachedPlan: answer.attachedPlan,
+          isDeleted: Boolean(answer.deletedAt),
+          canDelete: currentUser?.id === answer.authorId && !answer.deletedAt,
+          createdAt: answer.createdAt.toISOString(),
+          authorDisplayName: displayAnswerAuthor,
+          authorId: answer.author.id,
+          authorComputingId: answer.author.computingId,
+          isAnonymous: answer.isAnonymous,
+          profileVisibility: answer.author.profileVisibility,
+          voteScore: answer.votes.reduce((sum, vote) => sum + vote.value, 0),
+          currentUserVote,
+        };
+      }),
+    };
+  });
 
   return {
     posts: normalizedPosts,
@@ -1023,6 +1168,12 @@ export async function getForumPostPageData(postNumber: number) {
   const postUserVote = post.votes.find((vote) => vote.userId === currentUser?.id)?.value;
   const currentUserPostVote: 1 | -1 | 0 = postUserVote === 1 ? 1 : postUserVote === -1 ? -1 : 0;
 
+  const displayPostAuthor = getDisplayAuthor(
+    post.author.displayName,
+    post.isAnonymous,
+    post.author.profileVisibility
+  );
+
   const normalizedPost = {
     id: post.id,
     postNumber: post.postNumber,
@@ -1032,14 +1183,23 @@ export async function getForumPostPageData(postNumber: number) {
     currentUserVote: currentUserPostVote,
     viewCount: post.viewCount,
     createdAt: post.createdAt.toISOString(),
-    authorDisplayName: post.author.displayName,
+    authorDisplayName: displayPostAuthor,
     authorId: post.author.id,
     authorComputingId: post.author.computingId,
+    isAnonymous: post.isAnonymous,
+    profileVisibility: post.author.profileVisibility,
+    tags: post.tags,
     canDelete: currentUser?.id === post.authorId,
     attachedPlan: post.attachedPlan,
     answers: post.answers.map((answer) => {
       const userVote = answer.votes.find((vote) => vote.userId === currentUser?.id)?.value;
       const currentUserVote: 1 | -1 | 0 = userVote === 1 ? 1 : userVote === -1 ? -1 : 0;
+
+      const displayAnswerAuthor = getDisplayAuthor(
+        answer.author.displayName,
+        answer.isAnonymous,
+        answer.author.profileVisibility
+      );
 
       return {
         id: answer.id,
@@ -1049,9 +1209,11 @@ export async function getForumPostPageData(postNumber: number) {
         isDeleted: Boolean(answer.deletedAt),
         canDelete: currentUser?.id === answer.authorId && !answer.deletedAt,
         createdAt: answer.createdAt.toISOString(),
-        authorDisplayName: answer.author.displayName,
+        authorDisplayName: displayAnswerAuthor,
         authorId: answer.author.id,
         authorComputingId: answer.author.computingId,
+        isAnonymous: answer.isAnonymous,
+        profileVisibility: answer.author.profileVisibility,
         voteScore: answer.votes.reduce((sum, vote) => sum + vote.value, 0),
         currentUserVote,
       };
@@ -1291,11 +1453,13 @@ export async function getAttachedPlanViewData(planId: string): Promise<AttachedP
     where: { attachedPlanId: planId },
     select: { 
       id: true,
+      isAnonymous: true,
       planSnapshot: true,
       author: {
         select: {
           displayName: true,
           computingId: true,
+          profileVisibility: true,
         },
       },
     },
@@ -1306,11 +1470,13 @@ export async function getAttachedPlanViewData(planId: string): Promise<AttachedP
     where: { attachedPlanId: planId },
     select: {
       id: true,
+      isAnonymous: true,
       planSnapshot: true,
       author: {
         select: {
           displayName: true,
           computingId: true,
+          profileVisibility: true,
         },
       },
     },
@@ -1319,6 +1485,12 @@ export async function getAttachedPlanViewData(planId: string): Promise<AttachedP
   // If there's a snapshot, use that instead of the live plan
   if (attachedPost?.planSnapshot) {
     const snapshot = attachedPost.planSnapshot as AttachedPlanSnapshot;
+    const ownerDisplayName = getDisplayAuthor(
+      attachedPost.author.displayName,
+      attachedPost.isAnonymous,
+      attachedPost.author.profileVisibility
+    );
+    const ownerComputingId = ownerDisplayName === 'Anonymous User' ? '' : attachedPost.author.computingId;
     const semestersWithTitles = snapshot.semesters.map(sem => ({
       ...sem,
       courses: sem.courses.map(course => ({
@@ -1330,8 +1502,8 @@ export async function getAttachedPlanViewData(planId: string): Promise<AttachedP
       plan: {
         id: planId,
         title: snapshot.title,
-        ownerDisplayName: attachedPost.author.displayName,
-        ownerComputingId: attachedPost.author.computingId,
+        ownerDisplayName,
+        ownerComputingId,
         semesters: semestersWithTitles,
       },
     };
@@ -1339,6 +1511,12 @@ export async function getAttachedPlanViewData(planId: string): Promise<AttachedP
 
   if (attachedAnswer?.planSnapshot) {
     const snapshot = attachedAnswer.planSnapshot as AttachedPlanSnapshot;
+    const ownerDisplayName = getDisplayAuthor(
+      attachedAnswer.author.displayName,
+      attachedAnswer.isAnonymous,
+      attachedAnswer.author.profileVisibility
+    );
+    const ownerComputingId = ownerDisplayName === 'Anonymous User' ? '' : attachedAnswer.author.computingId;
     const semestersWithTitles = snapshot.semesters.map(sem => ({
       ...sem,
       courses: sem.courses.map(course => ({
@@ -1350,8 +1528,8 @@ export async function getAttachedPlanViewData(planId: string): Promise<AttachedP
       plan: {
         id: planId,
         title: snapshot.title,
-        ownerDisplayName: attachedAnswer.author.displayName,
-        ownerComputingId: attachedAnswer.author.computingId,
+        ownerDisplayName,
+        ownerComputingId,
         semesters: semestersWithTitles,
       },
     };
@@ -1367,6 +1545,7 @@ export async function getAttachedPlanViewData(planId: string): Promise<AttachedP
         select: {
           displayName: true,
           computingId: true,
+          profileVisibility: true,
         },
       },
       semesters: {
@@ -1413,12 +1592,34 @@ export async function getAttachedPlanViewData(planId: string): Promise<AttachedP
     })),
   }));
 
+  const attachedSourceDisplay = attachedPost
+    ? getDisplayAuthor(
+        attachedPost.author.displayName,
+        attachedPost.isAnonymous,
+        attachedPost.author.profileVisibility
+      )
+    : attachedAnswer
+      ? getDisplayAuthor(
+          attachedAnswer.author.displayName,
+          attachedAnswer.isAnonymous,
+          attachedAnswer.author.profileVisibility
+        )
+      : getDisplayAuthor(plan.user.displayName, false, plan.user.profileVisibility);
+
+  const attachedSourceComputingId = attachedSourceDisplay === 'Anonymous User'
+    ? ''
+    : attachedPost
+      ? attachedPost.author.computingId
+      : attachedAnswer
+        ? attachedAnswer.author.computingId
+        : plan.user.computingId;
+
   return {
     plan: {
       id: plan.id,
       title: plan.title,
-      ownerDisplayName: plan.user.displayName,
-      ownerComputingId: plan.user.computingId,
+      ownerDisplayName: attachedSourceDisplay,
+      ownerComputingId: attachedSourceComputingId,
       semesters: semestersWithTitles,
     },
   };
@@ -2178,9 +2379,13 @@ type CourseDetailsJsonRecord = {
 type AggregatedCourseDetails = {
   title: string | null;
   credits: string;
+  creditsMin?: number;
+  creditsMax?: number;
   description: string | null;
   prerequisites: string[];
   terms: string[];
+  department: string;
+  career: string;
 };
 
 let cachedCourseDetailsData:
@@ -2371,6 +2576,39 @@ function formatTermLabel(term: string): string {
   return season ? `${season} ${year}` : cleaned;
 }
 
+function parseCreditsFromString(creditsStr: string): { min?: number; max?: number } {
+  const trimmed = creditsStr.trim();
+  if (!trimmed) {
+    return {};
+  }
+
+  // Check if it's a range like "1-3"
+  if (trimmed.includes('-')) {
+    const parts = trimmed.split('-').map((p) => Number.parseInt(p.trim(), 10));
+    if (parts.length === 2 && !Number.isNaN(parts[0]) && !Number.isNaN(parts[1])) {
+      return { min: parts[0], max: parts[1] };
+    }
+  }
+
+  // Single number
+  const single = Number.parseInt(trimmed, 10);
+  if (!Number.isNaN(single)) {
+    return { min: single, max: single };
+  }
+
+  return {};
+}
+
+function getCourseCareerLevel(courseCode: string): string {
+  // Extract course number from code like "CS 1110" -> "1110"
+  const match = courseCode.match(/\d{4}/);
+  if (!match) return 'UGRD';
+  
+  const courseNumber = Number.parseInt(match[0], 10);
+  // 1000-4999 = Undergrad, 5000+ = Graduate
+  return courseNumber >= 5000 ? 'GRAD' : 'UGRD';
+}
+
 function parseTermLabels(rawTerms: string): string[] {
   const normalized = normalizeCsvText(rawTerms);
   if (!normalized) {
@@ -2470,15 +2708,28 @@ function loadCourseDetailsFromJSON(): {
 
   const courseDetailsByCode = new Map<string, AggregatedCourseDetails>();
   for (const [code, detail] of detailsMap.entries()) {
+    // Extract department from course code (e.g., "CS" from "CS 1010")
+    const department = code.split(' ')[0];
+    
+    // Derive career level from course number
+    const career = getCourseCareerLevel(code);
+    
+    // Parse credits into min/max
+    const { min: creditsMin, max: creditsMax } = parseCreditsFromString(detail.credits);
+    
     courseDetailsByCode.set(code, {
       title: detail.title,
       credits: detail.credits,
+      creditsMin,
+      creditsMax,
       description: detail.description,
       prerequisites: Array.from(detail.prerequisites),
       terms: Array.from(detail.terms).sort((left, right) => {
         const keyDiff = getTermSortKey(left) - getTermSortKey(right);
         return keyDiff !== 0 ? keyDiff : left.localeCompare(right);
       }),
+      department,
+      career,
     });
   }
 
@@ -2646,6 +2897,7 @@ export async function getUserProfile(computingId: string) {
         currentAcademicYear: true,
         gradYear: true,
         bio: true,
+        profileVisibility: true,
       },
     });
 

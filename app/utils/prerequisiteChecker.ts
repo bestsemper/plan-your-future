@@ -392,7 +392,7 @@ function formatInlineRequirement(tree: PrerequisiteTree): string {
   }
 
   if (tree.type === 'count') {
-    return `${tree.count} of: ${tree.children.map(formatInlineRequirement).join(', ')}`;
+    return `(${tree.count} OF) ${tree.children.map(formatInlineRequirement).join(', ')}`;
   }
 
   if (tree.type === 'NOT') {

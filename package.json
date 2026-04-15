@@ -14,11 +14,12 @@
     "csv-parse": "^6.1.0",
     "csv-stringify": "^6.6.0",
     "d3-dsv": "^3.0.1",
-    "next": "16.1.6",
+    "next": "^16.2.3",
     "next-themes": "^0.4.6",
     "pdf-parse": "^1.1.1",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "resend": "^6.11.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
