@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "node scripts/generate-icons.mjs && next dev",
+    "build": "node scripts/generate-icons.mjs && next build",
+    "generate-icons": "node scripts/generate-icons.mjs",
     "start": "next start",
     "lint": "eslint",
     "postinstall": "prisma generate",
