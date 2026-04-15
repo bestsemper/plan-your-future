@@ -348,6 +348,10 @@ export async function login(email: string, password: string) {
 
   const user = await prisma.user.findUnique({ where: { computingId } });
   if (!user || !user.password) {
+    const pending = await prisma.pendingSignup.findUnique({ where: { email: emailLower } });
+    if (pending && pending.expiresAt > new Date()) {
+      return { error: 'Please verify your email before signing in. Check your inbox for the verification link.' };
+    }
     return { error: 'Incorrect email or password.' };
   }
 
