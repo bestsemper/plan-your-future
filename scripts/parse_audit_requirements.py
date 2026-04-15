@@ -98,8 +98,8 @@ def parse_constraints(constraint_text: str) -> List[Dict[str, Any]]:
     
     constraints = []
     
-    # Min units
-    if match := re.search(r'At least (\d+(?:\.\d+)?)\s*units? in total', constraint_text):
+    # Min units - matches "At least X units", "Take at least X units", "at least X units in total"
+    if match := re.search(r'(?:at|take\s+at)\s+least\s+(\d+(?:\.\d+)?)\s*units', constraint_text, re.IGNORECASE):
         constraints.append({
             'type': 'min_units',
             'value': float(match.group(1))

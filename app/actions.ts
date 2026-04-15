@@ -1439,6 +1439,8 @@ export async function getPlanBuilderData() {
     plans,
     allCourses,
     completedCourses: completedCourses.map((c) => c.courseCode),
+    userMajor: user.major,
+    additionalPrograms: user.additionalPrograms ?? [],
   };
 }
 
@@ -2392,6 +2394,98 @@ let cachedCourseDetailsData:
       sortedCourseCodes: string[];
     }
   | null = null;
+
+let cachedRequirementsData: Record<string, any> | null = null;
+let cachedAcademicOptions: any | null = null;
+
+function getMajorProgramCode(majorDisplayName: string): string | null {
+  // Load academic options once and cache
+  if (!cachedAcademicOptions) {
+    try {
+      const filePath = path.join(process.cwd(), 'data', 'uva_academic_options.json');
+      const fileContents = fs.readFileSync(filePath, 'utf-8');
+      cachedAcademicOptions = JSON.parse(fileContents);
+    } catch (error) {
+      console.error('Error loading academic options:', error);
+      return null;
+    }
+  }
+
+  // Find the major by display name and return its code
+  const majors = cachedAcademicOptions.majors || [];
+  const major = majors.find((m: any) => (m.displayName || m.name) === majorDisplayName);
+  
+  if (major && major.code) {
+    console.log(`[getMajorProgramCode] Mapped "${majorDisplayName}" → "${major.code}"`);
+    return major.code;
+  }
+  
+  console.warn(`[getMajorProgramCode] Could not find program code for major: "${majorDisplayName}"`);
+  return null;
+}
+
+function loadRequirementsFromJSON(): Record<string, any> {
+  if (cachedRequirementsData) {
+    return cachedRequirementsData;
+  }
+
+  try {
+    const filePath = path.join(process.cwd(), 'data', 'requirements.json');
+    const fileContents = fs.readFileSync(filePath, 'utf-8');
+    const parsed = JSON.parse(fileContents) as Record<string, any>;
+    cachedRequirementsData = parsed;
+    return parsed;
+  } catch (error) {
+    console.error('Error loading requirements.json:', error);
+    throw error;
+  }
+}
+
+export async function loadRequirements(program: string, year?: string) {
+  'use server';
+  try {
+    console.log(`[loadRequirements] Loading for program: "${program}", year: "${year}"`);
+    
+    // Try to map display name to program code if needed
+    let programCode = program;
+    if (!program.includes('-')) {
+      // Looks like a display name, try to map it
+      const mappedCode = getMajorProgramCode(program);
+      if (mappedCode) {
+        programCode = mappedCode;
+        console.log(`[loadRequirements] Mapped program name to code: "${programCode}"`);
+      }
+    }
+    
+    const allRequirements = loadRequirementsFromJSON();
+    console.log(`[loadRequirements] Total programs in data: ${Object.keys(allRequirements).length}`);
+    
+    // Return requirements for specific program
+    if (!allRequirements[programCode]) {
+      const availablePrograms = Object.keys(allRequirements).slice(0, 10);
+      console.error(`[loadRequirements] Program "${programCode}" not found. Available programs (first 10): ${availablePrograms.join(', ')}`);
+      return null;
+    }
+
+    console.log(`[loadRequirements] Found program "${programCode}". Years available: ${Object.keys(allRequirements[programCode]).join(', ')}`);
+
+    // If year specified, return that year's requirements
+    if (year) {
+      const yearData = allRequirements[programCode][year];
+      if (yearData) {
+        console.log(`[loadRequirements] Returning ${Array.isArray(yearData) ? yearData.length : 'non-array'} requirements for ${programCode}/${year}`);
+      }
+      return yearData || null;
+    }
+
+    // Return all years for this program
+    console.log(`[loadRequirements] Returning all years for ${programCode}`);
+    return allRequirements[programCode];
+  } catch (error) {
+    console.error(`[loadRequirements] Error loading requirements for program ${program}:`, error);
+    throw error;
+  }
+}
 
 function normalizeCourseCode(courseCode: string): string {
   return courseCode.toUpperCase().replace(/\s+/g, ' ').trim();
