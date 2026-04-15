@@ -174,14 +174,16 @@ model UserBadge {
 }
 
 model PendingSignup {
-  id             String   @id @default(cuid())
-  email          String   @unique
-  computingId    String   @unique
+  id             String    @id @default(cuid())
+  email          String    @unique
+  computingId    String    @unique
   hashedPassword String
   displayName    String
-  token          String   @unique
+  token          String    @unique
   expiresAt      DateTime
-  createdAt      DateTime @default(now())
+  createdAt      DateTime  @default(now())
+  resendCount    Int       @default(0)
+  lastResentAt   DateTime?
 }
 
 model PasswordResetToken {

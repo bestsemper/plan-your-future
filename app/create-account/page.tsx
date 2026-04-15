@@ -46,7 +46,7 @@ export default function CreateAccountPage() {
     if (res?.error) {
       setError(res.error);
     } else {
-      router.push('/verify-email');
+      router.push(`/verify-email?email=${encodeURIComponent(email.toLowerCase().trim())}`);
     }
   }
 

@@ -468,6 +468,56 @@ export async function initiateSignup(email: string, password: string, displayNam
   return { success: true };
 }
 
+// Exponential backoff delays in seconds: 30s, 5min, 30min
+const RESEND_DELAYS = [30, 300, 1800];
+
+export async function resendVerificationEmail(email: string) {
+  if (!email) return { error: 'Email is required' };
+
+  const emailLower = email.toLowerCase().trim();
+  const now = new Date();
+
+  const existing = await prisma.user.findUnique({ where: { computingId: emailLower.split('@')[0] } });
+  if (existing) return { error: 'This account is already verified. Please log in.' };
+
+  const pending = await prisma.pendingSignup.findUnique({ where: { email: emailLower } });
+  if (!pending) return { error: 'No pending signup found. Please sign up again.' };
+
+  // Determine cooldown based on how many times they've resent
+  const resendCount = pending.resendCount ?? 0;
+  const delaySecs = RESEND_DELAYS[Math.min(resendCount, RESEND_DELAYS.length - 1)];
+  const lastSent = pending.lastResentAt ?? pending.createdAt;
+  const nextAllowed = new Date(lastSent.getTime() + delaySecs * 1000);
+
+  if (now < nextAllowed) {
+    const secsLeft = Math.ceil((nextAllowed.getTime() - now.getTime()) / 1000);
+    return { error: 'too_soon', secsLeft };
+  }
+
+  const token = randomBytes(32).toString('hex');
+  const expiresAt = new Date(now.getTime() + 15 * 60 * 1000);
+
+  await prisma.pendingSignup.update({
+    where: { email: emailLower },
+    data: {
+      token,
+      expiresAt,
+      resendCount: resendCount + 1,
+      lastResentAt: now,
+    },
+  });
+
+  const { sendVerificationEmail } = await import('../lib/resend');
+  try {
+    await sendVerificationEmail(emailLower, token);
+  } catch (err) {
+    console.error('[resendVerificationEmail] Failed:', err);
+    return { error: 'Failed to send email. Please try again later.' };
+  }
+
+  return { success: true, nextDelaySecs: RESEND_DELAYS[Math.min(resendCount + 1, RESEND_DELAYS.length - 1)] };
+}
+
 export async function getCurrentUser() {
   const cookieStore = await cookies();
   const computingId = cookieStore.get('computingId')?.value;
