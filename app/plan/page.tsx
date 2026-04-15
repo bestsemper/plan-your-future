@@ -3,9 +3,12 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { RequirementMissing } from '../utils/prerequisiteChecker';
+import { isHSSCourse } from '../utils/hssValidator';
+import type { RequirementCheckResult } from '../utils/requirementsValidator';
 import { Icon } from '../components/Icon';
 import { default as ConfirmModal } from '../components/ConfirmModal';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from '../components/DropdownMenu';
+import { RequirementsSidebar } from '../components/RequirementsSidebar';
 import {
   addSchoolYearToPlan,
   addSemesterToPlan,
@@ -25,6 +28,7 @@ import {
   renamePlan,
   checkPlanPrerequisites,
   checkCoursePrerequisites,
+  loadRequirements,
 } from '../actions';
 
 interface CourseInfo {
@@ -529,6 +533,14 @@ export default function PlanBuilderPage() {
   // Comparison plan display
   const [comparisonPlan, setComparisonPlan] = useState<any | null>(null);
 
+  // Requirements sidebar
+  const [isRequirementsOpen, setIsRequirementsOpen] = useState(false);
+  const [requirementsCheckResult, setRequirementsCheckResult] = useState<RequirementCheckResult | null>(null);
+  const [selectedProgramName, setSelectedProgramName] = useState('');
+  const [loadingRequirements, setLoadingRequirements] = useState(false);
+  const [userMajor, setUserMajor] = useState<string | null>(null);
+  const [additionalPrograms, setAdditionalPrograms] = useState<string[]>([]);
+
   // Load comparison plan from sessionStorage if in compare mode
   useEffect(() => {
     if (searchParams && searchParams.get('compare') === 'true' && typeof window !== 'undefined') {
@@ -617,6 +629,9 @@ export default function PlanBuilderPage() {
       setOptimisticPlans(nextPlans);
       setAllCourses(res.allCourses ?? []);
       setCompletedCourses(res.completedCourses ?? []);
+      setUserMajor(res.userMajor ?? null);
+      setAdditionalPrograms(res.additionalPrograms ?? []);
+      console.log('[loadInitialData] additionalPrograms:', res.additionalPrograms ?? []);
 
       const preferredSelection = preferredPlanId ? nextPlans.find((p) => p.id === preferredPlanId)?.id : undefined;
       const storedPlanSelection = storedSelection ? nextPlans.find((p) => p.id === storedSelection)?.id : undefined;
@@ -771,6 +786,571 @@ export default function PlanBuilderPage() {
     await deletePlan(activePlan.id);
     setDeletingPlan(false);
     void loadData();
+  };
+
+  const loadAndCheckRequirements = async (programCode?: string) => {
+    if (!activePlan) return;
+    
+    setLoadingRequirements(true);
+    try {
+      // Use provided code, or the user's enrolled major, or a fallback
+      const selectedCode = programCode || userMajor || 'COMPSC-BS';
+      
+      console.log(`[loadAndCheckRequirements] Starting. userMajor="${userMajor}", selectedCode="${selectedCode}", activePlan=${activePlan?.id}`);
+      
+      setSelectedProgramName(selectedCode);
+      
+      // Collect taken courses from all semesters AND completed courses from profile
+      const takenCourses = new Set<string>();
+      for (const semester of activePlan.semesters) {
+        for (const course of semester.courses) {
+          takenCourses.add(course.courseCode);
+        }
+      }
+      // Add completed courses from profile
+      for (const course of completedCourses) {
+        takenCourses.add(course);
+      }
+      console.log(`[loadAndCheckRequirements] Found ${takenCourses.size} total taken courses (${activePlan.semesters.reduce((sum, s) => sum + s.courses.length, 0)} in plan + ${completedCourses.length} completed)`);
+
+      // Load the actual requirements directly from server
+      try {
+        console.log(`[loadAndCheckRequirements] Calling loadRequirements("${selectedCode}")`);
+        const allYearsData = await loadRequirements(selectedCode);
+        console.log(`[loadAndCheckRequirements] Returned data:`, allYearsData);
+        
+        if (!allYearsData) {
+          console.warn(`No requirements found for program: ${selectedCode}`);
+          setRequirementsCheckResult(null);
+          setLoadingRequirements(false);
+          return;
+        }
+
+        // Get the available years (keys of the object)
+        const availableYears = Object.keys(allYearsData);
+        if (!availableYears || availableYears.length === 0) {
+          console.warn(`No years available for program: ${selectedCode}`);
+          setRequirementsCheckResult(null);
+          setLoadingRequirements(false);
+          return;
+        }
+
+        // Get the most recent year
+        const selectedYear = availableYears.sort().reverse()[0];
+        const yearRequirements = allYearsData[selectedYear];
+        
+        if (!Array.isArray(yearRequirements) || yearRequirements.length === 0) {
+          console.warn(`No requirements found for program ${selectedCode} in year ${selectedYear}`);
+          setRequirementsCheckResult(null);
+          setLoadingRequirements(false);
+          return;
+        }
+
+        // Take the first (root) requirement and use it
+        const rootRequirement = yearRequirements[0];
+        
+        // Helper function to normalize course codes: ensure uppercase with single space before number
+        const normalizeCourseCode = (code: string): string => {
+          // First uppercase and trim
+          let normalized = code.toUpperCase().trim();
+          // Replace any whitespace with single space
+          normalized = normalized.replace(/\s+/g, ' ');
+          // Ensure space between letters and numbers (CS3130 -> CS 3130)
+          normalized = normalized.replace(/([A-Z])(\d)/, '$1 $2');
+          return normalized;
+        };
+        
+        // Helper: Extract min_units requirement from constraints
+        const getMinUnitsFromConstraints = (constraints: any[]): number | null => {
+          if (!constraints || !Array.isArray(constraints)) return null;
+          const minUnitsConstraint = constraints.find((c: any) => c.type === 'min_units');
+          return minUnitsConstraint?.value ?? null;
+        };
+        
+        // Helper: Get units for a course (default to 3 if unknown)
+        const getCourseUnits = (courseCode: string): number => {
+          // Default: most courses are 3 units, some are 1, 2, or 4
+          // We'll use 3 as a safe default for now
+          // TODO: Could enhance this with course data lookup if needed
+          return 3.0;
+        };
+        
+        // Normalize all taken courses for consistent comparison
+        const normalizedTakenCourses = new Set(
+          Array.from(takenCourses).map(normalizeCourseCode)
+        );
+        
+        console.log(`[loadAndCheckRequirements] Raw taken courses:`, Array.from(takenCourses).sort());
+        console.log(`[loadAndCheckRequirements] Normalized taken courses:`, Array.from(normalizedTakenCourses).sort());
+        console.log(`[loadAndCheckRequirements] Sample taken courses (normalized):`, Array.from(normalizedTakenCourses).slice(0, 5));
+        
+        // Log all requirements with their courses
+        function logRequirementStructure(req: any, depth = 0) {
+          if (depth > 15) return; // Prevent infinite recursion
+          
+          if (req.constraints && req.constraints.length > 0) {
+            const allCourses = req.constraints.flatMap((c: any) => c.courses || []);
+            if (allCourses.length > 0) {
+              console.log(`${'  '.repeat(depth)}${req.name}: ${allCourses.slice(0, 5).join(', ')}${allCourses.length > 5 ? '...' : ''}`);
+            }
+          }
+          
+          if (req.children && Array.isArray(req.children)) {
+            for (const child of req.children) {
+              logRequirementStructure(child, depth + 1);
+            }
+          }
+        }
+        
+        console.log('[loadAndCheckRequirements] Requirements structure:');
+        logRequirementStructure(rootRequirement);
+        
+        // Helper to check if requirement is program-specific and not applicable
+        const isProgramSpecificButNotApplicable = (req: any): boolean => {
+          const name = req.name.toLowerCase();
+          const isRodmanRequired = name.includes('rodman');
+          const isEcholsRequired = name.includes('echols');
+          
+          if (isRodmanRequired) {
+            console.log(`[isProgramSpecificButNotApplicable] Checking Rodman requirement: "${req.name}". additionalPrograms:`, additionalPrograms);
+            if (!additionalPrograms.includes('Rodman Scholars Program')) {
+              console.log(`  → Auto-satisfying (user is not a Rodman Scholar)`);
+              return true;
+            }
+          }
+          if (isEcholsRequired) {
+            console.log(`[isProgramSpecificButNotApplicable] Checking Echols requirement: "${req.name}". additionalPrograms:`, additionalPrograms);
+            if (!additionalPrograms.includes('Echols Scholar Program')) {
+              console.log(`  → Auto-satisfying (user is not an Echols Scholar)`);
+              return true;
+            }
+          }
+          return false;
+        };
+        
+        // Function to check if a requirement is satisfied
+        const checkChildSatisfied = (child: any, cumulativeUnits?: number): boolean => {
+          // First check if this is a program-specific requirement that doesn't apply
+          if (isProgramSpecificButNotApplicable(child)) {
+            console.log(`✓ Program-specific requirement auto-satisfied: "${child.name}"`);
+            return true;
+          }
+          
+          // Check if this requirement has a min_units constraint
+          const minUnitsNeeded = getMinUnitsFromConstraints(child.constraints);
+          const actualUnits = cumulativeUnits ?? 0;
+          
+          const isHSSRequirement = /HSS/i.test(child.name) || /Humanities|Social.*Sciences/i.test(child.name);
+          if (isHSSRequirement) {
+            console.log(`[HSS DEBUG] Checking HSS requirement: "${child.name}" (minUnits: ${minUnitsNeeded}, actualUnits: ${actualUnits})`);
+          }
+          
+          // If there's a unit minimum, check if we meet it
+          if (minUnitsNeeded !== null && minUnitsNeeded > 0) {
+            if (actualUnits < minUnitsNeeded) {
+              if (isHSSRequirement) {
+                console.log(`[HSS DEBUG]   → Not satisfied (${actualUnits}/${minUnitsNeeded} units)`);
+              }
+              return false;
+            }
+            if (isHSSRequirement) {
+              console.log(`[HSS DEBUG]   → Satisfied (${actualUnits}/${minUnitsNeeded} units)`);
+            }
+            return true;
+          }
+          
+          // For HSS requirements without unit minimum: check if any taken course is HSS-eligible
+          if (isHSSRequirement) {
+            for (const takenCourse of normalizedTakenCourses) {
+              if (isHSSCourse(takenCourse)) {
+                if (child.name.includes('HSS')) {
+                  console.log(`✓ Match: "${takenCourse}" satisfies "${child.name}" (HSS-eligible)`);
+                }
+                return true;
+              }
+            }
+          } else {
+            // For non-HSS requirements without unit minimum: check constraints list
+            if (child.constraints && Array.isArray(child.constraints) && child.constraints.length > 0) {
+              for (const constraint of child.constraints) {
+                if (constraint.courses && Array.isArray(constraint.courses)) {
+                  for (const course of constraint.courses) {
+                    const normalized = normalizeCourseCode(course);
+                    if (normalizedTakenCourses.has(normalized)) {
+                      // Log the match
+                      if (child.name.includes('CS') || child.name.includes('Calculus')) {
+                        console.log(`✓ Match: "${normalized}" satisfies "${child.name}"`);
+                      }
+                      return true;
+                    }
+                  }
+                }
+              }
+            }
+          }
+          
+          // Special case: if no constraints but name looks like a course code (e.g., "CS 3130")
+          // This handles leaf requirements that are named after courses
+          const hasNoConstraints = !child.constraints || (Array.isArray(child.constraints) && child.constraints.length === 0);
+          const hasNoChildren = !child.children || (Array.isArray(child.children) && child.children.length === 0);
+          
+          if (hasNoConstraints && hasNoChildren) {
+            const normalizedName = normalizeCourseCode(child.name);
+            if (/^[A-Z]+ \d{4}/.test(normalizedName)) {
+              if (normalizedTakenCourses.has(normalizedName)) {
+                console.log(`✓ Match (name-based): "${normalizedName}" taken for requirement "${child.name}"`);
+                return true;
+              } else {
+                // Log for debugging: show what we're looking for
+                if (child.name.includes('3130') || child.name.includes('3100') || child.name.includes('3120') || child.name.includes('3140')) {
+                  const normalizedCS = Array.from(normalizedTakenCourses).filter(c => c.startsWith('CS'));
+                  console.log(`✗ Leaf course not taken: "${child.name}" (normalized: "${normalizedName}") - CS courses in taken: ${normalizedCS.join(', ')}`);
+                }
+              }
+            }
+          }
+          
+          // If child has children, check if any are satisfied
+          if (child.children && Array.isArray(child.children) && child.children.length > 0) {
+            return child.children.some((grandchild: any) => checkChildSatisfied(grandchild));
+          }
+          return false;
+        };
+        
+        // Function to calculate cumulative units from matched courses
+        const calculateCumulativeUnits = (matchedCourses: string[]): number => {
+          return matchedCourses.reduce((total, course) => total + getCourseUnits(course), 0);
+        };
+        const getMatchedCourses = (child: any): string[] => {
+          const matched: string[] = [];
+          const isHSSRequirement = /HSS/i.test(child.name) || /Humanities|Social.*Sciences/i.test(child.name);
+          
+          if (isHSSRequirement) {
+            console.log(`[HSS DEBUG] getMatchedCourses for: "${child.name}"`);
+            // For HSS: iterate through user's taken courses and filter by HSS eligibility
+            for (const takenCourse of normalizedTakenCourses) {
+              if (isHSSCourse(takenCourse)) {
+                matched.push(takenCourse);
+                console.log(`[HSS DEBUG] Matched HSS course: "${takenCourse}"`);
+              }
+            }
+            console.log(`[HSS DEBUG] Total matched HSS courses: ${matched.length}`);
+          } else {
+            // For non-HSS: check constraints for matching courses
+            if (child.constraints && Array.isArray(child.constraints) && child.constraints.length > 0) {
+              for (const constraint of child.constraints) {
+                if (constraint.courses && Array.isArray(constraint.courses)) {
+                  for (const course of constraint.courses) {
+                    const normalized = normalizeCourseCode(course);
+                    if (normalizedTakenCourses.has(normalized)) {
+                      matched.push(course);
+                    }
+                  }
+                }
+              }
+            }
+          }
+          
+          // Special case: if no constraints and no children, check if name is a course code (e.g., "CS 3100", "CS 3130")
+          const hasNoConstraints = !child.constraints || (Array.isArray(child.constraints) && child.constraints.length === 0);
+          const hasNoChildren = !child.children || (Array.isArray(child.children) && child.children.length === 0);
+          
+          if (matched.length === 0 && hasNoConstraints && hasNoChildren) {
+            const normalizedName = normalizeCourseCode(child.name);
+            if (/^[A-Z]+ \d{4}/.test(normalizedName) && normalizedTakenCourses.has(normalizedName)) {
+              // For HSS requirements, don't count leaf courses that aren't HSS-eligible
+              if (isHSSRequirement && !isHSSCourse(child.name)) {
+                console.log(`[HSS DEBUG] Filtered out non-HSS leaf course: "${child.name}"`);
+                return [];
+              }
+              matched.push(child.name);
+            }
+          }
+          
+          return matched;
+        };
+
+        // Function to get course suggestions for an unsatisfied requirement
+        const getCourseSuggestions = (child: any): string[] => {
+          const suggestions: string[] = [];
+          const isHSSRequirement = /HSS/i.test(child.name) || /Humanities|Social.*Sciences/i.test(child.name);
+          
+          if (isHSSRequirement) {
+            console.log(`[HSS DEBUG] getCourseSuggestions for: "${child.name}"`);
+          }
+          
+          if (child.constraints && Array.isArray(child.constraints)) {
+            for (const constraint of child.constraints) {
+              if (constraint.courses && Array.isArray(constraint.courses)) {
+                for (const course of constraint.courses) {
+                  // For HSS requirements, only suggest HSS-eligible courses
+                  if (isHSSRequirement) {
+                    const countsForHSS = isHSSCourse(course);
+                    if (!countsForHSS) {
+                      continue;
+                    }
+                  }
+                  
+                  suggestions.push(course);
+                  if (suggestions.length >= 4) break;
+                }
+                if (suggestions.length >= 4) break;
+              }
+            }
+          }
+          
+          if (isHSSRequirement) {
+            console.log(`[HSS DEBUG] Course suggestions for "${child.name}": ${suggestions.length} courses`);
+            if (suggestions.length > 0) {
+              console.log(`[HSS DEBUG]   First few: ${suggestions.slice(0, 3).join(', ')}`);
+            }
+          }
+          
+          return suggestions;
+        };
+
+        // Function to recursively build matched children
+        const buildMatchedChildren = (requirement: any): any[] => {
+          if (!requirement.children || !Array.isArray(requirement.children)) {
+            return [];
+          }
+          
+          return requirement.children.map((child: any) => {
+            const isHSSRequirement = /HSS/i.test(child.name) || /Humanities|Social.*Sciences/i.test(child.name);
+            if (isHSSRequirement) {
+              console.log(`[HSS DEBUG] buildMatchedChildren processing HSS requirement: "${child.name}"`);
+              console.log(`[HSS DEBUG] constraints:`, child.constraints);
+            }
+            
+            const matchedCourses = getMatchedCourses(child);
+            const cumulativeUnits = calculateCumulativeUnits(matchedCourses);
+            const minUnitsNeeded = getMinUnitsFromConstraints(child.constraints);
+            
+            // Pass cumulative units to checkChildSatisfied for unit-aware satisfaction checking
+            const isSatisfied = checkChildSatisfied(child, cumulativeUnits);
+            const courseSuggestions = !isSatisfied ? getCourseSuggestions(child) : [];
+            const matchedChildren = buildMatchedChildren(child);
+            
+            // Log potential mismatches: has matched courses but not satisfied
+            if (matchedCourses.length > 0 && !isSatisfied) {
+              console.warn(`⚠️ MISMATCH: "${child.name}" has matched courses ${matchedCourses} but satisfied=false`);
+              console.warn(`   constraints:`, child.constraints);
+              console.warn(`   children:`, child.children);
+              if (minUnitsNeeded !== null) {
+                console.warn(`   units: ${cumulativeUnits}/${minUnitsNeeded} needed`);
+              }
+            }
+            
+            if (isHSSRequirement) {
+              console.log(`[HSS DEBUG] Result for "${child.name}": satisfied=${isSatisfied}, matched=${matchedCourses.length}, units=${cumulativeUnits}${minUnitsNeeded !== null ? `/${minUnitsNeeded}` : ''}`);
+            }
+            
+            // Calculate percentage based on children (for parent requirements) or satisfied status (for leaf requirements)
+            let percentage = 0;
+            if (matchedChildren.length > 0) {
+              // Parent requirement: calculate based on satisfied children
+              const satisfiedCount = matchedChildren.filter((c) => c.satisfied).length;
+              percentage = satisfiedCount / matchedChildren.length;
+            } else {
+              // Leaf requirement: use 0 or 1 based on satisfaction
+              percentage = isSatisfied ? 1 : 0;
+            }
+            
+            return {
+              requirement: child,
+              satisfied: isSatisfied,
+              percentage: percentage,
+              matchedChildren: matchedChildren,
+              matchedCourses: matchedCourses,
+              courseSuggestions: courseSuggestions,
+              units: cumulativeUnits,
+              minUnitsNeeded: minUnitsNeeded,
+            };
+          });
+        };
+
+        // Generic priority system: derive from hierarchy structure + naming patterns
+        // Core idea: requirements closer to root are more foundational (higher priority)
+        
+        const getRequirementDepth = (req: any, target: any, currentDepth = 0): number => {
+          if (req === target) return currentDepth;
+          if (req.children && Array.isArray(req.children)) {
+            for (const child of req.children) {
+              const found = getRequirementDepth(child, target, currentDepth + 1);
+              if (found !== -1) return found;
+            }
+          }
+          return -1;
+        };
+        
+        const getNamePriority = (reqName: string): number => {
+          const nameLower = reqName.toLowerCase();
+          // Core/Foundation requirements
+          if (nameLower.includes('core') || nameLower.includes('foundation') || 
+              nameLower.includes('required') || nameLower.includes('intro') ||
+              nameLower.includes('basic') || /^[A-Z]+ \d{4}/.test(reqName)) {
+            return 0.2; // Bonus for core requirements
+          }
+          // Electives/Optional
+          if (nameLower.includes('elective') || nameLower.includes('additional') ||
+              nameLower.includes('unrestricted') || nameLower.includes('optional')) {
+            return 0.8; // Penalty for electives
+          }
+          return 0.5; // Default middle priority
+        };
+        
+        const getPriority = (req: any): number => {
+          // Primary: depth in hierarchy (shallower = higher priority)
+          const depth = getRequirementDepth(rootRequirement, req, 0);
+          // Secondary: name patterns (-0.2 for core, +0.8 for electives)
+          const namePriority = getNamePriority(req.name ?? '');
+          // Combined: depth is primary, name is tiebreaker
+          // Lower values = higher priority
+          return depth + (namePriority * 0.1);
+        };
+        
+        // Post-process: deduplicate courses greedily by priority
+        const deduplicateRequirementsGreedy = (result: RequirementCheckResult): RequirementCheckResult => {
+          const usedCourses = new Set<string>();
+          
+          // Log all requirements with their depths for debugging
+          const logAllRequirements = (item: RequirementCheckResult, depth = 0) => {
+            if (depth < 5) {
+              const priority = getPriority(item.requirement);
+              console.log(`${'  '.repeat(depth)}[Priority ${priority.toFixed(2)}] ${item.requirement.name} (${item.matchedCourses.length} courses, satisfied=${item.satisfied})`);
+              for (const child of item.matchedChildren) {
+                logAllRequirements(child, depth + 1);
+              }
+            }
+          };
+          console.log('[DEDUP] Full priority tree:');
+          logAllRequirements(result);
+          
+          const processItem = (item: RequirementCheckResult): RequirementCheckResult => {
+            // Process children in priority order (depth-first)
+            // Lower priority score = process first
+            const sortedChildren = [...item.matchedChildren].sort((a, b) => {
+              const aPriority = getPriority(a.requirement);
+              const bPriority = getPriority(b.requirement);
+              if (a.requirement.name.includes('HSS') || b.requirement.name.includes('HSS')) {
+                console.log(`[SORT] "${a.requirement.name}" (${aPriority.toFixed(2)}) vs "${b.requirement.name}" (${bPriority.toFixed(2)})`);
+              }
+              return aPriority - bPriority;
+            });
+            
+            const processedChildren = sortedChildren.map(child => processItem(child));
+            
+            // Filter this item's matched courses - only keep ones not yet used
+            // IMPORTANT: If there's a minUnitsNeeded, only keep courses until we reach that threshold
+            const dedupedCourses: string[] = [];
+            let accumulatedUnits = 0;
+            const minUnitsNeeded = item.minUnitsNeeded ?? null;
+            const hasUnitRequirement = minUnitsNeeded !== null && minUnitsNeeded > 0;
+            
+            for (const course of item.matchedCourses) {
+              // Skip if already used by higher-priority requirement
+              if (usedCourses.has(course)) {
+                console.log(`[DEDUP] Excluding "${course}" from "${item.requirement.name}" (already used by higher priority)`);
+                continue;
+              }
+              
+              // If there's a unit requirement, check if we can add this course
+              if (hasUnitRequirement) {
+                const courseUnits = getCourseUnits(course);
+                const unitsAfterAdding = accumulatedUnits + courseUnits;
+                
+                if (unitsAfterAdding <= minUnitsNeeded) {
+                  // Add this course (within or at threshold)
+                  dedupedCourses.push(course);
+                  usedCourses.add(course);
+                  accumulatedUnits = unitsAfterAdding;
+                  console.log(`[DEDUP] UNITS: Adding "${course}" to "${item.requirement.name}" (${accumulatedUnits}/${minUnitsNeeded} units)`);
+                } else if (accumulatedUnits < minUnitsNeeded) {
+                  // Add this course even though it exceeds threshold (to reach minimum)
+                  dedupedCourses.push(course);
+                  usedCourses.add(course);
+                  accumulatedUnits = unitsAfterAdding;
+                  console.log(`[DEDUP] UNITS: Adding "${course}" to "${item.requirement.name}" (now ${accumulatedUnits}/${minUnitsNeeded} units - exceeds but needed for minimum)`);
+                } else {
+                  // We already have enough units, skip this course
+                  console.log(`[DEDUP] UNITS: Skipping "${course}" for "${item.requirement.name}" (already have ${accumulatedUnits}/${minUnitsNeeded} units)`);
+                  // Don't mark as used - leave for other requirements
+                }
+              } else {
+                // No unit requirement - add course (original greedy behavior, but still respecting higher-priority exclusions)
+                dedupedCourses.push(course);
+                usedCourses.add(course);
+              }
+            }
+            
+            // Recalculate satisfaction based on deduplicated courses
+            let isSatisfied = false;
+            let percentage = 0;
+            
+            if (processedChildren.length > 0) {
+              // Parent requirement: check if all children satisfied
+              const satisfiedChildren = processedChildren.filter(c => c.satisfied);
+              isSatisfied = satisfiedChildren.length === processedChildren.length;
+              percentage = satisfiedChildren.length / processedChildren.length;
+            } else {
+              // Leaf requirement: check unit threshold if present, otherwise check if we have matched courses
+              if (hasUnitRequirement) {
+                isSatisfied = accumulatedUnits >= minUnitsNeeded;
+              } else {
+                isSatisfied = dedupedCourses.length > 0;
+              }
+              percentage = isSatisfied ? 1 : 0;
+            }
+            
+            return {
+              ...item,
+              matchedChildren: processedChildren,
+              matchedCourses: dedupedCourses,
+              satisfied: isSatisfied,
+              percentage: percentage,
+              units: accumulatedUnits,
+              minUnitsNeeded: minUnitsNeeded !== null ? minUnitsNeeded : undefined,
+            };
+          };
+          
+          return processItem(result);
+        };
+        
+        // Build result with deduplication
+        const minUnitsForRoot = getMinUnitsFromConstraints(rootRequirement.constraints);
+        const initialResult: RequirementCheckResult = {
+          requirement: rootRequirement,
+          satisfied: checkChildSatisfied(rootRequirement),
+          percentage: rootRequirement.children 
+            ? rootRequirement.children.filter((c: any) => checkChildSatisfied(c)).length / rootRequirement.children.length
+            : 0,
+          matchedChildren: buildMatchedChildren(rootRequirement),
+          matchedCourses: [],
+          units: 0,
+          minUnitsNeeded: minUnitsForRoot !== null ? minUnitsForRoot : undefined,
+        };
+        
+        // Apply greedy deduplication to ensure courses satisfy only one requirement
+        const result = deduplicateRequirementsGreedy(initialResult);
+        
+        console.log('[loadAndCheckRequirements] Final result:');
+        console.log('  Root requirement:', rootRequirement.name);
+        console.log('  Root satisfied:', result.satisfied);
+        console.log('  Root percentage:', result.percentage);
+        console.log('  Root matched children count:', result.matchedChildren.length);
+        console.log('  First few matched children:', result.matchedChildren.slice(0, 3).map((c: any) => ({ name: c.requirement.name, satisfied: c.satisfied, hasCourses: c.matchedCourses.length > 0 })));
+
+        setRequirementsCheckResult(result);
+      } catch (fetchError) {
+        console.error('Error fetching requirements.json:', fetchError);
+        setRequirementsCheckResult(null);
+      }
+    } catch (error) {
+      console.error('Error loading requirements:', error);
+      setRequirementsCheckResult(null);
+    } finally {
+      setLoadingRequirements(false);
+    }
   };
 
   const handleAddCourse = async (semesterId: string, rawCourseCode: string, creditsText: string): Promise<boolean> => {
@@ -1428,9 +2008,33 @@ export default function PlanBuilderPage() {
                 </div>
               )}
             </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                void loadAndCheckRequirements();
+                setIsRequirementsOpen(true);
+              }}
+              disabled={!activePlan || loadingRequirements}
+              className="inline-flex items-center justify-center w-10 h-10 rounded-full text-text-primary hover:bg-hover-bg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="View major requirements"
+              title="View major requirements"
+            >
+              <Icon name="check" color="currentColor" width={18} height={18} className="w-5 h-5" />
+            </button>
           </div>
         </div>
       </div>
+
+      {isRequirementsOpen && (
+        <RequirementsSidebar
+          isOpen={isRequirementsOpen}
+          onClose={() => setIsRequirementsOpen(false)}
+          requirements={requirementsCheckResult}
+          programName={selectedProgramName}
+          isLoading={loadingRequirements}
+        />
+      )}
 
       <div className={`w-full grid gap-6 ${comparisonPlan ? 'grid-cols-1 lg:grid-cols-2' : ''}`}>
         {/* User's Plan */}
