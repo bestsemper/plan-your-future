@@ -176,7 +176,7 @@ model UserBadge {
 model PendingSignup {
   id             String   @id @default(cuid())
   email          String   @unique
-  computingId    String
+  computingId    String   @unique
   hashedPassword String
   displayName    String
   token          String   @unique
@@ -191,4 +191,6 @@ model PasswordResetToken {
   expiresAt DateTime
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

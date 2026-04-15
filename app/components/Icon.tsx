@@ -48,7 +48,7 @@ export const Icon: React.FC<IconProps> = ({
   return (
     <div
       className={className}
-      style={{ width: `${width}px`, height: `${height}px`, display: 'inline-flex' }}
+      style={{ width: `${width}px`, height: `${height}px`, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
       dangerouslySetInnerHTML={{ __html: modifiedSvg }}
       aria-label={alt}
     />

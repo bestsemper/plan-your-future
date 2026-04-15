@@ -564,17 +564,18 @@ export default function TutorialProvider({
   }, [currentStepId]);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      return;
-    }
+    if (!isAuthenticated) return;
 
-    const hasSeen = loadStorageFlag(STORAGE_SEEN_KEY);
-    if (!hasSeen && pathname === "/" && window.innerWidth >= 1024) {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('newUser') === '1' && window.innerWidth >= 1024) {
       setCurrentStepId(orderedFlowStepIds[0]);
       setIsOpen(true);
       window.localStorage.setItem(STORAGE_SEEN_KEY, "1");
+      const url = new URL(window.location.href);
+      url.searchParams.delete('newUser');
+      window.history.replaceState({}, '', url.toString());
     }
-  }, [isAuthenticated, pathname]);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (!isOpen || !isAuthenticated || !step) {

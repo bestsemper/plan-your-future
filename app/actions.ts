@@ -335,73 +335,137 @@ function getDisplayAuthor(
   return authorDisplayName;
 }
 
-// MOCK AUTH: In a real app, this would integrate with NetBadge/SSO
-// For MVP, we'll just find or create a user by computingId
-export async function mockLogin(computingId: string, password: string) {
-  if (!computingId) return { error: "Computing ID is required" };
-  if (!password) return { error: "Password is required" };
+export async function login(email: string, password: string) {
+  if (!email) return { error: 'Email is required' };
+  if (!password) return { error: 'Password is required' };
 
-  let user = await prisma.user.findUnique({
-    where: { computingId }
-  });
+  const emailLower = email.toLowerCase().trim();
+  if (!emailLower.endsWith('@virginia.edu')) {
+    return { error: 'Please use your UVA email (@virginia.edu)' };
+  }
 
+  const computingId = emailLower.split('@')[0];
+
+  const user = await prisma.user.findUnique({ where: { computingId } });
   if (!user || !user.password) {
-    return { error: "Incorrect login info." };
+    return { error: 'Incorrect email or password.' };
   }
 
-  // Secure password verification
   if (!verifyPassword(password, user.password)) {
-    return { error: "Incorrect login info." };
+    return { error: 'Incorrect email or password.' };
   }
 
-  // Set session cookie mock here if needed
   const cookieStore = await cookies();
-  cookieStore.set('computingId', user.computingId, { 
-    httpOnly: true, 
-    secure: process.env.NODE_ENV === 'production', 
-    path: '/' 
+  cookieStore.set('computingId', user.computingId, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
   });
-  
-  return { success: true, user };
+
+  return { success: true };
 }
 
-export async function mockSignUp(computingId: string, password: string, displayName?: string) {
-  if (!computingId) return { error: "Computing ID is required" };
-  if (!password) return { error: "Password is required" };
+export async function initiatePasswordReset(email: string) {
+  if (!email) return { error: 'Email is required' };
 
-  let user = await prisma.user.findUnique({
-    where: { computingId }
+  const emailLower = email.toLowerCase().trim();
+  if (!emailLower.endsWith('@virginia.edu')) {
+    return { error: 'Please use your UVA email (@virginia.edu)' };
+  }
+
+  const computingId = emailLower.split('@')[0];
+  const user = await prisma.user.findUnique({ where: { computingId } });
+
+  if (!user) return { success: true };
+
+  await prisma.passwordResetToken.deleteMany({ where: { userId: user.id } });
+
+  const token = randomBytes(32).toString('hex');
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+  await prisma.passwordResetToken.create({
+    data: { userId: user.id, token, expiresAt },
   });
 
-  if (user) {
-    return { error: "Account already exists. Please log in." };
+  const { sendPasswordResetEmail } = await import('../lib/resend');
+  await sendPasswordResetEmail(emailLower, token);
+
+  return { success: true };
+}
+
+export async function resetPassword(token: string, newPassword: string) {
+  if (!token) return { error: 'Invalid reset link.' };
+  if (!newPassword || newPassword.length < 8) {
+    return { error: 'Password must be at least 8 characters.' };
+  }
+
+  const record = await prisma.passwordResetToken.findUnique({ where: { token } });
+  if (!record || record.expiresAt < new Date()) {
+    return { error: 'This link has expired or is invalid. Please request a new one.' };
+  }
+
+  const hashedPassword = hashPassword(newPassword);
+  await prisma.user.update({
+    where: { id: record.userId },
+    data: { password: hashedPassword },
+  });
+
+  await prisma.passwordResetToken.delete({ where: { token } });
+
+  return { success: true };
+}
+
+export async function initiateSignup(email: string, password: string, displayName?: string) {
+  if (!email) return { error: 'Email is required' };
+  if (!password) return { error: 'Password is required' };
+
+  const emailLower = email.toLowerCase().trim();
+  if (!emailLower.endsWith('@virginia.edu')) {
+    return { error: 'Please use your UVA email (@virginia.edu)' };
+  }
+
+  const computingId = emailLower.split('@')[0];
+
+  const existingUser = await prisma.user.findUnique({ where: { computingId } });
+  if (existingUser) {
+    return { error: 'An account with this email already exists. Please log in.' };
+  }
+
+  const now = new Date();
+  const existingPending = await prisma.pendingSignup.findUnique({ where: { email: emailLower } });
+  if (existingPending && existingPending.expiresAt > now) {
+    return { error: 'A verification email was already sent. Please check your inbox or wait 15 minutes to try again.' };
+  }
+
+  if (existingPending) {
+    await prisma.pendingSignup.delete({ where: { email: emailLower } });
   }
 
   const hashedPassword = hashPassword(password);
+  const token = randomBytes(32).toString('hex');
+  const expiresAt = new Date(now.getTime() + 15 * 60 * 1000);
 
-  user = await prisma.user.create({
+  await prisma.pendingSignup.create({
     data: {
+      email: emailLower,
       computingId,
-      displayName: displayName || computingId,
-      password: hashedPassword,
-      major: 'Undeclared'
-    }
+      hashedPassword,
+      displayName: displayName?.trim() || computingId,
+      token,
+      expiresAt,
+    },
   });
 
-  // Create an empty goal profile
-  await prisma.goalProfile.create({
-    data: { userId: user.id }
-  });
+  const { sendVerificationEmail } = await import('../lib/resend');
+  try {
+    await sendVerificationEmail(emailLower, token);
+  } catch (err) {
+    console.error('[initiateSignup] Failed to send verification email:', err);
+    await prisma.pendingSignup.deleteMany({ where: { email: emailLower } });
+    return { error: 'Failed to send verification email. Please try again later.' };
+  }
 
-  // Set session cookie mock here if needed
-  const cookieStore = await cookies();
-  cookieStore.set('computingId', user.computingId, { 
-    httpOnly: true, 
-    secure: process.env.NODE_ENV === 'production', 
-    path: '/' 
-  });
-  
-  return { success: true, user };
+  return { success: true };
 }
 
 export async function getCurrentUser() {
