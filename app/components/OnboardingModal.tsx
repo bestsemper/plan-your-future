@@ -2,17 +2,10 @@
  * INSTRUCTIONS FOR USERS:
  * 
  * Audit Report (Completed Courses):
- * 1. Go to Banner (https://banner-prod.its.virginia.edu/ssb/)
- * 2. Navigate to Academic Audit
- * 3. Select your degree audit
- * 4. Click "Print" and save as PDF
+ * Open Stellic → Plan your Path → Print Audit Report → Create audit report
  * 
  * Stellic Plan (Academic Plan):
- * 1. Go to Stellic (https://stellic.uva.edu/)
- * 2. Click "Plan Your Path"
- * 3. Click the menu icon (top right)
- * 4. Select "Print Audit Report"
- * 5. Save the PDF and upload it here
+ * Open Stellic → Plan your Path → Download Plan → Create plan report
  */
 
 "use client";
@@ -28,7 +21,7 @@ import { getDefaultGraduationYearForStanding, getDefaultStandingForGraduationYea
 export default function OnboardingModal() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const isOpen = searchParams.get('newUser') === '1' && searchParams.get('tutorial') !== '1';
+  const isOpen = searchParams.get('newUser') === '1' && !searchParams.get('readyForTutorial');
 
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -192,8 +185,8 @@ export default function OnboardingModal() {
         }
       }
 
-      // Remove newUser param and trigger tutorial
-      router.push(`/?newUser=1&tutorial=1`);
+      // Close modal and trigger tutorial with readyForTutorial flag
+      router.push(`/?readyForTutorial=1`);
       router.refresh();
     });
   };
@@ -505,7 +498,7 @@ export default function OnboardingModal() {
                 className="hidden"
               />
             </label>
-            <p className="text-xs text-text-tertiary mt-2">Upload your university audit PDF to import completed courses</p>
+            <p className="text-xs text-text-tertiary mt-2">Open Stellic → Plan your Path → Print Audit Report → Create audit report</p>
           </div>
 
           {/* Plan PDF Upload */}
@@ -525,7 +518,7 @@ export default function OnboardingModal() {
                 className="hidden"
               />
             </label>
-            <p className="text-xs text-text-tertiary mt-2">Upload your Stellic plan PDF to import your academic courses</p>
+            <p className="text-xs text-text-tertiary mt-2">Open Stellic → Plan your Path → Download Plan → Create plan report</p>
           </div>
         </form>
 
