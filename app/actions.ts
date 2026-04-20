@@ -1672,24 +1672,24 @@ export async function getAttachedPlanViewData(planId: string): Promise<AttachedP
 
   const attachedSourceDisplay = attachedPost
     ? getDisplayAuthor(
-        attachedPost.author.displayName,
+        attachedPost.author?.displayName ?? null,
         attachedPost.isAnonymous,
-        attachedPost.author.profileVisibility
+        attachedPost.author?.profileVisibility ?? 'public'
       )
     : attachedAnswer
       ? getDisplayAuthor(
-          attachedAnswer.author.displayName,
+          attachedAnswer.author?.displayName ?? null,
           attachedAnswer.isAnonymous,
-          attachedAnswer.author.profileVisibility
+          attachedAnswer.author?.profileVisibility ?? 'public'
         )
       : getDisplayAuthor(plan.user.displayName, false, plan.user.profileVisibility);
 
   const attachedSourceComputingId = attachedSourceDisplay === 'Anonymous User'
     ? ''
     : attachedPost
-      ? attachedPost.author.computingId
+      ? attachedPost.author?.computingId ?? ''
       : attachedAnswer
-        ? attachedAnswer.author.computingId
+        ? attachedAnswer.author?.computingId ?? ''
         : plan.user.computingId;
 
   return {
