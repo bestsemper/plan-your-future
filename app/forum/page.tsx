@@ -21,7 +21,7 @@ type ForumAnswerItem = {
   body: string;
   createdAt: string;
   authorDisplayName: string;
-  authorId: string;
+  authorId: string | null;
   authorComputingId: string;
   isAnonymous: boolean;
   profileVisibility: string;
@@ -40,7 +40,7 @@ type ForumPostItem = {
   viewCount: number;
   createdAt: string;
   authorDisplayName: string;
-  authorId: string;
+  authorId: string | null;
   authorComputingId: string;
   isAnonymous: boolean;
   profileVisibility: string;
