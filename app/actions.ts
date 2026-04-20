@@ -1113,7 +1113,7 @@ export async function getForumPageData() {
           authorId: answer.author?.id ?? null,
           authorComputingId: answer.author?.computingId ?? '',
           isAnonymous: answer.isAnonymous,
-          profileVisibility: answer.author.profileVisibility,
+          profileVisibility: answer.author?.profileVisibility ?? 'public',
           voteScore: answer.votes.reduce((sum, vote) => sum + vote.value, 0),
           currentUserVote,
         };
