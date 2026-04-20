@@ -326,10 +326,15 @@ async function verifyPassword(password: string, hash: string): Promise<boolean> 
 // Per-post/reply anonymity is the source of truth: if isAnonymous is false,
 // show the real author name even when profileVisibility is hidden.
 function getDisplayAuthor(
-  authorDisplayName: string,
+  authorDisplayName: string | null,
   isAnonymous: boolean,
   profileVisibility: string
 ): string {
+  // If author is deleted, show [deleted]
+  if (authorDisplayName === null) {
+    return "[deleted]";
+  }
+
   // If post is anonymous, show "Anonymous User"
   if (isAnonymous) {
     return "Anonymous User";
@@ -628,6 +633,30 @@ export async function updateProfileVisibility(profileVisibility: 'hidden' | 'pub
 
   revalidatePath('/profile');
   revalidatePath(`/profile/${user.computingId}`);
+
+  return { success: true };
+}
+
+export async function deleteAccount() {
+  const user = await getCurrentUser();
+  if (!user) {
+    return { error: 'Not authenticated.' };
+  }
+
+  // Set authorId to null for all non-anonymous forum posts by this user
+  await prisma.$executeRaw`UPDATE "ForumPost" SET "authorId" = NULL WHERE "authorId" = ${user.id} AND "isAnonymous" = false`;
+
+  // Set authorId to null for all non-anonymous forum answers by this user
+  await prisma.$executeRaw`UPDATE "ForumAnswer" SET "authorId" = NULL WHERE "authorId" = ${user.id} AND "isAnonymous" = false`;
+
+  // Delete the user (cascade deletes related data)
+  await prisma.user.delete({
+    where: { id: user.id },
+  });
+
+  // Clear the authentication cookie and redirect to login
+  const cookieStore = await cookies();
+  cookieStore.delete('computingId');
 
   return { success: true };
 }
@@ -1036,9 +1065,9 @@ export async function getForumPageData() {
 
   const normalizedPosts = posts.map((post) => {
     const displayAuthor = getDisplayAuthor(
-      post.author.displayName,
+      post.author?.displayName ?? null,
       post.isAnonymous,
-      post.author.profileVisibility
+      post.author?.profileVisibility ?? 'hidden'
     );
 
     return {
@@ -1055,10 +1084,10 @@ export async function getForumPageData() {
       viewCount: post.viewCount,
       createdAt: post.createdAt.toISOString(),
       authorDisplayName: displayAuthor,
-      authorId: post.author.id,
-      authorComputingId: post.author.computingId,
+      authorId: post.author?.id ?? null,
+      authorComputingId: post.author?.computingId ?? '',
       isAnonymous: post.isAnonymous,
-      profileVisibility: post.author.profileVisibility,
+      profileVisibility: post.author?.profileVisibility ?? 'hidden',
       tags: post.tags,
       canDelete: currentUser?.id === post.authorId,
       attachedPlan: post.attachedPlan,
@@ -1067,9 +1096,9 @@ export async function getForumPageData() {
         const currentUserVote: 1 | -1 | 0 = userVote === 1 ? 1 : userVote === -1 ? -1 : 0;
         
         const displayAnswerAuthor = getDisplayAuthor(
-          answer.author.displayName,
+          answer.author?.displayName ?? null,
           answer.isAnonymous,
-          answer.author.profileVisibility
+          answer.author?.profileVisibility ?? 'hidden'
         );
 
         return {
@@ -1081,8 +1110,8 @@ export async function getForumPageData() {
           canDelete: currentUser?.id === answer.authorId && !answer.deletedAt,
           createdAt: answer.createdAt.toISOString(),
           authorDisplayName: displayAnswerAuthor,
-          authorId: answer.author.id,
-          authorComputingId: answer.author.computingId,
+          authorId: answer.author?.id ?? null,
+          authorComputingId: answer.author?.computingId ?? '',
           isAnonymous: answer.isAnonymous,
           profileVisibility: answer.author.profileVisibility,
           voteScore: answer.votes.reduce((sum, vote) => sum + vote.value, 0),
@@ -1220,9 +1249,9 @@ export async function getForumPostPageData(postNumber: number) {
   const currentUserPostVote: 1 | -1 | 0 = postUserVote === 1 ? 1 : postUserVote === -1 ? -1 : 0;
 
   const displayPostAuthor = getDisplayAuthor(
-    post.author.displayName,
+    post.author?.displayName ?? null,
     post.isAnonymous,
-    post.author.profileVisibility
+    post.author?.profileVisibility ?? 'hidden'
   );
 
   const normalizedPost = {
@@ -1235,10 +1264,10 @@ export async function getForumPostPageData(postNumber: number) {
     viewCount: post.viewCount,
     createdAt: post.createdAt.toISOString(),
     authorDisplayName: displayPostAuthor,
-    authorId: post.author.id,
-    authorComputingId: post.author.computingId,
+    authorId: post.author?.id ?? null,
+    authorComputingId: post.author?.computingId ?? '',
     isAnonymous: post.isAnonymous,
-    profileVisibility: post.author.profileVisibility,
+    profileVisibility: post.author?.profileVisibility ?? 'hidden',
     tags: post.tags,
     canDelete: currentUser?.id === post.authorId,
     attachedPlan: post.attachedPlan,
@@ -1247,9 +1276,9 @@ export async function getForumPostPageData(postNumber: number) {
       const currentUserVote: 1 | -1 | 0 = userVote === 1 ? 1 : userVote === -1 ? -1 : 0;
 
       const displayAnswerAuthor = getDisplayAuthor(
-        answer.author.displayName,
+        answer.author?.displayName ?? null,
         answer.isAnonymous,
-        answer.author.profileVisibility
+        answer.author?.profileVisibility ?? 'hidden'
       );
 
       return {
@@ -1261,10 +1290,10 @@ export async function getForumPostPageData(postNumber: number) {
         canDelete: currentUser?.id === answer.authorId && !answer.deletedAt,
         createdAt: answer.createdAt.toISOString(),
         authorDisplayName: displayAnswerAuthor,
-        authorId: answer.author.id,
-        authorComputingId: answer.author.computingId,
+        authorId: answer.author?.id ?? null,
+        authorComputingId: answer.author?.computingId ?? '',
         isAnonymous: answer.isAnonymous,
-        profileVisibility: answer.author.profileVisibility,
+        profileVisibility: answer.author?.profileVisibility ?? 'hidden',
         voteScore: answer.votes.reduce((sum, vote) => sum + vote.value, 0),
         currentUserVote,
       };
@@ -1535,11 +1564,11 @@ export async function getAttachedPlanViewData(planId: string): Promise<AttachedP
   if (attachedPost?.planSnapshot) {
     const snapshot = attachedPost.planSnapshot as AttachedPlanSnapshot;
     const ownerDisplayName = getDisplayAuthor(
-      attachedPost.author.displayName,
+      attachedPost.author?.displayName ?? null,
       attachedPost.isAnonymous,
-      attachedPost.author.profileVisibility
+      attachedPost.author?.profileVisibility ?? 'hidden'
     );
-    const ownerComputingId = ownerDisplayName === 'Anonymous User' ? '' : attachedPost.author.computingId;
+    const ownerComputingId = ownerDisplayName === 'Anonymous User' ? '' : (attachedPost.author?.computingId ?? '');
     const semestersWithTitles = snapshot.semesters.map(sem => ({
       ...sem,
       courses: sem.courses.map(course => ({
@@ -1561,11 +1590,11 @@ export async function getAttachedPlanViewData(planId: string): Promise<AttachedP
   if (attachedAnswer?.planSnapshot) {
     const snapshot = attachedAnswer.planSnapshot as AttachedPlanSnapshot;
     const ownerDisplayName = getDisplayAuthor(
-      attachedAnswer.author.displayName,
+      attachedAnswer.author?.displayName ?? null,
       attachedAnswer.isAnonymous,
-      attachedAnswer.author.profileVisibility
+      attachedAnswer.author?.profileVisibility ?? 'hidden'
     );
-    const ownerComputingId = ownerDisplayName === 'Anonymous User' ? '' : attachedAnswer.author.computingId;
+    const ownerComputingId = ownerDisplayName === 'Anonymous User' ? '' : (attachedAnswer.author?.computingId ?? '');
     const semestersWithTitles = snapshot.semesters.map(sem => ({
       ...sem,
       courses: sem.courses.map(course => ({

@@ -91,7 +91,7 @@ model PlannedCourse {
 model ForumPost {
   id             String        @id @default(cuid())
   postNumber     Int           @unique @default(autoincrement())
-  authorId       String
+  authorId       String?
   title          String
   body           String
   attachedPlanId String?
@@ -103,7 +103,7 @@ model ForumPost {
   updatedAt      DateTime      @updatedAt
   answers        ForumAnswer[]
   attachedPlan   Plan?         @relation(fields: [attachedPlanId], references: [id])
-  author         User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  author         User?         @relation(fields: [authorId], references: [id], onDelete: SetNull)
   views          ForumPostView[]
   votes          Vote[]
 }
@@ -127,7 +127,7 @@ model ForumPostView {
 model ForumAnswer {
   id             String    @id @default(cuid())
   postId         String
-  authorId       String
+  authorId       String?
   parentId       String?
   body           String
   attachedPlanId String?
@@ -136,7 +136,7 @@ model ForumAnswer {
   deletedAt      DateTime?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
-  author         User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  author         User?     @relation(fields: [authorId], references: [id], onDelete: SetNull)
   post           ForumPost @relation(fields: [postId], references: [id], onDelete: Cascade)
   parent         ForumAnswer?  @relation("ForumAnswerReplies", fields: [parentId], references: [id], onDelete: SetNull)
   replies        ForumAnswer[] @relation("ForumAnswerReplies")

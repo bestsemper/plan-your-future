@@ -63,6 +63,28 @@ export async function POST(request: NextRequest) {
   });
 
   await prisma.goalProfile.create({ data: { userId: user.id } });
+
+  // Create default plan with 8 semesters (4 years of Fall/Spring)
+  const DEFAULT_PLAN_START_YEAR = 2025;
+  const plan = await prisma.plan.create({
+    data: {
+      userId: user.id,
+      title: 'My Plan',
+      isPublished: false,
+    },
+  });
+
+  for (let termOrder = 1; termOrder <= 8; termOrder++) {
+    await prisma.semester.create({
+      data: {
+        planId: plan.id,
+        termOrder,
+        termName: termOrder % 2 === 1 ? 'Fall' : 'Spring',
+        year: DEFAULT_PLAN_START_YEAR + Math.floor(termOrder / 2),
+      },
+    });
+  }
+
   await prisma.pendingSignup.deleteMany({ where: { email: pending.email } });
 
   const cookieStore = await cookies();

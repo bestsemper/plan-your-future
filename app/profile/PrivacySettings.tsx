@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { updateProfileVisibility } from '../actions';
+import DeleteAccountButton from './DeleteAccountButton';
 
 interface PrivacySettingsProps {
   currentProfileVisibility: string;
@@ -33,7 +34,7 @@ export default function PrivacySettings({ currentProfileVisibility }: PrivacySet
         </div>
       )}
 
-      <div className="space-y-4">
+      <div className="space-y-6">
         <div className="flex items-center justify-between gap-4">
           <div className="flex-1 min-w-0">
             <h3 className="text-sm font-bold text-heading mb-1 truncate">Anonymous Mode</h3>
@@ -62,6 +63,11 @@ export default function PrivacySettings({ currentProfileVisibility }: PrivacySet
               />
             </button>
           </div>
+        </div>
+
+        <div className="pt-4 border-t border-panel-border">
+          <h3 className="text-sm font-bold text-heading mb-3">Account Deletion</h3>
+          <DeleteAccountButton />
         </div>
       </div>
     </div>
