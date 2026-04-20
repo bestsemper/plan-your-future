@@ -1,8 +1,25 @@
+/**
+ * INSTRUCTIONS FOR USERS:
+ * 
+ * Audit Report (Completed Courses):
+ * 1. Go to Banner (https://banner-prod.its.virginia.edu/ssb/)
+ * 2. Navigate to Academic Audit
+ * 3. Select your degree audit
+ * 4. Click "Print" and save as PDF
+ * 
+ * Stellic Plan (Academic Plan):
+ * 1. Go to Stellic (https://stellic.uva.edu/)
+ * 2. Click "Plan Your Path"
+ * 3. Click the menu icon (top right)
+ * 4. Select "Print Audit Report"
+ * 5. Save the PDF and upload it here
+ */
+
 "use client";
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useTransition, useMemo } from 'react';
-import { updateCurrentUserProfile, importCompletedCoursesFromAuditPdf, importPlanFromStellicPdf } from '../actions';
+import { updateCurrentUserProfile, importCompletedCoursesFromAuditPdf, importPlanFromStellicPdf, createEmptyPlan } from '../actions';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from '../components/DropdownMenu';
 import { Icon } from '../components/Icon';
 import { PROFILE_SCHOOL_OPTIONS, PROFILE_MAJOR_OPTIONS, PROFILE_ADDITIONAL_PROGRAMS, MAJOR_TO_SCHOOL_MAP } from '../profile/profileOptions';
@@ -11,7 +28,7 @@ import { getDefaultGraduationYearForStanding, getDefaultStandingForGraduationYea
 export default function OnboardingModal() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const isOpen = searchParams.get('newUser') === '1';
+  const isOpen = searchParams.get('newUser') === '1' && searchParams.get('tutorial') !== '1';
 
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -166,10 +183,18 @@ export default function OnboardingModal() {
         } catch (err) {
           console.error('Error importing plan PDF:', err);
         }
+      } else {
+        // Create empty plan if no stellic plan was uploaded
+        try {
+          await createEmptyPlan();
+        } catch (err) {
+          console.error('Error creating empty plan:', err);
+        }
       }
 
-      // Remove newUser param and go to home
-      router.push('/');
+      // Remove newUser param and trigger tutorial
+      router.push(`/?newUser=1&tutorial=1`);
+      router.refresh();
     });
   };
 
