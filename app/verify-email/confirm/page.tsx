@@ -34,7 +34,9 @@ function ConfirmContent() {
       return;
     }
 
-    router.push(data.newUser ? '/?newUser=1' : '/');
+    // Use a full-page navigation instead of router.push so Safari commits the
+    // Set-Cookie header from the fetch response before the next request fires.
+    window.location.href = data.newUser ? '/?newUser=1' : '/';
   }
 
   if (!token) {

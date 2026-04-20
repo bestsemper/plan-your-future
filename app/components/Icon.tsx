@@ -25,9 +25,16 @@ export const Icon: React.FC<IconProps> = ({
     return null;
   }
 
-  const modifiedSvg = color === 'currentColor'
-    ? svgContent
-    : svgContent.replace(/stroke="currentColor"/g, `stroke="${color}"`);
+  let modifiedSvg = svgContent.replace(/(<svg\b[^>]*?)(\s*\/?>)/, (_, attrs, close) => {
+    let updated = attrs;
+    if (!/\bwidth=/.test(attrs)) updated += ' width="100%"';
+    if (!/\bheight=/.test(attrs)) updated += ' height="100%"';
+    return updated + close;
+  });
+
+  if (color !== 'currentColor') {
+    modifiedSvg = modifiedSvg.replace(/stroke="currentColor"/g, `stroke="${color}"`);
+  }
 
   return (
     <div
