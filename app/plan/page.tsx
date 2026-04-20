@@ -1628,7 +1628,7 @@ export default function PlanBuilderPage() {
                                           });
                                         }}
                                         onClick={(e) => e.stopPropagation()}
-                                        className="bg-panel-bg-alt text-text-primary border-none focus:outline-none font-semibold px-1 py-1 rounded text-sm transition-transform duration-200 group-hover:-translate-x-6"
+                                        className="bg-panel-bg-alt text-text-primary border-none focus:outline-none font-semibold px-1 py-1 rounded text-sm transition-transform duration-200 group-hover:-translate-x-6 [@media(hover:none)]:translate-x-0"
                                         autoFocus
                                       >
                                         {Array.from({ length: editingCourseCreditsRange.max - editingCourseCreditsRange.min + 1 }, (_, i) => editingCourseCreditsRange.min + i).map((val) => (
@@ -1646,16 +1646,16 @@ export default function PlanBuilderPage() {
                                           setEditingCourseId(course.id);
                                           setEditingCourseCreditsRange({ min: creditsMin, max: creditsMax });
                                         }}
-                                        className="text-gray-500 font-semibold whitespace-nowrap cursor-pointer hover:text-uva-orange transition-transform duration-200 group-hover:-translate-x-6"
+                                        className="text-gray-500 font-semibold whitespace-nowrap cursor-pointer hover:text-uva-orange transition-transform duration-200 group-hover:-translate-x-6 [@media(hover:none)]:translate-x-0"
                                       >
                                         {course.creditsMin ?? 0}-{course.creditsMax ?? 0} cr
                                       </button>
                                     ) : (
-                                      <span className="text-gray-500 font-semibold whitespace-nowrap transition-transform duration-200 group-hover:-translate-x-6">
+                                      <span className="text-gray-500 font-semibold whitespace-nowrap transition-transform duration-200 group-hover:-translate-x-6 [@media(hover:none)]:translate-x-0">
                                         {course.creditsMin ?? 0} cr
                                       </span>
                                     )}
-                                    <button onClick={(e) => { e.stopPropagation(); void handleRemoveCourse(course.id); }} className="absolute right-0 text-danger-text hover:text-danger-text-hover opacity-0 translate-x-1 group-hover:opacity-100 p-2 cursor-pointer flex items-center justify-center transition-all duration-200 hover:scale-110">
+                                    <button onClick={(e) => { e.stopPropagation(); void handleRemoveCourse(course.id); }} className="absolute right-0 text-danger-text hover:text-danger-text-hover opacity-0 translate-x-1 group-hover:opacity-100 [@media(hover:none)]:opacity-100 [@media(hover:none)]:static [@media(hover:none)]:translate-x-0 p-2 cursor-pointer flex items-center justify-center transition-all duration-200 hover:scale-110">
                                       <Icon name="x" color="currentColor" width={16} height={16} className="w-4 h-4" />
                                     </button>
                                   </div>
