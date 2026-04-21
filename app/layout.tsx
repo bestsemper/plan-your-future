@@ -20,7 +20,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Hoos Plan",
+  title: "Hoos' Plan",
   description: "UVA academic course planner and forum",
   icons: {
     icon: "/favicon.svg",
