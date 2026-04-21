@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Sidebar from "./components/Sidebar";
 import TutorialButton from "./components/TutorialButton";
+import OnboardingModal from "./components/OnboardingModal";
 import { ThemeProvider } from "next-themes";
 import AttachedPlanModalProvider from "./components/AttachedPlan";
 import TutorialProvider from "./components/TutorialProvider";
@@ -53,6 +54,7 @@ export default async function RootLayout({
                   </div>
                 </div>
               </main>
+              <OnboardingModal />
               {!isAuthPage && <TutorialButton />}
             </AttachedPlanModalProvider>
           </TutorialProvider>

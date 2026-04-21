@@ -577,6 +577,26 @@ export default function TutorialProvider({
     }
   }, [isAuthenticated]);
 
+  // Watch for onboarding completion event
+  useEffect(() => {
+    if (!isAuthenticated || window.innerWidth < 1024) return;
+
+    const handleOnboardingComplete = () => {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('readyForTutorial') === '1') {
+        setCurrentStepId(orderedFlowStepIds[0]);
+        setIsOpen(true);
+        window.localStorage.setItem(STORAGE_SEEN_KEY, "1");
+        const url = new URL(window.location.href);
+        url.searchParams.delete('readyForTutorial');
+        window.history.replaceState({}, '', url.toString());
+      }
+    };
+
+    window.addEventListener('onboarding:complete', handleOnboardingComplete);
+    return () => window.removeEventListener('onboarding:complete', handleOnboardingComplete);
+  }, [isAuthenticated]);
+
   useEffect(() => {
     if (!isOpen || !isAuthenticated || !step) {
       return;
