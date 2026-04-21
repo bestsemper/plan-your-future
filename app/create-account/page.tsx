@@ -58,7 +58,7 @@ export default function CreateAccountPage() {
             <h1 className="text-3xl font-bold text-heading">Create Account</h1>
           </div>
           <p className="text-text-secondary text-sm font-medium">
-            Join Hoos Plan to build and track your 4-year academic journey.
+            Join Hoos Plan to build and track your academic journey.
           </p>
         </div>
 

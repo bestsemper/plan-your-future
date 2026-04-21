@@ -482,8 +482,11 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
               <p className="text-xs text-text-tertiary flex-1">
                 {answer.isDeleted ? (
                   <>deleted {formatRelativeTime(answer.createdAt)}</>
-                ) : answer.authorComputingId && answer.authorDisplayName !== 'Anonymous User' ? (
-                  <><Link href={`/profile/${answer.authorComputingId}`} className="text-text-primary font-semibold hover:underline">{answer.authorDisplayName}</Link> replied {formatRelativeTime(answer.createdAt)}</>
+                ) : answer.authorDisplayName !== 'Anonymous User' ? (
+                  <>{answer.authorId
+                    ? <Link href={`/profile/${answer.authorComputingId}`} className="text-text-primary font-semibold hover:underline">{answer.authorDisplayName}</Link>
+                    : <span className="text-text-primary font-semibold hover:underline cursor-pointer">{answer.authorDisplayName}</span>
+                  } replied {formatRelativeTime(answer.createdAt)}</>
                 ) : (
                   <><span className="text-text-primary font-semibold">{answer.authorDisplayName}</span> replied {formatRelativeTime(answer.createdAt)}</>
                 )}
@@ -670,7 +673,10 @@ export default function ForumPostPage({ params }: { params: Promise<{ postNumber
           <p className="text-xs text-text-tertiary mb-4">
             {post.authorDisplayName !== 'Anonymous User' ? (
               <>
-                <Link href={`/profile/${post.authorComputingId}`} className="text-text-primary font-semibold hover:underline">{post.authorDisplayName}</Link> asked {formatRelativeTime(post.createdAt)} | {post.viewCount} views
+                {post.authorId
+                  ? <Link href={`/profile/${post.authorComputingId}`} className="text-text-primary font-semibold hover:underline">{post.authorDisplayName}</Link>
+                  : <span className="text-text-primary font-semibold hover:underline cursor-pointer">{post.authorDisplayName}</span>
+                } asked {formatRelativeTime(post.createdAt)} | {post.viewCount} views
               </>
             ) : (
               <>

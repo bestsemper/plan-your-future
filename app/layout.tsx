@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Sidebar from "./components/Sidebar";
-import HelpButton from "./components/HelpButton";
+import TutorialButton from "./components/TutorialButton";
 import { ThemeProvider } from "next-themes";
 import AttachedPlanModalProvider from "./components/AttachedPlan";
 import TutorialProvider from "./components/TutorialProvider";
@@ -21,7 +21,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Hoos Plan",
-  description: "UVA 4-year course planner and forum",
+  description: "UVA academic course planner and forum",
   icons: {
     icon: "/favicon.svg",
   },
@@ -53,7 +53,7 @@ export default async function RootLayout({
                   </div>
                 </div>
               </main>
-              {!isAuthPage && <HelpButton />}
+              {!isAuthPage && <TutorialButton />}
             </AttachedPlanModalProvider>
           </TutorialProvider>
         </ThemeProvider>

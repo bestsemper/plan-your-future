@@ -51,7 +51,7 @@ function LoginForm() {
             <h1 className="text-3xl font-bold text-heading">Sign In</h1>
           </div>
           <p className="text-text-secondary text-sm font-medium">
-            Log in to keep your 4-year academic journey on track.
+            Log in to keep your academic journey on track.
           </p>
         </div>
 

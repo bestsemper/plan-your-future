@@ -299,7 +299,7 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
       <button
         onClick={() => setInternalIsOpen(true)}
         data-tutorial-target="open-completed-courses"
-        className="w-full sm:w-auto border border-dashed border-panel-border-strong px-5 py-2.5 rounded-full hover:bg-hover-bg text-text-primary font-semibold transition-colors cursor-pointer"
+        className="w-full sm:w-auto border border-panel-border-strong px-5 py-2.5 rounded-full hover:bg-hover-bg text-text-primary font-semibold transition-colors cursor-pointer"
       >
         Completed Courses
       </button>

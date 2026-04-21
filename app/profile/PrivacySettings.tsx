@@ -18,55 +18,47 @@ export default function PrivacySettings({ currentProfileVisibility }: PrivacySet
     startTransition(async () => {
       const newVisibility = isHidden ? 'public' : 'hidden';
       const res = await updateProfileVisibility(newVisibility);
-      if (res?.error) {
-        setError(res.error);
-      }
+      if (res?.error) setError(res.error);
     });
   };
 
   return (
-    <div className="bg-panel-bg p-6 rounded-3xl border border-panel-border">
-      <h2 className="text-xl font-bold mb-5 text-heading">Privacy Settings</h2>
-      
+    <div>
+      <h2 className="text-xl font-bold text-heading mb-4">Privacy Settings</h2>
+
       {error && (
-        <div className="mb-4 bg-red-500/10 border border-red-500/40 text-red-500 px-4 py-2 rounded-xl text-sm font-semibold">
+        <div className="mb-3 bg-red-500/10 border border-red-500/40 text-red-500 px-4 py-2 rounded-xl text-sm font-semibold">
           {error}
         </div>
       )}
 
-      <div className="space-y-6">
-        <div className="flex items-center justify-between gap-4">
+      <div className="space-y-3">
+        <div className="bg-panel-bg rounded-3xl border border-panel-border flex items-center justify-between gap-4 px-5 py-4">
           <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-bold text-heading mb-1 truncate">Anonymous Mode</h3>
-            <p className="text-[13px] font-medium text-text-secondary leading-snug">
+            <p className="text-sm font-semibold text-text-primary">Anonymous Mode</p>
+            <p className="text-sm text-text-secondary mt-0.5">
               {isHidden
-                ? "Your profile is hidden. Posts appear as 'Anonymous User' unless made public individually."
-                : "Your profile is public. You can still post anonymously on a per-post basis."
-              }
+                ? "Your profile is hidden. Posts appear as 'Anonymous User'."
+                : "Your profile is public. You can still post anonymously per post."}
             </p>
           </div>
-          <div className="flex items-center shrink-0">
-            <button
-              type="button"
-              onClick={handleToggle}
-              disabled={isPending}
-              className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
-                isHidden
-                  ? 'bg-button-bg'
-                  : 'bg-panel-border-strong text-transparent'
-              }`}
-            >
-              <span
-                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform duration-200 ease-in-out ${
-                  isHidden ? 'translate-x-6' : 'translate-x-1'
-                }`}
-              />
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={handleToggle}
+            disabled={isPending}
+            className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+              isHidden ? 'bg-uva-orange' : 'bg-text-tertiary/30'
+            }`}
+          >
+            <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform duration-200 ease-in-out ${isHidden ? 'translate-x-6' : 'translate-x-1'}`} />
+          </button>
         </div>
 
-        <div className="pt-4 border-t border-panel-border">
-          <h3 className="text-sm font-bold text-heading mb-3">Account Deletion</h3>
+        <div className="bg-panel-bg rounded-3xl border border-panel-border flex items-center justify-between gap-4 px-5 py-4">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-text-primary">Delete Account</p>
+            <p className="text-sm text-text-secondary mt-0.5">Permanently delete your account and all associated data.</p>
+          </div>
           <DeleteAccountButton />
         </div>
       </div>

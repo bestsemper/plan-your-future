@@ -62,20 +62,20 @@ export default async function Profile() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-panel-bg p-6 rounded-3xl border border-panel-border">
-          <h2 className="text-xl font-bold mb-5 text-heading">Activity Stats</h2>
-          <div className="space-y-4">
-            <div className="flex justify-between border-b pb-3 border-panel-border">
-              <span className="text-text-secondary font-medium">Plans Created</span>
-              <span className="font-bold text-text-primary">{planCount}</span>
+        <div>
+          <h2 className="text-xl font-bold text-heading mb-4">Activity Stats</h2>
+          <div className="space-y-3">
+            <div className="bg-panel-bg rounded-3xl border border-panel-border flex justify-between items-center px-5 py-4">
+              <span className="text-sm font-semibold text-text-primary">Plans Created</span>
+              <span className="text-sm font-bold text-text-primary">{planCount}</span>
             </div>
-            <div className="flex justify-between border-b pb-3 border-panel-border">
-              <span className="text-text-secondary font-medium">Plans Published</span>
-              <span className="font-bold text-text-primary">0</span>
+            <div className="bg-panel-bg rounded-3xl border border-panel-border flex justify-between items-center px-5 py-4">
+              <span className="text-sm font-semibold text-text-primary">Plans Published</span>
+              <span className="text-sm font-bold text-text-primary">0</span>
             </div>
-            <div className="flex justify-between border-b pb-3 border-panel-border">
-              <span className="text-text-secondary font-medium">Forum Posts</span>
-              <span className="font-bold text-text-primary">{postCount}</span>
+            <div className="bg-panel-bg rounded-3xl border border-panel-border flex justify-between items-center px-5 py-4">
+              <span className="text-sm font-semibold text-text-primary">Forum Posts</span>
+              <span className="text-sm font-bold text-text-primary">{postCount}</span>
             </div>
           </div>
         </div>

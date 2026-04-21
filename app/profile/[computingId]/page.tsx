@@ -1,6 +1,5 @@
 import { getUserProfile } from '../../actions';
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 import { Icon } from '../../components/Icon';
 
 export default async function UserProfilePage({
@@ -17,7 +16,21 @@ export default async function UserProfilePage({
   const profileData = await getUserProfile(computingId);
 
   if ('error' in profileData) {
-    redirect('/forum');
+    return (
+      <div className="max-w-5xl mx-auto py-4 md:py-8 px-4">
+        <Link href={fromPath} className="inline-flex items-center gap-1.5 text-sm font-semibold text-text-primary hover:text-uva-orange transition-colors mb-6">
+          <Icon name="arrow-left" color="currentColor" width={16} height={16} className="w-4 h-4" aria-hidden="true" />
+          Go back
+        </Link>
+        <div className="bg-panel-bg p-8 rounded-3xl border border-panel-border flex flex-col items-center text-center gap-3">
+          <div className="w-16 h-16 rounded-full bg-panel-bg-alt flex items-center justify-center mb-2">
+            <Icon name="user" color="currentColor" width={28} height={28} className="text-text-tertiary" />
+          </div>
+          <h1 className="text-2xl font-bold text-heading">User not found</h1>
+          <p className="text-text-secondary text-sm">This account no longer exists.</p>
+        </div>
+      </div>
+    );
   }
 
   const { user, postCount } = profileData;

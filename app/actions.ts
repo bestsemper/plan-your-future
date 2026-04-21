@@ -637,10 +637,15 @@ export async function updateProfileVisibility(profileVisibility: 'hidden' | 'pub
   return { success: true };
 }
 
-export async function deleteAccount() {
+export async function deleteAccount(password: string) {
   const user = await getCurrentUser();
   if (!user) {
     return { error: 'Not authenticated.' };
+  }
+
+  const fullUser = await prisma.user.findUnique({ where: { id: user.id } });
+  if (!fullUser?.password || !await verifyPassword(password, fullUser.password)) {
+    return { error: 'Incorrect password.' };
   }
 
   // Set authorId to null for all non-anonymous forum posts by this user

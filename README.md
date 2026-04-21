@@ -1,10 +1,19 @@
-# hoos-plan
+# Hoos' Plan
 
-Hoos' Plan is a UVA course planning website that helps students build semester-by-semester plans and check enrollment requirements (prerequisites, corequisites, and other restrictions) while they schedule classes.
+Hoos' Plan is a UVA academic course planner that helps students map out their degree, explore course prerequisites, and connect with other students through a built-in forum.
 
 Live website: https://hoosplan.com/
 
-### To-do:
+## Technologies Used
 
-- [ ] Major requirements
-- [ ] Auto generate plan algorithm that takes major(s), number of semesters to graduate, and courses taken to satisfy major graduation requirements
+- `Next.js` (frontend + backend)
+- `Prisma` + `PostgreSQL` (database)
+- `Resend` (email verification)
+
+## Authors
+
+Avery Li, John Kim, Joshua Yoo, Kazuo Shinozaki, and Nehal Elango.
+
+## Next Steps
+
+This project started as an Engineering Foundations II course project at UVA. We plan to expand it to school-wide use, adding more planning and advising tools for students.
