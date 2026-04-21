@@ -81,16 +81,16 @@ export default async function Home() {
       </div>
 
       {/* About + Contact strip */}
-      <div className="mt-auto border-t border-panel-border pt-6 pb-6 md:pb-0 flex flex-col sm:flex-row gap-6 sm:gap-12">
+      <div className="mt-auto border-t border-panel-border pt-6 pb-2 lg:pb-0 flex flex-col sm:flex-row sm:items-end gap-6 sm:gap-12">
         <div className="flex-1">
           <p className="text-xs font-semibold text-text-tertiary uppercase tracking-widest mb-1.5">About</p>
           <p className="text-text-secondary text-sm leading-relaxed">
-            Hoos' Plan is a free tool made by UVA students to help fellow Hoos map out their degree path, discover courses, and plan smarter.
+            Hoos&apos; Plan is a free tool made by UVA students to help fellow Hoos map out their degree path, discover courses, and plan smarter.
           </p>
         </div>
         <div className="shrink-0 lg:pr-20">
-          <p className="text-xs font-semibold text-text-tertiary uppercase tracking-widest mb-1.5">Contact</p>
-          <Link href="mailto:contact@hoosplan.com" className="text-sm font-semibold text-text-primary hover:text-uva-orange transition-colors">
+          <p className="text-xs font-semibold text-text-tertiary uppercase tracking-widest mb-2">Contact</p>
+          <Link href="mailto:contact@hoosplan.com" className="text-sm font-semibold text-text-primary hover:text-text-secondary transition-colors">
             contact@hoosplan.com
           </Link>
         </div>

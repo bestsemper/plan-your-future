@@ -202,7 +202,7 @@ export default function ForumPage() {
           {Array.from({ length: 2 }).map((_, i) => (
             <div key={i} className="flex flex-col min-w-0">
               
-              <article className="p-4 mt-1 mb-1 rounded-3xl border border-panel-border bg-panel-bg min-w-0">
+              <article className="p-4 mt-4 rounded-3xl border border-panel-border bg-panel-bg min-w-0">
                 <div className="flex flex-col min-w-0 space-y-3">
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-3">
                     <div className="h-7 w-3/4 rounded bg-input-disabled" />
@@ -308,13 +308,14 @@ export default function ForumPage() {
           isOpen={isSortDropdownOpen}
           onOpenChange={setIsSortDropdownOpen}
           align="right"
+          contentClassName="min-w-33"
           tutorialTarget="forum-sort-button"
           trigger={
             <button
               type="button"
               className="inline-flex items-center h-8 gap-1.5 px-3 text-xs font-semibold text-text-primary hover:bg-hover-bg rounded-full transition-colors cursor-pointer"
             >
-              <span>{sortBy === 'recent' ? 'Most Recent' : 'Highest Upvoted'}</span>
+              <span className="whitespace-nowrap">{sortBy === 'recent' ? 'Most Recent' : 'Highest Upvoted'}</span>
               <Icon name="chevron-down" color="currentColor" width={12} height={12} className={`w-3.5 h-3.5 text-text-secondary transition-transform duration-200 ${isSortDropdownOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
             </button>
           }

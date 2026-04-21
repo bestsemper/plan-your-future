@@ -36,7 +36,7 @@ export default function PrivacySettings({ currentProfileVisibility }: PrivacySet
         <div className="bg-panel-bg rounded-3xl border border-panel-border flex items-center justify-between gap-4 px-5 py-4">
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-text-primary">Anonymous Mode</p>
-            <p className="text-sm text-text-secondary mt-0.5">
+            <p className="text-sm text-text-secondary mt-1">
               {isHidden
                 ? "Your profile is hidden. Posts appear as 'Anonymous User'."
                 : "Your profile is public. You can still post anonymously per post."}
@@ -57,7 +57,7 @@ export default function PrivacySettings({ currentProfileVisibility }: PrivacySet
         <div className="bg-panel-bg rounded-3xl border border-panel-border flex items-center justify-between gap-4 px-5 py-4">
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-text-primary">Delete Account</p>
-            <p className="text-sm text-text-secondary mt-0.5">Permanently delete your account and all associated data.</p>
+            <p className="text-sm text-text-secondary mt-1">Permanently delete your account and data.</p>
           </div>
           <DeleteAccountButton />
         </div>

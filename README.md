@@ -1,8 +1,10 @@
 # Hoos' Plan
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 Hoos' Plan is a UVA academic course planner that helps students map out their degree, explore course prerequisites, and connect with other students through a built-in forum.
 
-Live website: https://hoosplan.com/
+**Live Website:** [hoosplan.com](https://hoosplan.com)
 
 ## Technologies Used
 
@@ -14,6 +16,6 @@ Live website: https://hoosplan.com/
 
 Avery Li, John Kim, Joshua Yoo, Kazuo Shinozaki, and Nehal Elango.
 
-## Next Steps
+## Want to Get Involved?
 
-This project started as an Engineering Foundations II course project at UVA. We plan to expand it to school-wide use, adding more planning and advising tools for students.
+We're always open to feedback, bug reports, and contributions. Feel free to open an issue or reach out at [contact@hoosplan.com](mailto:contact@hoosplan.com).
