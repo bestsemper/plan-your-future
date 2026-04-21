@@ -567,12 +567,12 @@ export default function TutorialProvider({
     if (!isAuthenticated) return;
 
     const params = new URLSearchParams(window.location.search);
-    if (params.get('newUser') === '1' && window.innerWidth >= 1024) {
+    if (params.get('readyForTutorial') === '1' && window.innerWidth >= 1024) {
       setCurrentStepId(orderedFlowStepIds[0]);
       setIsOpen(true);
       window.localStorage.setItem(STORAGE_SEEN_KEY, "1");
       const url = new URL(window.location.href);
-      url.searchParams.delete('newUser');
+      url.searchParams.delete('readyForTutorial');
       window.history.replaceState({}, '', url.toString());
     }
   }, [isAuthenticated]);

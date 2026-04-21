@@ -34,8 +34,7 @@ function ConfirmContent() {
       return;
     }
 
-    // Use a full-page navigation instead of router.push so Safari commits the
-    // Set-Cookie header from the fetch response before the next request fires.
+    // For new users, redirect to home with newUser flag to show onboarding modal
     window.location.href = data.newUser ? '/?newUser=1' : '/';
   }
 

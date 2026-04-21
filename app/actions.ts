@@ -3007,3 +3007,37 @@ export async function deleteCompletedCourse(courseId: string) {
   }
 }
 
+export async function createEmptyPlan() {
+  const user = await getCurrentUser();
+  if (!user) {
+    return { error: 'You must be logged in.' };
+  }
+
+  try {
+    const plan = await prisma.plan.create({
+      data: {
+        userId: user.id,
+        title: 'My Academic Plan',
+        isPublished: false,
+      },
+    });
+
+    // Create default 8 semesters (4 years of Fall/Spring)
+    for (let termOrder = 1; termOrder <= 8; termOrder++) {
+      await prisma.semester.create({
+        data: {
+          planId: plan.id,
+          termOrder,
+          termName: termOrder % 2 === 1 ? 'Fall' : 'Spring',
+          year: DEFAULT_PLAN_START_YEAR + Math.floor(termOrder / 2),
+        },
+      });
+    }
+
+    return { success: true, plan };
+  } catch (error) {
+    console.error('Error creating empty plan:', error);
+    return { error: 'Failed to create empty plan' };
+  }
+}
+
