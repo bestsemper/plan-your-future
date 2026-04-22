@@ -582,20 +582,15 @@ export default function TutorialProvider({
     if (!isAuthenticated || window.innerWidth < 1024) return;
 
     const handleOnboardingComplete = () => {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('readyForTutorial') === '1') {
-        setCurrentStepId(orderedFlowStepIds[0]);
-        setIsOpen(true);
-        window.localStorage.setItem(STORAGE_SEEN_KEY, "1");
-        const url = new URL(window.location.href);
-        url.searchParams.delete('readyForTutorial');
-        window.history.replaceState({}, '', url.toString());
-      }
+      // Directly start the tutorial when onboarding completes
+      setCurrentStepId(orderedFlowStepIds[0]);
+      setIsOpen(true);
+      window.localStorage.setItem(STORAGE_SEEN_KEY, "1");
     };
 
     window.addEventListener('onboarding:complete', handleOnboardingComplete);
     return () => window.removeEventListener('onboarding:complete', handleOnboardingComplete);
-  }, [isAuthenticated]);
+  }, [isAuthenticated])
 
   useEffect(() => {
     if (!isOpen || !isAuthenticated || !step) {

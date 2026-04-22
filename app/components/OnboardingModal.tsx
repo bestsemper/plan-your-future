@@ -185,13 +185,11 @@ export default function OnboardingModal() {
         }
       }
 
+      // Dispatch event to signal tutorial should start (before navigation)
+      window.dispatchEvent(new CustomEvent('onboarding:complete'));
+      
       // Close modal and trigger tutorial with readyForTutorial flag
       router.push(`/?readyForTutorial=1`);
-      
-      // Dispatch event to signal tutorial should start
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('onboarding:complete'));
-      }, 100);
     });
   };
 
