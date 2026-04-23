@@ -2,16 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Icon } from "./Icon";
-import { logout } from "../actions";
-
 export default function Sidebar({ user }: { user: { computingId: string, displayName: string } | null }) {
   const pathname = usePathname();
-  const [menuOpen, setMenuOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const desktopMenuRef = useRef<HTMLDivElement>(null);
-  const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   const navLinks = [
     {
@@ -53,30 +48,8 @@ export default function Sidebar({ user }: { user: { computingId: string, display
   const isLoginPage = pathname === "/login";
 
   useEffect(() => {
-    const onOutsideClick = (event: MouseEvent) => {
-      const target = event.target as Node;
-      const clickedDesktopMenu = !!desktopMenuRef.current?.contains(target);
-      const clickedMobileMenu = !!mobileMenuRef.current?.contains(target);
-
-      if (!clickedDesktopMenu && !clickedMobileMenu) {
-        setMenuOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", onOutsideClick);
-    return () => document.removeEventListener("mousedown", onOutsideClick);
-  }, []);
-
-  useEffect(() => {
     setMobileNavOpen(false);
-    setMenuOpen(false);
   }, [pathname]);
-
-  useEffect(() => {
-    const onClosePopups = () => setMenuOpen(false);
-    window.addEventListener("tutorial:close-popups", onClosePopups);
-    return () => window.removeEventListener("tutorial:close-popups", onClosePopups);
-  }, []);
 
   return (
     <>
@@ -123,11 +96,11 @@ export default function Sidebar({ user }: { user: { computingId: string, display
       {!isLoginPage && (
       <aside
         id="mobile-sidebar-panel"
-        className={`lg:hidden fixed top-14 bottom-0 left-0 z-[70] w-72 bg-uva-blue text-white p-4 flex flex-col justify-between transform transition-transform duration-200 ${
+        className={`lg:hidden fixed top-14 bottom-0 left-0 z-[70] w-72 bg-uva-blue text-white p-4 flex flex-col transform transition-transform duration-200 ${
           mobileNavOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div>
+        <div className="flex-1">
           <nav className="space-y-2">
             {navLinks.map((link) => (
               <Link
@@ -149,64 +122,45 @@ export default function Sidebar({ user }: { user: { computingId: string, display
           </nav>
         </div>
 
-        <div className={`pt-4 flex flex-col gap-2 ${menuOpen ? '' : 'border-t border-white/20'}`}>
+        <div className="flex flex-col gap-2 pt-4">
           {user ? (
-            <div className="relative" ref={mobileMenuRef}>
-              <button
-                type="button"
-                onClick={() => setMenuOpen((prev) => !prev)}
-                data-tutorial-target="account-menu-toggle"
-                className="w-full flex items-center space-x-3 rounded-2xl hover:bg-black/20 p-2.5 transition-colors border border-transparent hover:border-white/10 cursor-pointer"
-              >
-                <div className="w-8 h-8 rounded-full bg-uva-orange flex items-center justify-center text-white font-bold uppercase">
-                  {user.displayName.charAt(0)}
-                </div>
-                <div className="flex-1 overflow-hidden text-left">
-                  <p className="text-sm font-medium text-white truncate">{user.displayName}</p>
-                  <p className="text-xs text-white/70 truncate">{user.computingId}</p>
-                </div>
-              </button>
-
-              {menuOpen && (
-                <div className="absolute left-0 right-0 bottom-full mb-2 rounded-2xl border border-white/10 bg-[#1c243c] shadow-lg p-1.5 z-20">
-                  <Link
-                    href="/profile"
-                    data-tutorial-target="account-menu-profile"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      setMobileNavOpen(false);
-                    }}
-                    className="block rounded-xl px-3 py-2 text-sm font-medium text-white/75 hover:text-white hover:bg-white/10"
-                  >
-                    Profile
-                  </Link>
-                  <form action={logout} suppressHydrationWarning>
-                    <button
-                      type="submit"
-                      onClick={() => {
-                        setMenuOpen(false);
-                        setMobileNavOpen(false);
-                      }}
-                      className="w-full text-left rounded-xl px-3 py-2 text-sm font-medium text-white/75 hover:text-white hover:bg-white/10 cursor-pointer"
-                    >
-                      Sign Out
-                    </button>
-                  </form>
-                </div>
-              )}
-            </div>
+            <Link
+              href="/profile"
+              onClick={() => setMobileNavOpen(false)}
+              data-tutorial-target="account-menu-profile"
+              className={`flex items-center gap-3 px-4 py-2.5 transition-colors font-medium rounded-2xl border ${
+                isActive('/profile')
+                  ? "bg-white text-slate-900 border-black/15"
+                  : "text-white/75 hover:text-white hover:bg-black/20 border-transparent hover:border-white/10"
+              }`}
+            >
+              <Icon name="settings" color="currentColor" width={18} height={18} />
+              Settings
+            </Link>
           ) : (
-            <Link href="/login" className="mt-1 flex items-center justify-center w-full text-sm text-uva-blue bg-white hover:bg-white/90 py-2.5 rounded-2xl transition-colors font-bold shadow-sm border border-black/10">
+            <Link href="/login" className="flex items-center justify-center w-full text-sm text-uva-blue bg-white hover:bg-white/90 py-2.5 rounded-2xl transition-colors font-bold shadow-sm border border-black/10">
               Sign In
             </Link>
           )}
+          <Link
+            href="/about"
+            onClick={() => setMobileNavOpen(false)}
+            className={`flex items-center gap-3 px-4 py-2.5 transition-colors font-medium rounded-2xl border ${
+              isActive('/about')
+                ? "bg-white text-slate-900 border-black/15"
+                : "text-white/75 hover:text-white hover:bg-black/20 border-transparent hover:border-white/10"
+            }`}
+          >
+            <Icon name="info" color="currentColor" width={18} height={18} />
+            Help
+          </Link>
         </div>
       </aside>
       )}
 
       {!isLoginPage && (
-      <aside className="hidden lg:flex w-64 h-screen bg-uva-blue text-white flex-col justify-between sticky top-0 shrink-0 px-6 py-6">
-        <div>
+      <aside className="hidden lg:flex w-64 h-screen bg-uva-blue text-white flex-col sticky top-0 shrink-0 px-6 py-6">
+        <div className="flex-1">
           <Link href="/" className="block mb-8">
             <img src="/uva-logo.svg" alt="University of Virginia Logo" className="block mb-3 w-full" />
             <span className="text-sm tracking-widest font-semibold border-t border-white/20 pt-2 block text-uva-orange">HOO'S PLAN</span>
@@ -230,50 +184,36 @@ export default function Sidebar({ user }: { user: { computingId: string, display
           </nav>
         </div>
 
-        <div className={`pt-4 flex flex-col gap-2 ${menuOpen ? '' : 'border-t border-white/20'}`}>
+        <div className="flex flex-col gap-2 pt-4">
           {user ? (
-            <div className="relative" ref={desktopMenuRef}>
-              <button
-                type="button"
-                onClick={() => setMenuOpen((prev) => !prev)}
-                data-tutorial-target="account-menu-toggle"
-                className="w-full flex items-center space-x-3 rounded-2xl hover:bg-black/20 p-2.5 transition-colors border border-transparent hover:border-white/10 cursor-pointer"
-              >
-                <div className="w-8 h-8 rounded-full bg-uva-orange flex items-center justify-center text-white font-bold uppercase">
-                  {user.displayName.charAt(0)}
-                </div>
-                <div className="flex-1 overflow-hidden text-left">
-                  <p className="text-sm font-medium text-white truncate">{user.displayName}</p>
-                  <p className="text-xs text-white/70 truncate">{user.computingId}</p>
-                </div>
-              </button>
-
-              {menuOpen && (
-                <div className="absolute left-0 right-0 bottom-full mb-2 rounded-2xl border border-white/10 bg-[#1c243c] shadow-lg p-1.5 z-20">
-                  <Link
-                    href="/profile"
-                    data-tutorial-target="account-menu-profile"
-                    onClick={() => setMenuOpen(false)}
-                    className="block rounded-xl px-3 py-2 text-sm font-medium text-white/75 hover:text-white hover:bg-white/10"
-                  >
-                    Profile
-                  </Link>
-                  <form action={logout} suppressHydrationWarning>
-                    <button
-                      type="submit"
-                      className="w-full text-left rounded-xl px-3 py-2 text-sm font-medium text-white/75 hover:text-white hover:bg-white/10 cursor-pointer"
-                    >
-                      Sign Out
-                    </button>
-                  </form>
-                </div>
-              )}
-            </div>
+            <Link
+              href="/profile"
+              data-tutorial-target="account-menu-profile"
+              className={`flex items-center gap-3 px-4 py-2.5 transition-colors font-medium rounded-2xl border ${
+                isActive('/profile')
+                  ? "bg-white text-slate-900 border-black/15"
+                  : "text-white/75 hover:text-white hover:bg-black/20 border-transparent hover:border-white/10"
+              }`}
+            >
+              <Icon name="settings" color="currentColor" width={18} height={18} />
+              Settings
+            </Link>
           ) : (
-            <Link href="/login" className="mt-1 flex items-center justify-center w-full text-sm text-uva-blue bg-white hover:bg-white/90 py-2.5 rounded-2xl transition-colors font-bold shadow-sm border border-black/10">
+            <Link href="/login" className="flex items-center justify-center w-full text-sm text-uva-blue bg-white hover:bg-white/90 py-2.5 rounded-2xl transition-colors font-bold shadow-sm border border-black/10">
               Sign In
             </Link>
           )}
+          <Link
+            href="/about"
+            className={`flex items-center gap-3 px-4 py-2.5 transition-colors font-medium rounded-2xl border ${
+              isActive('/about')
+                ? "bg-white text-slate-900 border-black/15"
+                : "text-white/75 hover:text-white hover:bg-black/20 border-transparent hover:border-white/10"
+            }`}
+          >
+            <Icon name="info" color="currentColor" width={18} height={18} />
+            Help
+          </Link>
         </div>
       </aside>
       )}

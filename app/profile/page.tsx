@@ -1,9 +1,10 @@
-import { getCurrentUser } from '../actions';
+import { getCurrentUser, logout } from '../actions';
 import { redirect } from 'next/navigation';
 import ThemeToggle from './ThemeToggle';
 import EditProfileForm from './EditProfileForm';
 import EditCompletedCourses from './EditCompletedCourses';
 import PrivacySettings from './PrivacySettings';
+import DeleteAccountButton from './DeleteAccountButton';
 import prisma from '@/lib/prisma';
 import { Icon } from '../components/Icon';
 
@@ -14,9 +15,9 @@ export default async function Profile() {
     redirect('/login');
   }
 
-  // Also pre-fetch some minimal stats like plan count, post count
   const planCount = await prisma.plan.count({ where: { userId: user.id } });
   const postCount = await prisma.forumPost.count({ where: { authorId: user.id } });
+
   const profileSummary = [
     user.major || 'Undeclared',
     user.currentAcademicYear ? `Year ${user.currentAcademicYear}` : null,
@@ -24,64 +25,87 @@ export default async function Profile() {
   ].filter(Boolean).join(' • ');
 
   return (
-    <div className="max-w-5xl mx-auto">
-      <div className="bg-panel-bg p-4 md:p-8 rounded-3xl border border-panel-border mb-8 flex flex-col md:flex-row md:justify-between items-stretch md:items-start gap-6">
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-col sm:flex-row items-center sm:items-center gap-4 md:gap-6 mb-6 text-center sm:text-left">
-            <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-uva-orange flex items-center justify-center text-white text-2xl md:text-3xl font-bold uppercase shrink-0">
-              {user.displayName.charAt(0)}
-            </div>
-            <div className="min-w-0 w-full">
-              <h1 className="text-2xl md:text-3xl font-bold mb-1 text-heading break-words">Hi, {user.displayName}</h1>
-              <p className="text-text-secondary text-base md:text-lg font-medium break-words">
-                {profileSummary}
-              </p>
-              {(user.additionalPrograms ?? []).length > 0 && (
-                <p className="text-text-secondary text-sm md:text-base mt-2 break-words">Programs: {(user.additionalPrograms ?? []).join(', ')}</p>
-              )}
-              {user.bio && <p className="text-text-secondary text-sm md:text-base mt-2 break-words">{user.bio}</p>}
-            </div>
-          </div>
+    <div className="w-full">
 
-          <div className="w-full">
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-start w-full">
-              <EditProfileForm
-                displayName={user.displayName}
-                major={user.major}
-                additionalPrograms={user.additionalPrograms}
-                currentAcademicYear={user.currentAcademicYear}
-                gradYear={user.gradYear}
-                bio={user.bio}
-              />
-              <EditCompletedCourses />
-            </div>
+      {/* Profile hero */}
+      <div className="bg-panel-bg border border-panel-border rounded-3xl px-7 py-6 flex flex-col md:flex-row md:items-start gap-6 mb-6">
+        <div className="w-20 h-20 rounded-full bg-uva-orange flex items-center justify-center text-white text-3xl font-bold uppercase shrink-0">
+          {user.displayName.charAt(0)}
+        </div>
+        <div className="flex-1 min-w-0">
+          <h1 className="text-2xl font-bold text-heading mb-1">Hi, {user.displayName.split(' ')[0]}</h1>
+          <p className="text-base text-text-secondary font-medium mb-4">{profileSummary}</p>
+          {user.bio && <p className="text-base text-text-secondary mb-4">{user.bio}</p>}
+          <div className="flex flex-wrap gap-2">
+            <EditProfileForm
+              displayName={user.displayName}
+              major={user.major}
+              additionalPrograms={user.additionalPrograms}
+              currentAcademicYear={user.currentAcademicYear}
+              gradYear={user.gradYear}
+              bio={user.bio}
+            />
+            <EditCompletedCourses />
           </div>
         </div>
-        
         <ThemeToggle />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Stats + Privacy grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+
+        {/* Activity */}
         <div>
-          <h2 className="text-xl font-bold text-heading mb-4">Activity Stats</h2>
-          <div className="space-y-3">
-            <div className="bg-panel-bg rounded-3xl border border-panel-border flex justify-between items-center px-5 py-4">
-              <span className="text-sm font-semibold text-text-primary">Plans Created</span>
-              <span className="text-sm font-bold text-text-primary">{planCount}</span>
-            </div>
-            <div className="bg-panel-bg rounded-3xl border border-panel-border flex justify-between items-center px-5 py-4">
-              <span className="text-sm font-semibold text-text-primary">Plans Published</span>
-              <span className="text-sm font-bold text-text-primary">0</span>
-            </div>
-            <div className="bg-panel-bg rounded-3xl border border-panel-border flex justify-between items-center px-5 py-4">
-              <span className="text-sm font-semibold text-text-primary">Forum Posts</span>
-              <span className="text-sm font-bold text-text-primary">{postCount}</span>
-            </div>
+          <p className="text-xs font-semibold text-text-tertiary uppercase tracking-widest mb-3">Activity</p>
+          <div className="bg-panel-bg border border-panel-border rounded-3xl overflow-hidden">
+            {[
+              { label: 'Plans Created', value: planCount },
+              { label: 'Plans Published', value: 0 },
+              { label: 'Forum Posts', value: postCount },
+            ].map((stat, i, arr) => (
+              <div key={stat.label} className={`flex items-center justify-between px-5 py-3.5 ${i < arr.length - 1 ? 'border-b border-panel-border' : ''}`}>
+                <span className="text-sm font-semibold text-text-primary">{stat.label}</span>
+                <span className="inline-flex items-center justify-center min-w-7 h-7 px-2 rounded-full bg-hover-bg text-sm font-bold text-text-primary">
+                  {stat.value}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
 
-        <PrivacySettings currentProfileVisibility={user.profileVisibility} />
+        {/* Privacy */}
+        <PrivacySettings currentProfileVisibility={user.profileVisibility} currentAnonymousMode={user.anonymousMode} />
       </div>
+
+      {/* Account */}
+      <div>
+        <p className="text-xs font-semibold text-text-tertiary uppercase tracking-widest mb-3">Account</p>
+        <div className="bg-panel-bg border border-panel-border rounded-3xl overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-3.5 border-b border-panel-border">
+            <div>
+              <p className="text-sm font-semibold text-text-primary">Email</p>
+              <p className="text-xs text-text-tertiary mt-0.5">{user.computingId}@virginia.edu</p>
+            </div>
+          </div>
+          <div className="flex items-center justify-between px-5 py-3.5 border-b border-panel-border">
+            <p className="text-sm font-semibold text-text-primary">Sign Out</p>
+            <form action={logout}>
+              <button type="submit" className="flex items-center gap-1.5 text-sm font-semibold text-text-primary hover:text-text-secondary transition-colors cursor-pointer">
+                <Icon name="logout" color="currentColor" width={15} height={15} />
+                Sign Out
+              </button>
+            </form>
+          </div>
+          <div className="flex items-center justify-between px-5 py-3.5">
+            <div>
+              <p className="text-sm font-semibold text-text-primary">Delete Account</p>
+              <p className="text-xs text-text-tertiary mt-0.5">Permanently delete your account and data.</p>
+            </div>
+            <DeleteAccountButton />
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 }

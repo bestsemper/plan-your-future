@@ -55,20 +55,10 @@ const tutorialSteps: TutorialStep[] = [
   },
 
   {
-    id: "audit_open_account_menu",
-    featureId: "audit",
-    title: "Feature: Completed Courses Import",
-    body: "Click your account button in the sidebar footer.",
-    primaryCta: "Waiting for click",
-    secondaryCta: "Skip",
-    targetSelector: '[data-tutorial-target="account-menu-toggle"]',
-    advanceOnTargetClick: true,
-  },
-  {
     id: "audit_go_profile",
     featureId: "audit",
-    title: "Go to Profile",
-    body: "Click the highlighted Profile option.",
+    title: "Feature: Completed Courses Import",
+    body: "Click the highlighted Settings link in the sidebar to go to your profile.",
     primaryCta: "Waiting for click",
     secondaryCta: "Skip",
     targetSelector: '[data-tutorial-target="account-menu-profile"]',
@@ -414,7 +404,6 @@ const tutorialSteps: TutorialStep[] = [
 
 const orderedFlowStepIds = [
   "welcome",
-  "audit_open_account_menu",
   "audit_go_profile",
   "audit_open_completed",
   "audit_choose_file",
@@ -450,7 +439,7 @@ const orderedFlowStepIds = [
 // First step of each feature — used by Back to jump to the start of the previous feature
 const featureFirstStepId: Partial<Record<FeatureId, string>> = {
   welcome: "welcome",
-  audit: "audit_open_account_menu",
+  audit: "audit_go_profile",
   plan: "plan_nav",
   courses: "courses_feature",
   prereq: "prereq_feature",
@@ -886,7 +875,7 @@ export default function TutorialProvider({
     }
 
     if (step.id === "welcome") {
-      goToStep("audit_open_account_menu");
+      goToStep("audit_go_profile");
       return;
     }
 
@@ -1029,13 +1018,15 @@ export default function TutorialProvider({
               <p className="text-sm leading-relaxed text-text-secondary">{step.body}</p>
 
               <div className="flex flex-wrap gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={goBack}
-                  className="px-4 py-2 rounded-full border border-panel-border-strong text-sm font-semibold text-text-secondary hover:text-text-primary hover:bg-hover-bg cursor-pointer"
-                >
-                  Back
-                </button>
+                {orderedFeatureIds.indexOf(step.featureId) > 0 && (
+                  <button
+                    type="button"
+                    onClick={goBack}
+                    className="px-4 py-2 rounded-full border border-panel-border-strong text-sm font-semibold text-text-secondary hover:text-text-primary hover:bg-hover-bg cursor-pointer"
+                  >
+                    Back
+                  </button>
+                )}
 
                 {step.secondaryCta && (
                   <button

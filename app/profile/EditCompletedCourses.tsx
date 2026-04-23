@@ -290,23 +290,19 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
     }
   }
 
-  if (!modalIsOpen) {
-    if (typeof isOpen === 'boolean') {
-      return null;
-    }
-
-    return (
-      <button
-        onClick={() => setInternalIsOpen(true)}
-        data-tutorial-target="open-completed-courses"
-        className="w-full sm:w-auto border border-panel-border-strong px-5 py-2.5 rounded-full hover:bg-hover-bg text-text-primary font-semibold transition-colors cursor-pointer"
-      >
-        Completed Courses
-      </button>
-    );
-  }
-
   return (
+    <>
+      {typeof isOpen !== 'boolean' && (
+        <button
+          onClick={() => setInternalIsOpen(true)}
+          data-tutorial-target="open-completed-courses"
+          className="flex items-center gap-2 border border-panel-border-strong px-4 py-2 rounded-full hover:bg-hover-bg text-text-primary font-semibold text-sm transition-colors cursor-pointer"
+        >
+          <Icon name="book" color="currentColor" width={14} height={14} />
+          Completed Courses
+        </button>
+      )}
+      {modalIsOpen && (
     <div className="fixed z-50 flex items-center justify-center lg:inset-0 lg:bg-black/50 lg:p-4 max-lg:inset-x-0 max-lg:top-14 max-lg:bottom-0 max-lg:pt-0 max-lg:p-3" onClick={closeModal}>
       <div 
         className="bg-panel-bg rounded-3xl border border-panel-border shadow-xl max-lg:shadow-none max-w-2xl w-full max-h-[calc(100dvh-2rem)] overflow-hidden flex flex-col max-lg:max-w-none max-lg:h-full max-lg:max-h-none"
@@ -492,5 +488,7 @@ export default function EditCompletedCourses({ isOpen, onClose, onCoursesChanged
         onConfirm={() => void handleDeleteCourse()}
       />
     </div>
+      )}
+    </>
   );
 }

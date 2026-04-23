@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { Icon } from '../components/Icon';
 
-const UVA_EMAIL_REGEX = /^[a-z0-9]+@virginia\.edu$/i;
+const UVA_EMAIL_REGEX = /^[a-z]{2,3}([1-9][a-z]{1,3})?@virginia\.edu$/i;
 
 export default function CreateAccountPage() {
   const [error, setError] = useState<string | null>(null);

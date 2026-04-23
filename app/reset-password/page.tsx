@@ -5,7 +5,7 @@ import { resetPassword, initiatePasswordReset } from '../actions';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Icon } from '../components/Icon';
 
-const UVA_EMAIL_REGEX = /^[a-z0-9]+@virginia\.edu$/i;
+const UVA_EMAIL_REGEX = /^[a-z]{2,3}([1-9][a-z]{1,3})?@virginia\.edu$/i;
 
 function ResetPasswordForm() {
   const [error, setError] = useState<string | null>(null);

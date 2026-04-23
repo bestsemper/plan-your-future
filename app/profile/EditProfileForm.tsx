@@ -201,19 +201,17 @@ export default function EditProfileForm({
     });
   };
 
-  if (!isEditing) {
-    return (
+  return (
+    <>
       <button
         type="button"
         onClick={() => setIsEditing(true)}
-        className="w-full sm:w-auto bg-button-bg text-button-text px-5 py-2.5 rounded-full hover:bg-button-hover font-bold transition-colors cursor-pointer"
+        className="flex items-center gap-2 border border-panel-border-strong px-4 py-2 rounded-full hover:bg-hover-bg text-text-primary font-semibold text-sm transition-colors cursor-pointer"
       >
+        <Icon name="edit" color="currentColor" width={14} height={14} />
         Edit Profile
       </button>
-    );
-  }
-
-  return (
+      {isEditing && (
     <div className="fixed z-50 flex items-center justify-center lg:inset-0 lg:bg-black/50 lg:p-4 max-lg:inset-x-0 max-lg:top-14 max-lg:bottom-0 max-lg:pt-0 max-lg:p-3" onClick={handleCancel}>
       <div 
         className="bg-panel-bg rounded-3xl border border-panel-border shadow-xl max-lg:shadow-none max-w-2xl w-full max-h-[calc(100dvh-2rem)] overflow-hidden flex flex-col max-lg:max-w-none max-lg:h-full max-lg:max-h-none"
@@ -590,5 +588,7 @@ export default function EditProfileForm({
           </div>
       </div>
     </div>
+      )}
+    </>
   );
 }

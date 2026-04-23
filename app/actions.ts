@@ -637,15 +637,25 @@ export async function updateProfileVisibility(profileVisibility: 'hidden' | 'pub
   return { success: true };
 }
 
-export async function deleteAccount(password: string) {
+export async function updateAnonymousMode(anonymousMode: boolean) {
   const user = await getCurrentUser();
   if (!user) {
     return { error: 'Not authenticated.' };
   }
 
-  const fullUser = await prisma.user.findUnique({ where: { id: user.id } });
-  if (!fullUser?.password || !await verifyPassword(password, fullUser.password)) {
-    return { error: 'Incorrect password.' };
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { anonymousMode },
+  });
+
+  revalidatePath('/profile');
+  return { success: true };
+}
+
+export async function deleteAccount() {
+  const user = await getCurrentUser();
+  if (!user) {
+    return { error: 'Not authenticated.' };
   }
 
   // Set authorId to null for all non-anonymous forum posts by this user
