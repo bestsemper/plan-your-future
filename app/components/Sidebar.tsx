@@ -151,7 +151,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
                 : "text-white/75 hover:text-white hover:bg-black/20 border-transparent hover:border-white/10"
             }`}
           >
-            <Icon name="info" color="currentColor" width={18} height={18} />
+            <Icon name="help-circle" color="currentColor" width={18} height={18} />
             Help
           </Link>
         </div>
@@ -211,7 +211,7 @@ export default function Sidebar({ user }: { user: { computingId: string, display
                 : "text-white/75 hover:text-white hover:bg-black/20 border-transparent hover:border-white/10"
             }`}
           >
-            <Icon name="info" color="currentColor" width={18} height={18} />
+            <Icon name="help-circle" color="currentColor" width={18} height={18} />
             Help
           </Link>
         </div>

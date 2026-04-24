@@ -4,24 +4,28 @@ import { useState } from "react";
 
 const faqs = [
   {
-    q: "Is Hoos\u2019 Plan free?",
-    a: "Yes, completely free. No account required to browse, but you\u2019ll need to sign up to save plans and post on the forum.",
+    q: "Why was this built?",
+    a: "Hoos' Plan was built to complement Stellic, UVA's official course planning tool. While Stellic handles four-year planning well, students wanted more on top of that: a forum to share and discuss schedules, a prerequisite visualizer, and a faster, more intuitive course search. You can import your existing Stellic plan directly into Hoos' Plan to get started.",
+  },
+  {
+    q: "Is Hoos' Plan free?",
+    a: "Yes, completely free. You don't need an account to browse courses or the forum, but you'll need to sign up to save plans and post.",
   },
   {
     q: "How do I save a plan?",
-    a: "Plans are saved automatically as you build them. Just make sure you\u2019re signed in.",
+    a: "Your plan saves automatically as you make changes. Just make sure you're signed in.",
   },
   {
-    q: "Can I share my plan publicly?",
-    a: "Yes \u2014 when creating or editing a plan, you can attach it to a forum post so other students can view and comment on it.",
+    q: "Can I share my plan?",
+    a: "Yes. You can attach a plan to a forum post so other students can view and comment on it.",
   },
   {
     q: "What does Anonymous Mode do?",
-    a: 'When enabled in Settings, your name is hidden on all your forum posts and they appear as \u201cAnonymous User.\u201d You can also post anonymously on a per-post basis even without enabling this.',
+    a: "When turned on in Settings, your name is hidden on all forum posts and shows up as \"Anonymous User\" instead. You can also choose to post anonymously on individual posts without enabling the setting globally.",
   },
   {
-    q: "Who built this?",
-    a: "Hoos\u2019 Plan was built by Avery Li, John Kim, Joshua Yoo, Kazuo Shinozaki, and Nehal Elango \u2014 a group of UVA students.",
+    q: "Is my data private?",
+    a: "Your password is hashed before it is stored and is never saved in plain text. Your email and profile information are only visible to other users based on the privacy settings you choose. You can set your profile to private, post anonymously, or delete your account and all associated data from the Settings page.",
   },
 ];
 

@@ -18,23 +18,31 @@ export default async function Profile() {
   const planCount = await prisma.plan.count({ where: { userId: user.id } });
   const postCount = await prisma.forumPost.count({ where: { authorId: user.id } });
 
-  const profileSummary = [
+  const profileSummaryItems = [
     user.major || 'Undeclared',
     user.currentAcademicYear ? `Year ${user.currentAcademicYear}` : null,
     user.gradYear ? `Class of ${user.gradYear}` : null,
-  ].filter(Boolean).join(' • ');
+  ].filter(Boolean);
 
   return (
     <div className="w-full">
 
       {/* Profile hero */}
       <div className="bg-panel-bg border border-panel-border rounded-3xl px-7 py-6 flex flex-col md:flex-row md:items-start gap-6 mb-6">
-        <div className="w-20 h-20 rounded-full bg-uva-orange flex items-center justify-center text-white text-3xl font-bold uppercase shrink-0">
-          {user.displayName.charAt(0)}
-        </div>
         <div className="flex-1 min-w-0">
-          <h1 className="text-2xl font-bold text-heading mb-1">Hi, {user.displayName.split(' ')[0]}</h1>
-          <p className="text-base text-text-secondary font-medium mb-4">{profileSummary}</p>
+          <h1 className="text-2xl font-bold text-heading mb-1">{user.displayName}</h1>
+          <div className="flex items-center gap-2 mb-4">
+            {profileSummaryItems.map((item, i) => (
+              <div key={`summary-${i}`} className="flex items-center gap-2">
+                {i > 0 && (
+                  <svg className="w-1 h-1" viewBox="0 0 4 4" fill="currentColor">
+                    <circle cx="2" cy="2" r="2" className="text-text-secondary" />
+                  </svg>
+                )}
+                <span className="text-base text-text-secondary font-medium">{item}</span>
+              </div>
+            ))}
+          </div>
           {user.bio && <p className="text-base text-text-secondary mb-4">{user.bio}</p>}
           <div className="flex flex-wrap gap-2">
             <EditProfileForm
@@ -88,11 +96,11 @@ export default async function Profile() {
             </div>
           </div>
           <div className="flex items-center justify-between px-5 py-3.5 border-b border-panel-border">
-            <p className="text-sm font-semibold text-text-primary">Sign Out</p>
+            <p className="text-sm font-semibold text-text-primary">Log Out</p>
             <form action={logout}>
               <button type="submit" className="flex items-center gap-1.5 text-sm font-semibold text-text-primary hover:text-text-secondary transition-colors cursor-pointer">
                 <Icon name="logout" color="currentColor" width={15} height={15} />
-                Sign Out
+                Log Out
               </button>
             </form>
           </div>
