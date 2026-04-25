@@ -31,18 +31,9 @@ export default async function Profile() {
       <div className="bg-panel-bg border border-panel-border rounded-3xl px-7 py-6 flex flex-col md:flex-row md:items-start gap-6 mb-6">
         <div className="flex-1 min-w-0">
           <h1 className="text-2xl font-bold text-heading mb-1">{user.displayName}</h1>
-          <div className="flex items-center gap-2 mb-4">
-            {profileSummaryItems.map((item, i) => (
-              <div key={`summary-${i}`} className="flex items-center gap-2">
-                {i > 0 && (
-                  <svg className="w-1 h-1" viewBox="0 0 4 4" fill="currentColor">
-                    <circle cx="2" cy="2" r="2" className="text-text-secondary" />
-                  </svg>
-                )}
-                <span className="text-base text-text-secondary font-medium">{item}</span>
-              </div>
-            ))}
-          </div>
+          <p className="text-sm text-text-secondary font-medium mb-4">
+            {profileSummaryItems.join(' · ')}
+          </p>
           {user.bio && <p className="text-base text-text-secondary mb-4">{user.bio}</p>}
           <div className="flex flex-wrap gap-2">
             <EditProfileForm

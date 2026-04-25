@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 const emitTutorialEvent = (name: string) => {
   if (typeof window === 'undefined') {
@@ -78,6 +78,9 @@ export default function ForumPage() {
   const [search, setSearch] = useState('');
   const [appliedSearch, setAppliedSearch] = useState('');
   const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const POSTS_PER_PAGE = 15;
 
   const loadData = async () => {
     const res = await getForumPageData();
@@ -103,6 +106,7 @@ export default function ForumPage() {
   }, [posts, appliedSearch]);
 
   const sortedPosts = useMemo(() => {
+    setCurrentPage(1);
     const postsToSort = [...filteredPosts];
 
     if (sortBy === 'upvoted') {
@@ -113,6 +117,9 @@ export default function ForumPage() {
 
     return postsToSort.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [filteredPosts, sortBy]);
+
+  const totalPages = Math.max(1, Math.ceil(sortedPosts.length / POSTS_PER_PAGE));
+  const paginatedPosts = sortedPosts.slice((currentPage - 1) * POSTS_PER_PAGE, currentPage * POSTS_PER_PAGE);
 
   const suggestedPosts = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -352,12 +359,12 @@ export default function ForumPage() {
       )}
 
       <div className="flex flex-col min-w-0">
-        {sortedPosts.map((post, index) => {
+        {paginatedPosts.map((post) => {
           const postHref = getForumPostHref(post.postNumber, post.title);
 
           return (
             <div key={post.id} className="flex flex-col min-w-0">
-              
+
               <article
                 role="link"
                 tabIndex={0}
@@ -458,6 +465,45 @@ export default function ForumPage() {
           );
         })}
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-1.5 mt-6">
+          <button
+            type="button"
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="inline-flex items-center justify-center h-8 w-8 rounded-full border border-panel-border bg-panel-bg text-text-secondary hover:bg-hover-bg transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+            aria-label="Previous page"
+          >
+            <Icon name="arrow-left" color="currentColor" width={14} height={14} />
+          </button>
+
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <button
+              key={page}
+              type="button"
+              onClick={() => setCurrentPage(page)}
+              className={`inline-flex items-center justify-center h-8 w-8 rounded-full text-xs font-semibold transition-colors cursor-pointer ${
+                page === currentPage
+                  ? 'bg-button-bg text-button-text'
+                  : 'border border-panel-border bg-panel-bg text-text-secondary hover:bg-hover-bg'
+              }`}
+            >
+              {page}
+            </button>
+          ))}
+
+          <button
+            type="button"
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className="inline-flex items-center justify-center h-8 w-8 rounded-full border border-panel-border bg-panel-bg text-text-secondary hover:bg-hover-bg transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+            aria-label="Next page"
+          >
+            <Icon name="arrow-right" color="currentColor" width={14} height={14} />
+          </button>
+        </div>
+      )}
 
     </div>
   );

@@ -2,47 +2,26 @@
  * Forum tag utilities and configuration
  */
 
-import { PROFILE_ADDITIONAL_PROGRAMS, PROFILE_MAJOR_OPTIONS } from '@/app/profile/profileOptions';
+import { PROFILE_MAJOR_OPTIONS } from '@/app/profile/profileOptions';
 
-// Predefined system tags available for forum posts
-export const PREDEFINED_TAGS = [
-  'Study Abroad',
-  'ROTC',
-  'Double Major',
-  'Honors',
-  'Minor',
-  'Early Graduation',
-  'Gap Year',
-  'Internship',
-  'Research',
-  'Career Advice',
-];
-
-const MINOR_TAGS = PROFILE_ADDITIONAL_PROGRAMS.filter((program) => /minor/i.test(program));
+export const GENERAL_TAGS = ['General', 'Career'];
 
 export const FORUM_TAG_OPTIONS = Array.from(
   new Set([
-    ...PREDEFINED_TAGS,
+    ...GENERAL_TAGS,
     ...PROFILE_MAJOR_OPTIONS,
-    ...MINOR_TAGS,
   ])
-).sort((left, right) => left.localeCompare(right));
+).sort((left, right) => {
+  // Pin General and Career to the top
+  const aIsGeneral = GENERAL_TAGS.includes(left);
+  const bIsGeneral = GENERAL_TAGS.includes(right);
+  if (aIsGeneral && !bIsGeneral) return -1;
+  if (!aIsGeneral && bIsGeneral) return 1;
+  return left.localeCompare(right);
+});
 
-/**
- * Get all available tags for a user
- * Includes their major (if they have one) plus all predefined tags
- * @param userMajor - The user's major (optional)
- * @returns Array of available tags
- */
-export function getAvailableTags(userMajor?: string): string[] {
-  const allTags = [...FORUM_TAG_OPTIONS];
-  
-  // Add user's major at the beginning if they have one
-  if (userMajor) {
-    allTags.unshift(userMajor);
-  }
-  
-  return allTags;
+export function getAvailableTags(): string[] {
+  return [...FORUM_TAG_OPTIONS];
 }
 
 /**
@@ -64,8 +43,8 @@ export function filterTagsByQuery(tags: string[], query: string): string[] {
  * @param userMajor - The user's major
  * @returns Boolean indicating if all tags are valid
  */
-export function areTagsValid(tags: string[], userMajor?: string): boolean {
-  const allowedTags = getAvailableTags(userMajor);
+export function areTagsValid(tags: string[]): boolean {
+  const allowedTags = getAvailableTags();
   return tags.every(tag => allowedTags.includes(tag));
 }
 

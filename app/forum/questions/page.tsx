@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState, useTransition } from 'react';
 import { Icon } from '../../components/Icon';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from '../../components/DropdownMenu';
-import { createForumPost, getForumPageData, getCurrentUser } from '../../actions';
+import { createForumPost, getForumPageData } from '../../actions';
 import { getForumPostHref } from '../url';
 import { FORUM_TAG_OPTIONS, filterTagsByQuery } from '@/app/utils/forumTags';
 
@@ -31,12 +31,8 @@ export default function ForumQuestionsPage() {
   useEffect(() => {
     void (async () => {
       const res = await getForumPageData();
-      const user = await getCurrentUser();
       setPlans(res.plans);
       setCanPost(res.canPost);
-      if (user?.major && !selectedTags.includes(user.major)) {
-        setSelectedTags([user.major]);
-      }
       setDataLoaded(true);
     })();
   }, []);
@@ -209,7 +205,7 @@ export default function ForumQuestionsPage() {
                   setIsTagDropdownOpen(true);
                 }}
                 onClick={() => setIsTagDropdownOpen(true)}
-                placeholder="Search majors, minors, and topic tags"
+                placeholder="Search tags"
                 className="w-full h-11 px-4 border border-panel-border rounded-[20px] bg-input-bg text-text-primary outline-none text-sm"
                 disabled={!canPost || isPending}
               />
