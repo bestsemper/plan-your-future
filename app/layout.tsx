@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import OnboardingModal from "./components/OnboardingModal";
+import { Suspense } from "react";
 import { ThemeProvider } from "next-themes";
 import AttachedPlanModalProvider from "./components/AttachedPlan";
 import TutorialProvider from "./components/TutorialProvider";
@@ -40,7 +41,7 @@ export default async function RootLayout({
           <TutorialProvider isAuthenticated={Boolean(user)}>
             <AttachedPlanModalProvider>
               <AppShell user={user}>{children}</AppShell>
-              <OnboardingModal />
+              <Suspense><OnboardingModal /></Suspense>
             </AttachedPlanModalProvider>
           </TutorialProvider>
         </ThemeProvider>

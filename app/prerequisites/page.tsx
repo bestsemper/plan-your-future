@@ -205,7 +205,7 @@ export default function PrerequisitesPage() {
         </div>
         <div className="relative w-full lg:flex-1 lg:max-w-xs">
           <DropdownMenu
-            isOpen={showDropdown && filteredDepartments.length > 0}
+            isOpen={showDropdown}
             onOpenChange={setShowDropdown}
             tutorialTarget="prereq-search-input"
             trigger={
@@ -229,7 +229,8 @@ export default function PrerequisitesPage() {
                     setShowDropdown(true);
                   }}
                   onKeyDown={handleKeyDown}
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setIsSearching(true);
                     setShowDropdown(true);
                   }}
@@ -237,7 +238,7 @@ export default function PrerequisitesPage() {
                     setTimeout(() => {
                       if (!searchText) setIsSearching(false);
                       setShowDropdown(false);
-                    }, 100);
+                    }, 150);
                   }}
                   suppressHydrationWarning
                   className="w-full h-[42px] pl-10 pr-10 border border-panel-border rounded-full bg-input-bg text-text-primary outline-none transition-colors"
