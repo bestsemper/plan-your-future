@@ -8,6 +8,7 @@ import AttachedPlanModalProvider from "./components/AttachedPlan";
 import TutorialProvider from "./components/TutorialProvider";
 import AppShell from "./components/AppShell";
 import { getCurrentUser } from "./actions";
+import { Analytics } from "@vercel/analytics/next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,6 +43,7 @@ export default async function RootLayout({
             <AttachedPlanModalProvider>
               <AppShell user={user}>{children}</AppShell>
               <Suspense><OnboardingModal /></Suspense>
+              <Analytics />
             </AttachedPlanModalProvider>
           </TutorialProvider>
         </ThemeProvider>
