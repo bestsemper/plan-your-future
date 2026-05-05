@@ -380,9 +380,14 @@ function getDepartmentNamesFromSubjects(): Map<string, string> {
 
       const label = (entry.label || '').trim();
       const normalizedPrefix = `${mnemonic} - `;
-      const fullName = label.startsWith(normalizedPrefix)
-        ? label.slice(normalizedPrefix.length).trim()
-        : mnemonic;
+      let fullName: string;
+      if (label.startsWith(normalizedPrefix)) {
+        fullName = label.slice(normalizedPrefix.length).trim();
+      } else if (label && label !== mnemonic) {
+        fullName = label;
+      } else {
+        fullName = mnemonic;
+      }
 
       subjectNameMap.set(mnemonic, fullName || mnemonic);
     });

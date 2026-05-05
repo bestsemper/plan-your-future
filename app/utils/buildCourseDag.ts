@@ -366,12 +366,17 @@ export function buildCourseDag(department: string): CourseDAG {
       return [prereqGroup];
     }
     
+    if (node.type === 'NOT') {
+      // NOT nodes are exclusion constraints, not actual prerequisites — skip entirely
+      return [];
+    }
+
     if (node.type === 'AND' || node.type === 'OR' || node.type === 'count') {
       const childIds: string[] = (node.children || []).flatMap((c: any) => buildLogicTree(c, targetGroup, targetLevel, isInOr));
       // Deduplicate
       return Array.from(new Set<string>(childIds));
     }
-    
+
     if (node.children) {
       return (node.children || []).flatMap((c: any) => buildLogicTree(c, targetGroup, targetLevel, isInOr)) as string[];
     }
@@ -547,7 +552,21 @@ export function buildCourseDag(department: string): CourseDAG {
             }
             return; // don't traverse further after processing OR
           }
-          
+
+          if (node.type === 'NOT') {
+            // Show as a labeled exclusion in the popup but don't add visual tree edges.
+            const coursesStr = extractCoursesFromPrereq(node.children?.[0])
+              .filter(c => c.startsWith(deptPrefix))
+              .map(c => courseToGroupRep.get(c) || c);
+            const uniqueCourses = Array.from(new Set(coursesStr));
+            if (uniqueCourses.length > 0) {
+              results.push(`NOT: ${uniqueCourses.join(' OR ')}`);
+            } else {
+              results.push('NOT');
+            }
+            return; // don't traverse further
+          }
+
           // Traverse children for other node types
           if (node.children) {
             (node.children || []).forEach((child: any) => traverse(child, depth + 1));

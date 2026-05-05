@@ -12,7 +12,30 @@ COURSE_NUMBER_ONLY_PATTERN = r'\b(\d{4})\b'
 INVALID_SUBJECT_CODES = {
     'OF', 'THE', 'AND', 'OR', 'TO', 'IN', 'ON', 'AT', 'BY', 'AN', 'A', 'AS', 'IS', 'IF', 'BE', 'DO',
     'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE', 'TEN',  # Number words
-    'FIRST', 'SECOND', 'THIRD', 'FOURTH', 'FIFTH', 'LAST', 'NEXT', 'ANOTHER', 'SOME', 'ANY', 'ALL', 'MOST', 'LEAST'  # Ordinal/quantity words
+    'FIRST', 'SECOND', 'THIRD', 'FOURTH', 'FIFTH', 'LAST', 'NEXT', 'ANOTHER', 'SOME', 'ANY', 'ALL', 'MOST', 'LEAST',  # Ordinal/quantity words
+    'COURSE', 'COURSES',  # Generic words that appear after "4000-level course in DEPT"
+}
+
+# Maps full language/subject names that appear in prereq text to their UVA dept mnemonic.
+# e.g. "3000-level French course" → FREN 3000
+LANGUAGE_TO_DEPT: dict[str, str] = {
+    'FRENCH': 'FREN',
+    'SPANISH': 'SPAN',
+    'GERMAN': 'GERM',
+    'ITALIAN': 'ITAL',
+    'PORTUGUESE': 'PORT',
+    'CHINESE': 'CHIN',
+    'JAPANESE': 'JAPN',
+    'KOREAN': 'KORN',
+    'ARABIC': 'ARAB',
+    'RUSSIAN': 'RUSS',
+    'LATIN': 'LATI',
+    'GREEK': 'GREK',
+    'HINDI': 'HIND',
+    'HEBREW': 'HBEW',
+    'TURKISH': 'TURK',
+    'PERSIAN': 'PERS',
+    'SWAHILI': 'SWAH',
 }
 RESTRICTION_TAIL_PATTERN = re.compile(
     r"(?:can't\s+enroll\s+if|cannot\s+enroll\s+if|may\s+not\s+enroll\s+if|not\s+eligible\s+to\s+enroll|credit\s+not\s+granted|not\s+open\s+to|restricted\s+to)",
@@ -918,13 +941,27 @@ def extract_requirement_snippets(description: str, enrollment_requirements: str)
         if not normalized_text:
             return []
 
+        extra_exclusions: List[Tuple[str, str]] = []
+
         restriction_match = RESTRICTION_TAIL_PATTERN.search(normalized_text)
         if restriction_match:
-            normalized_text = normalized_text[:restriction_match.start()].strip()
+            pre_restriction = normalized_text[:restriction_match.start()]
+            # Detect the "; and students ..." clause that introduces enrollment exclusions,
+            # e.g. "Prereq: MATH 1320; and students with a B or better in MATH 3310, 3354
+            # are not eligible to enroll in MATH 3000."
+            # Split at the semicolon so the exclusion courses don't leak into the prereq snippet.
+            conj_match = re.search(r';\s+and\s+students\b', pre_restriction, re.IGNORECASE)
+            if conj_match:
+                exclusion_clause = pre_restriction[conj_match.end():].strip()
+                if exclusion_clause:
+                    extra_exclusions.append(('exclusion', normalize_requirement_text(exclusion_clause)))
+                normalized_text = pre_restriction[:conj_match.start()].strip()
+            else:
+                normalized_text = pre_restriction.strip()
 
         matches = list(REQUISITE_LABEL_PATTERN.finditer(normalized_text))
         if not matches:
-            return []
+            return extra_exclusions
 
         snippets: List[Tuple[str, str]] = []
         for index, match in enumerate(matches):
@@ -947,7 +984,7 @@ def extract_requirement_snippets(description: str, enrollment_requirements: str)
             snippet = normalize_requirement_text(raw_snippet)
             if snippet:
                 snippets.extend(split_requisite_subsnippets(snippet, classify_requisite_label(match.group('label'))))
-        return snippets
+        return snippets + extra_exclusions
 
     snippets: List[Tuple[str, str]] = []
     seen = set()
@@ -1071,20 +1108,31 @@ def extract_course_codes(text: str) -> List[str]:
     return [f"{dept} {num}" for dept, num in matches if dept not in INVALID_SUBJECT_CODES]
 
 
+def normalize_dept_word(word: str) -> str:
+    """Map a full language/subject name to its UVA dept mnemonic, or return as-is."""
+    return LANGUAGE_TO_DEPT.get(word.upper(), word.upper())
+
+
 def expand_level_based_courses(text: str) -> List[str]:
     """Expand level-based course references to course codes."""
     courses: List[str] = []
 
     def add_course(dept: str, level: str) -> None:
-        normalized_dept = dept.upper()
+        normalized_dept = normalize_dept_word(dept)
         if normalized_dept not in INVALID_SUBJECT_CODES:
             courses.append(f"{normalized_dept} {level}")
 
+    # "4000-level course(s) in French" → FREN 4000
+    course_in_pattern = r'(\d{4})\s*-?\s*level\s+courses?\s+in\s+([A-Za-z]+)'
+    # "4000-level DEPT course(s)" (dept immediately after "level")
     forward_pattern = r'(\d{4})\s*-?\s*(?:,\s*)?(?:or\s+)?(?:the\s+)?(\d{4})?\s*-?\s*(?:,\s*)?(?:or\s+)?(\d{4})?\s*-?level\s+([A-Z]{2,6})\s+(?:courses?)?'
     reverse_patterns = [
         r'([A-Z]{2,6})\s+courses?\s+at\s+the\s+(\d{4})\s*-,\s*(\d{4})\s*-,\s*or\s*(\d{4})\s*-level',
         r'([A-Z]{2,6})\s+courses?\s+at\s+the\s+(\d{4})\s*-?\s*(?:or\s+)?(\d{4})?\s*-?level',
     ]
+
+    for match in re.finditer(course_in_pattern, text, re.IGNORECASE):
+        add_course(match.group(2), match.group(1))
 
     for match in re.finditer(forward_pattern, text, re.IGNORECASE):
         dept = match.group(4).upper()
@@ -1105,26 +1153,42 @@ def expand_level_based_courses(text: str) -> List[str]:
 def replace_level_phrases_for_tokenization(text: str) -> str:
     """Normalize level-based course language into tokenizable pseudo-course expressions."""
 
+    def make_level_token(dept_word: str, levels: list) -> str:
+        dept = normalize_dept_word(dept_word)
+        # Trailing space prevents the tokenizer's [A-Z]? from absorbing the next word's first letter.
+        return ' ' + ' OR '.join(f"__LEVEL__{dept} {level}" for level in levels) + ' '
+
+    def replace_course_in(match):
+        dept_word = match.group(2)
+        dept = normalize_dept_word(dept_word)
+        if dept in INVALID_SUBJECT_CODES:
+            return match.group(0)
+        return make_level_token(dept_word, [match.group(1)])
+
     def replace_forward(match):
         dept = match.group(4).upper()
         if dept in INVALID_SUBJECT_CODES:
             return match.group(0)
         levels = [level for level in match.groups()[:3] if level]
-        return ' OR '.join(f"__LEVEL__{dept} {level}" for level in levels)
+        return make_level_token(dept, levels)
 
     def replace_reverse(match):
         dept = match.group(1).upper()
         if dept in INVALID_SUBJECT_CODES:
             return match.group(0)
         levels = [level for level in match.groups()[1:] if level]
-        return ' OR '.join(f"__LEVEL__{dept} {level}" for level in levels)
+        return make_level_token(dept, levels)
 
+    # Match "4000-level course(s) in French" before the generic forward pattern so "COURSE"
+    # is never captured as the department.
+    course_in_pattern = r'(\d{4})\s*-?\s*level\s+courses?\s+in\s+([A-Za-z]+)'
     forward_pattern = r'(\d{4})\s*-?\s*(?:,\s*)?(?:or\s+)?(?:the\s+)?(\d{4})?\s*-?\s*(?:,\s*)?(?:or\s+)?(\d{4})?\s*-?level\s+([A-Z]{2,6})\s+(?:courses?)?'
     reverse_patterns = [
         r'([A-Z]{2,6})\s+courses?\s+at\s+the\s+(\d{4})\s*-,\s*(\d{4})\s*-,\s*or\s*(\d{4})\s*-level',
         r'([A-Z]{2,6})\s+courses?\s+at\s+the\s+(\d{4})\s*-?\s*(?:or\s+)?(\d{4})?\s*-?level',
     ]
 
+    text = re.sub(course_in_pattern, replace_course_in, text, flags=re.IGNORECASE)
     text = re.sub(forward_pattern, replace_forward, text, flags=re.IGNORECASE)
     for pattern in reverse_patterns:
         text = re.sub(pattern, replace_reverse, text, flags=re.IGNORECASE)
@@ -1313,14 +1377,20 @@ def tokenize_prerequisite(text: str, default_subject: Optional[str] = None) -> L
     # Drop parenthetical program codes like (ATHTRN-MS) before tokenization.
     text = re.sub(r'\((?![^)]*\b[A-Z]{2,6}\s*\d{3,4}[A-Z]?\b)[^)]*\)', ' ', text)
 
+    # Strip grade-qualifier phrases so their embedded "or" doesn't produce spurious OR tokens.
+    # e.g. "FREN 3031 with a grade of D- or better, or placed out of FREN 3031"
+    #   → "FREN 3031, or placed out of FREN 3031"
+    text = re.sub(r'\bwith\s+(?:a\s+)?(?:minimum\s+)?grade\s+of\s+[A-F][+-]?(?:\s+or\s+better)?\b', ' ', text, flags=re.IGNORECASE)
+    text = re.sub(r'\bor\s+better\b', ' ', text, flags=re.IGNORECASE)
+
     # Replace level-based course references with tokenizable pseudo-courses.
     text = replace_level_phrases_for_tokenization(text)
     
     # Replace explicit operators to regular AND/OR.
     text = re.sub(r'\bAND/OR\b', ' OR ', text)
     text = re.sub(r'\s*/\s*', ' OR ', text)  # Replace "/" with " OR " (e.g., "KOR 2020/2060" -> "KOR 2020 OR 2060")
-    text = re.sub(r'\s*,\s*AND\b', ' AND ', text)
-    text = re.sub(r'\s*,\s*OR\b', ' OR ', text)
+    text = re.sub(r'\s*,\s*AND\b', ' AND ', text, flags=re.IGNORECASE)
+    text = re.sub(r'\s*,\s*OR\b', ' OR ', text, flags=re.IGNORECASE)
     text = re.sub(r'\s*,\s*', ' OR ', text)
     text = re.sub(r'\bAND\b', ' AND ', text)
     text = re.sub(r'\bOR\b', ' OR ', text)
@@ -1404,7 +1474,7 @@ def tokenize_prerequisite(text: str, default_subject: Optional[str] = None) -> L
     with_implicit_ands: List[str] = []
 
     def is_course_token(token: str) -> bool:
-        return bool(re.match(r'^[A-Z]{2,6}\s+\d{3,4}[A-Z]?$', token))
+        return bool(re.match(r'^(?:__LEVEL__)?[A-Z]{2,6}\s+\d{3,4}[A-Z]?$', token))
 
     for token in cleaned_tokens:
         if with_implicit_ands:
@@ -1983,6 +2053,10 @@ def remove_invalid_courses(tree: Any, valid_courses: set) -> Optional[Any]:
         # If it's a course node, check if it's valid
         if tree.get('type') == 'course':
             code = tree.get('code')
+            # Level-based course nodes (e.g. "MATH 5000") represent a category, not a
+            # single catalog entry, so they are always kept regardless of valid_courses.
+            if tree.get('level'):
+                return tree
             # Remove this course if it's not in valid_courses
             if code and code not in valid_courses:
                 return None

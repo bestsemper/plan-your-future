@@ -9,7 +9,7 @@
     "school_count": 0,
     "major_count": 341,
     "department_count": 0,
-    "subject_count": 0,
+    "subject_count": 202,
     "majors_source": "audit_requirements.csv"
   },
   "schools": [],
@@ -2404,7 +2404,3248 @@
     }
   ],
   "careers": [],
-  "subjects": [],
+  "subjects": [
+    {
+      "subject": "AAS",
+      "label": "AAS - African-American & African",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "AAS"
+      ],
+      "majorNames": [
+        "African-American & African Std"
+      ]
+    },
+    {
+      "subject": "ACCT",
+      "label": "ACCT - Accounting",
+      "schoolCodes": [
+        "SCPS"
+      ],
+      "schoolNames": [
+        "Continuing & Prof Studies"
+      ],
+      "majorCodes": [
+        "SCPSD"
+      ],
+      "majorNames": [
+        "Dean of Continuing & Prof Stds"
+      ]
+    },
+    {
+      "subject": "AIRS",
+      "label": "AIRS - Air Science",
+      "schoolCodes": [
+        "PROV"
+      ],
+      "schoolNames": [
+        "Executive VP & Provost"
+      ],
+      "majorCodes": [
+        "AIRS"
+      ],
+      "majorNames": [
+        "Air Science"
+      ]
+    },
+    {
+      "subject": "ALAR",
+      "label": "ALAR - Arch & Landscape Arch",
+      "schoolCodes": [
+        "ARCH"
+      ],
+      "schoolNames": [
+        "School of Architecture"
+      ],
+      "majorCodes": [
+        "ALAR"
+      ],
+      "majorNames": [
+        "Arch & Landscape Arch"
+      ]
+    },
+    {
+      "subject": "AMST",
+      "label": "AMST - American Studies",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "AMST"
+      ],
+      "majorNames": [
+        "American Studies"
+      ]
+    },
+    {
+      "subject": "ANTH",
+      "label": "ANTH - Anthropology",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "ANTH"
+      ],
+      "majorNames": [
+        "Anthropology"
+      ]
+    },
+    {
+      "subject": "APMA",
+      "label": "APMA - Applied Mathematics",
+      "schoolCodes": [
+        "ENGR"
+      ],
+      "schoolNames": [
+        "Engineering & Applied Science"
+      ],
+      "majorCodes": [
+        "APMA"
+      ],
+      "majorNames": [
+        "Applied Mathematics"
+      ]
+    },
+    {
+      "subject": "ARAB",
+      "label": "ARAB - Arabic",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "MESA"
+      ],
+      "majorNames": [
+        "Middle Eastern & South Asian"
+      ]
+    },
+    {
+      "subject": "ARAD",
+      "label": "ARAD - Arts Administration",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "ART"
+      ],
+      "majorNames": [
+        "Art"
+      ]
+    },
+    {
+      "subject": "ARAH",
+      "label": "ARAH - History of Art & Architecture",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "ART"
+      ],
+      "majorNames": [
+        "Art"
+      ]
+    },
+    {
+      "subject": "ARCH",
+      "label": "ARCH - Architecture",
+      "schoolCodes": [
+        "ARCH"
+      ],
+      "schoolNames": [
+        "School of Architecture"
+      ],
+      "majorCodes": [
+        "ARCHDP"
+      ],
+      "majorNames": [
+        "Architecture Department"
+      ]
+    },
+    {
+      "subject": "ARCY",
+      "label": "ARCY - Archaeology",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "ANTH"
+      ],
+      "majorNames": [
+        "Anthropology"
+      ]
+    },
+    {
+      "subject": "ARH",
+      "label": "ARH - Architectural History",
+      "schoolCodes": [
+        "ARCH"
+      ],
+      "schoolNames": [
+        "School of Architecture"
+      ],
+      "majorCodes": [
+        "ARH"
+      ],
+      "majorNames": [
+        "Architectural History"
+      ]
+    },
+    {
+      "subject": "ARTH",
+      "label": "ARTH - History of Art",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "ART"
+      ],
+      "majorNames": [
+        "Art"
+      ]
+    },
+    {
+      "subject": "ARTS",
+      "label": "ARTS - Studio Art",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "ART"
+      ],
+      "majorNames": [
+        "Art"
+      ]
+    },
+    {
+      "subject": "ASL",
+      "label": "ASL - American Sign Language",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "ASL"
+      ],
+      "majorNames": [
+        "American Sign Language"
+      ]
+    },
+    {
+      "subject": "ASTR",
+      "label": "ASTR - Astronomy",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "ASTR"
+      ],
+      "majorNames": [
+        "Astronomy"
+      ]
+    },
+    {
+      "subject": "BIMS",
+      "label": "BIMS - Biomedical Sciences",
+      "schoolCodes": [
+        "MDS"
+      ],
+      "schoolNames": [
+        "Medical School - BIMS/PHS"
+      ],
+      "majorCodes": [
+        "BIMS"
+      ],
+      "majorNames": [
+        "Biomedical Sciences"
+      ]
+    },
+    {
+      "subject": "BIOC",
+      "label": "BIOC - Biochemistry",
+      "schoolCodes": [
+        "MDS"
+      ],
+      "schoolNames": [
+        "Medical School - BIMS/PHS"
+      ],
+      "majorCodes": [
+        "BIOC"
+      ],
+      "majorNames": [
+        "Biochem & Molecular Genetics"
+      ]
+    },
+    {
+      "subject": "BIOL",
+      "label": "BIOL - Biology",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "BIOL"
+      ],
+      "majorNames": [
+        "Biology"
+      ]
+    },
+    {
+      "subject": "BIOP",
+      "label": "BIOP - Biophysics",
+      "schoolCodes": [
+        "MDS"
+      ],
+      "schoolNames": [
+        "Medical School - BIMS/PHS"
+      ],
+      "majorCodes": [
+        "BIOP"
+      ],
+      "majorNames": [
+        "Biophysics"
+      ]
+    },
+    {
+      "subject": "BME",
+      "label": "BME - Biomedical Engineering",
+      "schoolCodes": [
+        "ENGR"
+      ],
+      "schoolNames": [
+        "Engineering & Applied Science"
+      ],
+      "majorCodes": [
+        "BIOM"
+      ],
+      "majorNames": [
+        "Biomedical Engineering"
+      ]
+    },
+    {
+      "subject": "BUS",
+      "label": "BUS - Business",
+      "schoolCodes": [
+        "SCPS"
+      ],
+      "schoolNames": [
+        "Continuing & Prof Studies"
+      ],
+      "majorCodes": [
+        "SCPSD"
+      ],
+      "majorNames": [
+        "Dean of Continuing & Prof Stds"
+      ]
+    },
+    {
+      "subject": "CASS",
+      "label": "CASS - College Art Scholars Seminar",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "CGASD"
+      ],
+      "majorNames": [
+        "Dean of Arts & Sciences"
+      ]
+    },
+    {
+      "subject": "CE",
+      "label": "CE - Civil Engineering",
+      "schoolCodes": [
+        "ENGR"
+      ],
+      "schoolNames": [
+        "Engineering & Applied Science"
+      ],
+      "majorCodes": [
+        "CEE"
+      ],
+      "majorNames": [
+        "Civil & Environmental Engr"
+      ]
+    },
+    {
+      "subject": "CELL",
+      "label": "CELL - Cell Biology",
+      "schoolCodes": [
+        "MDS"
+      ],
+      "schoolNames": [
+        "Medical School - BIMS/PHS"
+      ],
+      "majorCodes": [
+        "CELL"
+      ],
+      "majorNames": [
+        "Cell Biology"
+      ]
+    },
+    {
+      "subject": "CGBM",
+      "label": "CGBM - Commerce General Business",
+      "schoolCodes": [
+        "COMM"
+      ],
+      "schoolNames": [
+        "McIntire School of Commerce"
+      ],
+      "majorCodes": [
+        "COMMD"
+      ],
+      "majorNames": [
+        "Dean of Commerce"
+      ]
+    },
+    {
+      "subject": "CHE",
+      "label": "CHE - Chemical Engineering",
+      "schoolCodes": [
+        "ENGR"
+      ],
+      "schoolNames": [
+        "Engineering & Applied Science"
+      ],
+      "majorCodes": [
+        "CHE"
+      ],
+      "majorNames": [
+        "Chemical Engineering"
+      ]
+    },
+    {
+      "subject": "CHEM",
+      "label": "CHEM - Chemistry",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "CHEM"
+      ],
+      "majorNames": [
+        "Chemistry"
+      ]
+    },
+    {
+      "subject": "CHIN",
+      "label": "CHIN - Chinese",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "EALC"
+      ],
+      "majorNames": [
+        "East Asian Lang, Lit & Culture"
+      ]
+    },
+    {
+      "subject": "CHRK",
+      "label": "CHRK - Cherokee Language and Culture",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "ANTH"
+      ],
+      "majorNames": [
+        "Anthropology"
+      ]
+    },
+    {
+      "subject": "CHTR",
+      "label": "CHTR - Chinese in Translation",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "EALC"
+      ],
+      "majorNames": [
+        "East Asian Lang, Lit & Culture"
+      ]
+    },
+    {
+      "subject": "CJ",
+      "label": "CJ - Criminal Justice",
+      "schoolCodes": [
+        "SCPS"
+      ],
+      "schoolNames": [
+        "Continuing & Prof Studies"
+      ],
+      "majorCodes": [
+        "SCPSD"
+      ],
+      "majorNames": [
+        "Dean of Continuing & Prof Stds"
+      ]
+    },
+    {
+      "subject": "CLAS",
+      "label": "CLAS - Classics",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "CLAS"
+      ],
+      "majorNames": [
+        "Classics"
+      ]
+    },
+    {
+      "subject": "COBI",
+      "label": "COBI - Computational Biology",
+      "schoolCodes": [
+        "MDS"
+      ],
+      "schoolNames": [
+        "Medical School - BIMS/PHS"
+      ],
+      "majorCodes": [
+        "MEDD"
+      ],
+      "majorNames": [
+        "Dean of Medicine"
+      ]
+    },
+    {
+      "subject": "COGS",
+      "label": "COGS - Cognitive Science",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "COGS"
+      ],
+      "majorNames": [
+        "Cognitive Science"
+      ]
+    },
+    {
+      "subject": "COMM",
+      "label": "COMM - Commerce",
+      "schoolCodes": [
+        "COMM"
+      ],
+      "schoolNames": [
+        "McIntire School of Commerce"
+      ],
+      "majorCodes": [
+        "COMMD"
+      ],
+      "majorNames": [
+        "Dean of Commerce"
+      ]
+    },
+    {
+      "subject": "CPE",
+      "label": "CPE - Computer Engineering",
+      "schoolCodes": [
+        "ENGR"
+      ],
+      "schoolNames": [
+        "Engineering & Applied Science"
+      ],
+      "majorCodes": [
+        "ECE"
+      ],
+      "majorNames": [
+        "Electrical & Computer Engr"
+      ]
+    },
+    {
+      "subject": "CREO",
+      "label": "CREO - Creole",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "FREN"
+      ],
+      "majorNames": [
+        "French"
+      ]
+    },
+    {
+      "subject": "CS",
+      "label": "CS - Computer Science",
+      "schoolCodes": [
+        "ENGR"
+      ],
+      "schoolNames": [
+        "Engineering & Applied Science"
+      ],
+      "majorCodes": [
+        "CS"
+      ],
+      "majorNames": [
+        "Computer Science"
+      ]
+    },
+    {
+      "subject": "DANC",
+      "label": "DANC - Dance",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "DRAM"
+      ],
+      "majorNames": [
+        "Drama"
+      ]
+    },
+    {
+      "subject": "DEM",
+      "label": "DEM - Democracy Initiative",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "CGASD"
+      ],
+      "majorNames": [
+        "Dean of Arts & Sciences"
+      ]
+    },
+    {
+      "subject": "DH",
+      "label": "DH - Digital Humanities",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "CGASD"
+      ],
+      "majorNames": [
+        "Dean of Arts & Sciences"
+      ]
+    },
+    {
+      "subject": "DRAM",
+      "label": "DRAM - Drama",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "DRAM"
+      ],
+      "majorNames": [
+        "Drama"
+      ]
+    },
+    {
+      "subject": "DS",
+      "label": "DS - Data Science",
+      "schoolCodes": [
+        "DSCI"
+      ],
+      "schoolNames": [
+        "School of Data Science"
+      ],
+      "majorCodes": [
+        "DATAD"
+      ],
+      "majorNames": [
+        "Dean of Data Science"
+      ]
+    },
+    {
+      "subject": "EALC",
+      "label": "EALC - East Asian Lang, Lit & Cult",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "EALC"
+      ],
+      "majorNames": [
+        "East Asian Lang, Lit & Culture"
+      ]
+    },
+    {
+      "subject": "EAST",
+      "label": "EAST - East Asian Studies",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "EALC"
+      ],
+      "majorNames": [
+        "East Asian Lang, Lit & Culture"
+      ]
+    },
+    {
+      "subject": "EBUS",
+      "label": "EBUS - Engineering Business",
+      "schoolCodes": [
+        "ENGR"
+      ],
+      "schoolNames": [
+        "Engineering & Applied Science"
+      ],
+      "majorCodes": [
+        "SIE"
+      ],
+      "majorNames": [
+        "Systems and Information Engine"
+      ]
+    },
+    {
+      "subject": "ECE",
+      "label": "ECE - Electrical & Computer Engr",
+      "schoolCodes": [
+        "ENGR"
+      ],
+      "schoolNames": [
+        "Engineering & Applied Science"
+      ],
+      "majorCodes": [
+        "ECE"
+      ],
+      "majorNames": [
+        "Electrical & Computer Engr"
+      ]
+    },
+    {
+      "subject": "ECON",
+      "label": "ECON - Economics",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "ECON"
+      ],
+      "majorNames": [
+        "Economics"
+      ]
+    },
+    {
+      "subject": "EDHS",
+      "label": "EDHS - Human Services",
+      "schoolCodes": [
+        "EDUC"
+      ],
+      "schoolNames": [
+        "School of Education & HumanDev"
+      ],
+      "majorCodes": [
+        "EDHS"
+      ],
+      "majorNames": [
+        "Human Services"
+      ]
+    },
+    {
+      "subject": "EDIS",
+      "label": "EDIS - Curriculum, Inst & Spec Ed",
+      "schoolCodes": [
+        "EDUC"
+      ],
+      "schoolNames": [
+        "School of Education & HumanDev"
+      ],
+      "majorCodes": [
+        "EDIS"
+      ],
+      "majorNames": [
+        "Curriculum Inst & Special Ed"
+      ]
+    },
+    {
+      "subject": "EDLF",
+      "label": "EDLF - Leadership, Foundations Policy",
+      "schoolCodes": [
+        "EDUC"
+      ],
+      "schoolNames": [
+        "School of Education & HumanDev"
+      ],
+      "majorCodes": [
+        "EDLF"
+      ],
+      "majorNames": [
+        "Leadership, Foundations & Pol"
+      ]
+    },
+    {
+      "subject": "EDNC",
+      "label": "EDNC - Education Non-Credit",
+      "schoolCodes": [
+        "EDUC"
+      ],
+      "schoolNames": [
+        "School of Education & HumanDev"
+      ],
+      "majorCodes": [
+        "EDUCD"
+      ],
+      "majorNames": [
+        "Dean of Education"
+      ]
+    },
+    {
+      "subject": "EGMT",
+      "label": "EGMT - Engagement",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "CGASD"
+      ],
+      "majorNames": [
+        "Dean of Arts & Sciences"
+      ]
+    },
+    {
+      "subject": "ENCW",
+      "label": "ENCW - Creative Writing",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "ENGL"
+      ],
+      "majorNames": [
+        "English"
+      ]
+    },
+    {
+      "subject": "ENGL",
+      "label": "ENGL - English Literature",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "ENGL"
+      ],
+      "majorNames": [
+        "English"
+      ]
+    },
+    {
+      "subject": "ENGR",
+      "label": "ENGR - Engineering",
+      "schoolCodes": [
+        "ENGR"
+      ],
+      "schoolNames": [
+        "Engineering & Applied Science"
+      ],
+      "majorCodes": [
+        "ENGRD"
+      ],
+      "majorNames": [
+        "Dean Engineering & Applied Sci"
+      ]
+    },
+    {
+      "subject": "ENTP",
+      "label": "ENTP - Entrepreneurship",
+      "schoolCodes": [
+        "COMM"
+      ],
+      "schoolNames": [
+        "McIntire School of Commerce"
+      ],
+      "majorCodes": [
+        "COMMD"
+      ],
+      "majorNames": [
+        "Dean of Commerce"
+      ]
+    },
+    {
+      "subject": "ENVH",
+      "label": "ENVH - Environmental Humanities",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "CGASD"
+      ],
+      "majorNames": [
+        "Dean of Arts & Sciences"
+      ]
+    },
+    {
+      "subject": "ENWR",
+      "label": "ENWR - English Writing",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "ENGL"
+      ],
+      "majorNames": [
+        "English"
+      ]
+    },
+    {
+      "subject": "ESL",
+      "label": "ESL - English as a Second Language",
+      "schoolCodes": [
+        "PROV"
+      ],
+      "schoolNames": [
+        "Executive VP & Provost"
+      ],
+      "majorCodes": [
+        "ESL"
+      ],
+      "majorNames": [
+        "English as a Second Language"
+      ]
+    },
+    {
+      "subject": "ETP",
+      "label": "ETP - Enviro Thought & Practice",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "ETP"
+      ],
+      "majorNames": [
+        "Environmental Thought & Pract"
+      ]
+    },
+    {
+      "subject": "EURS",
+      "label": "EURS - European Studies",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "CGAS"
+      ],
+      "majorNames": [
+        "College & Graduate Arts & Sci"
+      ]
+    },
+    {
+      "subject": "EVAT",
+      "label": "EVAT - Atmospheric Sciences",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "EVSC"
+      ],
+      "majorNames": [
+        "Environmental Sciences"
+      ]
+    },
+    {
+      "subject": "EVEC",
+      "label": "EVEC - Ecology",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "EVSC"
+      ],
+      "majorNames": [
+        "Environmental Sciences"
+      ]
+    },
+    {
+      "subject": "EVGE",
+      "label": "EVGE - Geosciences",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "EVSC"
+      ],
+      "majorNames": [
+        "Environmental Sciences"
+      ]
+    },
+    {
+      "subject": "EVHY",
+      "label": "EVHY - Hydrology",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "EVSC"
+      ],
+      "majorNames": [
+        "Environmental Sciences"
+      ]
+    },
+    {
+      "subject": "EVSC",
+      "label": "EVSC - Environmental Sciences",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "EVSC"
+      ],
+      "majorNames": [
+        "Environmental Sciences"
+      ]
+    },
+    {
+      "subject": "FREN",
+      "label": "FREN - French",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "FREN"
+      ],
+      "majorNames": [
+        "French"
+      ]
+    },
+    {
+      "subject": "GBAC",
+      "label": "GBAC - Grad Business Analytics Comm.",
+      "schoolCodes": [
+        "MCDG"
+      ],
+      "schoolNames": [
+        "McIntire Darden Grad Business"
+      ],
+      "majorCodes": [
+        "COMMD",
+        "MCDG"
+      ],
+      "majorNames": [
+        "Dean of Commerce",
+        "McIntire Darden Grad Business"
+      ]
+    },
+    {
+      "subject": "GBUS",
+      "label": "GBUS - Graduate Business",
+      "schoolCodes": [
+        "GBUS"
+      ],
+      "schoolNames": [
+        "Darden Grad School of Business"
+      ],
+      "majorCodes": [
+        "GBUSD"
+      ],
+      "majorNames": [
+        "Dean of Graduate Business"
+      ]
+    },
+    {
+      "subject": "GCCS",
+      "label": "GCCS - Global Commerce in Culture/Soc",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "CGASD"
+      ],
+      "majorNames": [
+        "Dean of Arts & Sciences"
+      ]
+    },
+    {
+      "subject": "GCNL",
+      "label": "GCNL - Clinical Nurse Leader",
+      "schoolCodes": [
+        "NURS"
+      ],
+      "schoolNames": [
+        "School of Nursing"
+      ],
+      "majorCodes": [
+        "NURSD"
+      ],
+      "majorNames": [
+        "Dean of Nursing"
+      ]
+    },
+    {
+      "subject": "GCOM",
+      "label": "GCOM - Graduate Commerce",
+      "schoolCodes": [
+        "COMM"
+      ],
+      "schoolNames": [
+        "McIntire School of Commerce"
+      ],
+      "majorCodes": [
+        "COMMD"
+      ],
+      "majorNames": [
+        "Dean of Commerce"
+      ]
+    },
+    {
+      "subject": "GDS",
+      "label": "GDS - Global Development Studies",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "CGASD"
+      ],
+      "majorNames": [
+        "Dean of Arts & Sciences"
+      ]
+    },
+    {
+      "subject": "GERM",
+      "label": "GERM - German",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "GERM"
+      ],
+      "majorNames": [
+        "German"
+      ]
+    },
+    {
+      "subject": "GETR",
+      "label": "GETR - German in Translation",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "GERM"
+      ],
+      "majorNames": [
+        "German"
+      ]
+    },
+    {
+      "subject": "GNUR",
+      "label": "GNUR - Graduate Nursing",
+      "schoolCodes": [
+        "NURS"
+      ],
+      "schoolNames": [
+        "School of Nursing"
+      ],
+      "majorCodes": [
+        "NURSD"
+      ],
+      "majorNames": [
+        "Dean of Nursing"
+      ]
+    },
+    {
+      "subject": "GREE",
+      "label": "GREE - Greek",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "CLAS"
+      ],
+      "majorNames": [
+        "Classics"
+      ]
+    },
+    {
+      "subject": "GSGS",
+      "label": "GSGS - GS-Global Studies",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "CGASD"
+      ],
+      "majorNames": [
+        "Dean of Arts & Sciences"
+      ]
+    },
+    {
+      "subject": "GSSJ",
+      "label": "GSSJ - GS-Security and Justice",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "CGASD"
+      ],
+      "majorNames": [
+        "Dean of Arts & Sciences"
+      ]
+    },
+    {
+      "subject": "GSVS",
+      "label": "GSVS - GS-Environments & Sustainabil",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "CGASD"
+      ],
+      "majorNames": [
+        "Dean of Arts & Sciences"
+      ]
+    },
+    {
+      "subject": "HBIO",
+      "label": "HBIO - Human Biology",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "BIOL"
+      ],
+      "majorNames": [
+        "Biology"
+      ]
+    },
+    {
+      "subject": "HEBR",
+      "label": "HEBR - Hebrew",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "MESA"
+      ],
+      "majorNames": [
+        "Middle Eastern & South Asian"
+      ]
+    },
+    {
+      "subject": "HHE",
+      "label": "HHE - Health, Humanities & Ethics",
+      "schoolCodes": [
+        "MDS"
+      ],
+      "schoolNames": [
+        "Medical School - BIMS/PHS"
+      ],
+      "majorCodes": [
+        "PHS"
+      ],
+      "majorNames": [
+        "Public Health Sciences"
+      ]
+    },
+    {
+      "subject": "HIAF",
+      "label": "HIAF - African History",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "HIST"
+      ],
+      "majorNames": [
+        "History"
+      ]
+    },
+    {
+      "subject": "HIEA",
+      "label": "HIEA - East Asian History",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "HIST"
+      ],
+      "majorNames": [
+        "History"
+      ]
+    },
+    {
+      "subject": "HIEU",
+      "label": "HIEU - European History",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "HIST"
+      ],
+      "majorNames": [
+        "History"
+      ]
+    },
+    {
+      "subject": "HILA",
+      "label": "HILA - Latin American History",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "HIST"
+      ],
+      "majorNames": [
+        "History"
+      ]
+    },
+    {
+      "subject": "HIME",
+      "label": "HIME - Middle Eastern History",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "HIST"
+      ],
+      "majorNames": [
+        "History"
+      ]
+    },
+    {
+      "subject": "HIND",
+      "label": "HIND - Hindi",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "MESA"
+      ],
+      "majorNames": [
+        "Middle Eastern & South Asian"
+      ]
+    },
+    {
+      "subject": "HISA",
+      "label": "HISA - South Asian History",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "HIST"
+      ],
+      "majorNames": [
+        "History"
+      ]
+    },
+    {
+      "subject": "HIST",
+      "label": "HIST - General History",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "HIST"
+      ],
+      "majorNames": [
+        "History"
+      ]
+    },
+    {
+      "subject": "HIUS",
+      "label": "HIUS - United States History",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "HIST"
+      ],
+      "majorNames": [
+        "History"
+      ]
+    },
+    {
+      "subject": "HR",
+      "label": "HR - Human Resources",
+      "schoolCodes": [
+        "SCPS"
+      ],
+      "schoolNames": [
+        "Continuing & Prof Studies"
+      ],
+      "majorCodes": [
+        "SCPSD"
+      ],
+      "majorNames": [
+        "Dean of Continuing & Prof Stds"
+      ]
+    },
+    {
+      "subject": "HSCI",
+      "label": "HSCI - College Science Seminar",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "CGASD"
+      ],
+      "majorNames": [
+        "Dean of Arts & Sciences"
+      ]
+    },
+    {
+      "subject": "IMP",
+      "label": "IMP - Interdisciplinary Thesis",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "IMP"
+      ],
+      "majorNames": [
+        "Interdisciplinary Major"
+      ]
+    },
+    {
+      "subject": "INST",
+      "label": "INST - Interdisciplinary Studies",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "CGASD"
+      ],
+      "majorNames": [
+        "Dean of Arts & Sciences"
+      ]
+    },
+    {
+      "subject": "ISBU",
+      "label": "ISBU - IS-Business",
+      "schoolCodes": [
+        "SCPS"
+      ],
+      "schoolNames": [
+        "Continuing & Prof Studies"
+      ],
+      "majorCodes": [
+        "IDST"
+      ],
+      "majorNames": [
+        "Interdisciplinary Studies"
+      ]
+    },
+    {
+      "subject": "ISHU",
+      "label": "ISHU - IS-Humanities",
+      "schoolCodes": [
+        "SCPS"
+      ],
+      "schoolNames": [
+        "Continuing & Prof Studies"
+      ],
+      "majorCodes": [
+        "IDST"
+      ],
+      "majorNames": [
+        "Interdisciplinary Studies"
+      ]
+    },
+    {
+      "subject": "ISIN",
+      "label": "ISIN - IS-Code of Inquiry",
+      "schoolCodes": [
+        "SCPS"
+      ],
+      "schoolNames": [
+        "Continuing & Prof Studies"
+      ],
+      "majorCodes": [
+        "IDST"
+      ],
+      "majorNames": [
+        "Interdisciplinary Studies"
+      ]
+    },
+    {
+      "subject": "ISLS",
+      "label": "ISLS - IS-Liberal Studies Seminar",
+      "schoolCodes": [
+        "SCPS"
+      ],
+      "schoolNames": [
+        "Continuing & Prof Studies"
+      ],
+      "majorCodes": [
+        "IDST"
+      ],
+      "majorNames": [
+        "Interdisciplinary Studies"
+      ]
+    },
+    {
+      "subject": "ISSS",
+      "label": "ISSS - IS-Social Sciences",
+      "schoolCodes": [
+        "SCPS"
+      ],
+      "schoolNames": [
+        "Continuing & Prof Studies"
+      ],
+      "majorCodes": [
+        "IDST"
+      ],
+      "majorNames": [
+        "Interdisciplinary Studies"
+      ]
+    },
+    {
+      "subject": "IT",
+      "label": "IT - Informational Technology",
+      "schoolCodes": [
+        "SCPS"
+      ],
+      "schoolNames": [
+        "Continuing & Prof Studies"
+      ],
+      "majorCodes": [
+        "SCPSD"
+      ],
+      "majorNames": [
+        "Dean of Continuing & Prof Stds"
+      ]
+    },
+    {
+      "subject": "ITAL",
+      "label": "ITAL - Italian",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "SPAN"
+      ],
+      "majorNames": [
+        "Spanish, Italian & Portuguese"
+      ]
+    },
+    {
+      "subject": "ITTR",
+      "label": "ITTR - Italian in Translation",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "SPAN"
+      ],
+      "majorNames": [
+        "Spanish, Italian & Portuguese"
+      ]
+    },
+    {
+      "subject": "JAPN",
+      "label": "JAPN - Japanese",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "EALC"
+      ],
+      "majorNames": [
+        "East Asian Lang, Lit & Culture"
+      ]
+    },
+    {
+      "subject": "JPTR",
+      "label": "JPTR - Japanese in Translation",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "EALC"
+      ],
+      "majorNames": [
+        "East Asian Lang, Lit & Culture"
+      ]
+    },
+    {
+      "subject": "JWST",
+      "label": "JWST - Jewish Studies",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "JWST"
+      ],
+      "majorNames": [
+        "Jewish Studies"
+      ]
+    },
+    {
+      "subject": "KICH",
+      "label": "KICH - Maya K'iche'",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "SPAN"
+      ],
+      "majorNames": [
+        "Spanish, Italian & Portuguese"
+      ]
+    },
+    {
+      "subject": "KINE",
+      "label": "KINE - Kinesiology",
+      "schoolCodes": [
+        "EDUC"
+      ],
+      "schoolNames": [
+        "School of Education & HumanDev"
+      ],
+      "majorCodes": [
+        "EDKI"
+      ],
+      "majorNames": [
+        "Kinesiology"
+      ]
+    },
+    {
+      "subject": "KLPA",
+      "label": "KLPA - Lifetime Physical Activity",
+      "schoolCodes": [
+        "EDUC"
+      ],
+      "schoolNames": [
+        "School of Education & HumanDev"
+      ],
+      "majorCodes": [
+        "EDKI"
+      ],
+      "majorNames": [
+        "Kinesiology"
+      ]
+    },
+    {
+      "subject": "KOR",
+      "label": "KOR - Korean",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "EALC"
+      ],
+      "majorNames": [
+        "East Asian Lang, Lit & Culture"
+      ]
+    },
+    {
+      "subject": "LAR",
+      "label": "LAR - Landscape Architecture",
+      "schoolCodes": [
+        "ARCH"
+      ],
+      "schoolNames": [
+        "School of Architecture"
+      ],
+      "majorCodes": [
+        "LAR"
+      ],
+      "majorNames": [
+        "Landscape Architecture"
+      ]
+    },
+    {
+      "subject": "LASE",
+      "label": "LASE - Liberal Arts Seminar",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "CGASD"
+      ],
+      "majorNames": [
+        "Dean of Arts & Sciences"
+      ]
+    },
+    {
+      "subject": "LAST",
+      "label": "LAST - Latin American Studies",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "SPAN"
+      ],
+      "majorNames": [
+        "Spanish, Italian & Portuguese"
+      ]
+    },
+    {
+      "subject": "LATI",
+      "label": "LATI - Latin",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "CLAS"
+      ],
+      "majorNames": [
+        "Classics"
+      ]
+    },
+    {
+      "subject": "LAW",
+      "label": "LAW - Law",
+      "schoolCodes": [
+        "LAW"
+      ],
+      "schoolNames": [
+        "School of Law"
+      ],
+      "majorCodes": [
+        "LAWD"
+      ],
+      "majorNames": [
+        "Dean of Law"
+      ]
+    },
+    {
+      "subject": "LING",
+      "label": "LING - Linguistics",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "ANTH"
+      ],
+      "majorNames": [
+        "Anthropology"
+      ]
+    },
+    {
+      "subject": "LNGS",
+      "label": "LNGS - General Linguistics",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "SLLT"
+      ],
+      "majorNames": [
+        "Slavic"
+      ]
+    },
+    {
+      "subject": "LPPA",
+      "label": "LPPA - Public Policy - Analysis",
+      "schoolCodes": [
+        "LEAD"
+      ],
+      "schoolNames": [
+        "Batten Leadership & Public Pol"
+      ],
+      "majorCodes": [
+        "PPOL"
+      ],
+      "majorNames": [
+        "Public Policy"
+      ]
+    },
+    {
+      "subject": "LPPL",
+      "label": "LPPL - Public Policy - Leadership",
+      "schoolCodes": [
+        "LEAD"
+      ],
+      "schoolNames": [
+        "Batten Leadership & Public Pol"
+      ],
+      "majorCodes": [
+        "PPOL"
+      ],
+      "majorNames": [
+        "Public Policy"
+      ]
+    },
+    {
+      "subject": "LPPP",
+      "label": "LPPP - Public Policy - Policy",
+      "schoolCodes": [
+        "LEAD"
+      ],
+      "schoolNames": [
+        "Batten Leadership & Public Pol"
+      ],
+      "majorCodes": [
+        "PPOL"
+      ],
+      "majorNames": [
+        "Public Policy"
+      ]
+    },
+    {
+      "subject": "LPPS",
+      "label": "LPPS - Public Policy - Substance",
+      "schoolCodes": [
+        "LEAD"
+      ],
+      "schoolNames": [
+        "Batten Leadership & Public Pol"
+      ],
+      "majorCodes": [
+        "PPOL"
+      ],
+      "majorNames": [
+        "Public Policy"
+      ]
+    },
+    {
+      "subject": "MAE",
+      "label": "MAE - Mechanical & Aero Engr",
+      "schoolCodes": [
+        "ENGR"
+      ],
+      "schoolNames": [
+        "Engineering & Applied Science"
+      ],
+      "majorCodes": [
+        "MAE"
+      ],
+      "majorNames": [
+        "Mechanical & Aerospace Engr"
+      ]
+    },
+    {
+      "subject": "MATH",
+      "label": "MATH - Mathematics",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "MATH"
+      ],
+      "majorNames": [
+        "Mathematics"
+      ]
+    },
+    {
+      "subject": "MDST",
+      "label": "MDST - Media Studies",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "MDST"
+      ],
+      "majorNames": [
+        "Media Studies"
+      ]
+    },
+    {
+      "subject": "MED",
+      "label": "MED - Medicine",
+      "schoolCodes": [
+        "MED"
+      ],
+      "schoolNames": [
+        "School of Medicine"
+      ],
+      "majorCodes": [
+        "MEDD"
+      ],
+      "majorNames": [
+        "Dean of Medicine"
+      ]
+    },
+    {
+      "subject": "MESA",
+      "label": "MESA - Middle Eastern & South Asian",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "MESA"
+      ],
+      "majorNames": [
+        "Middle Eastern & South Asian"
+      ]
+    },
+    {
+      "subject": "MEST",
+      "label": "MEST - Middle Eastern Studies",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "MESA"
+      ],
+      "majorNames": [
+        "Middle Eastern & South Asian"
+      ]
+    },
+    {
+      "subject": "MICR",
+      "label": "MICR - Microbiology",
+      "schoolCodes": [
+        "MDS"
+      ],
+      "schoolNames": [
+        "Medical School - BIMS/PHS"
+      ],
+      "majorCodes": [
+        "MICR"
+      ],
+      "majorNames": [
+        "Microbiol, Immun & Cancer Biol"
+      ]
+    },
+    {
+      "subject": "MISC",
+      "label": "MISC - Military Science",
+      "schoolCodes": [
+        "PROV"
+      ],
+      "schoolNames": [
+        "Executive VP & Provost"
+      ],
+      "majorCodes": [
+        "MISC"
+      ],
+      "majorNames": [
+        "Military Science"
+      ]
+    },
+    {
+      "subject": "MSE",
+      "label": "MSE - Materials Science & Engr",
+      "schoolCodes": [
+        "ENGR"
+      ],
+      "schoolNames": [
+        "Engineering & Applied Science"
+      ],
+      "majorCodes": [
+        "MSE"
+      ],
+      "majorNames": [
+        "Materials Science & Engr"
+      ]
+    },
+    {
+      "subject": "MSP",
+      "label": "MSP - Medieval Studies",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "HIST"
+      ],
+      "majorNames": [
+        "History"
+      ]
+    },
+    {
+      "subject": "MUBD",
+      "label": "MUBD - Music-Marching Band",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "MUSI"
+      ],
+      "majorNames": [
+        "Music"
+      ]
+    },
+    {
+      "subject": "MUEN",
+      "label": "MUEN - Music-Ensembles",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "MUSI"
+      ],
+      "majorNames": [
+        "Music"
+      ]
+    },
+    {
+      "subject": "MUPF",
+      "label": "MUPF - Music-Private Instruction",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "MUSI"
+      ],
+      "majorNames": [
+        "Music"
+      ]
+    },
+    {
+      "subject": "MUSI",
+      "label": "MUSI - Music",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "MUSI"
+      ],
+      "majorNames": [
+        "Music"
+      ]
+    },
+    {
+      "subject": "NASC",
+      "label": "NASC - Naval Science",
+      "schoolCodes": [
+        "PROV"
+      ],
+      "schoolNames": [
+        "Executive VP & Provost"
+      ],
+      "majorCodes": [
+        "NASC"
+      ],
+      "majorNames": [
+        "Naval Science"
+      ]
+    },
+    {
+      "subject": "NCBM",
+      "label": "NCBM - NC-Business & Management",
+      "schoolCodes": [
+        "SCPS"
+      ],
+      "schoolNames": [
+        "Continuing & Prof Studies"
+      ],
+      "majorCodes": [
+        "SCPSD"
+      ],
+      "majorNames": [
+        "Dean of Continuing & Prof Stds"
+      ]
+    },
+    {
+      "subject": "NCPR",
+      "label": "NCPR - NC-Professional Review",
+      "schoolCodes": [
+        "SCPS"
+      ],
+      "schoolNames": [
+        "Continuing & Prof Studies"
+      ],
+      "majorCodes": [
+        "SCPSD"
+      ],
+      "majorNames": [
+        "Dean of Continuing & Prof Stds"
+      ]
+    },
+    {
+      "subject": "NESC",
+      "label": "NESC - Neuroscience",
+      "schoolCodes": [
+        "CGAS",
+        "MDS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci",
+        "Medical School - BIMS/PHS"
+      ],
+      "majorCodes": [
+        "NESC"
+      ],
+      "majorNames": [
+        "Neuroscience"
+      ]
+    },
+    {
+      "subject": "NUCO",
+      "label": "NUCO - Nursing Core",
+      "schoolCodes": [
+        "NURS"
+      ],
+      "schoolNames": [
+        "School of Nursing"
+      ],
+      "majorCodes": [
+        "NURSD"
+      ],
+      "majorNames": [
+        "Dean of Nursing"
+      ]
+    },
+    {
+      "subject": "NUIP",
+      "label": "NUIP - Nursing Interprofessional",
+      "schoolCodes": [
+        "NURS"
+      ],
+      "schoolNames": [
+        "School of Nursing"
+      ],
+      "majorCodes": [
+        "NURSD"
+      ],
+      "majorNames": [
+        "Dean of Nursing"
+      ]
+    },
+    {
+      "subject": "NURS",
+      "label": "NURS - Nursing",
+      "schoolCodes": [
+        "NURS"
+      ],
+      "schoolNames": [
+        "School of Nursing"
+      ],
+      "majorCodes": [
+        "NURSD"
+      ],
+      "majorNames": [
+        "Dean of Nursing"
+      ]
+    },
+    {
+      "subject": "PATH",
+      "label": "PATH - Pathology",
+      "schoolCodes": [
+        "MDS"
+      ],
+      "schoolNames": [
+        "Medical School - BIMS/PHS"
+      ],
+      "majorCodes": [
+        "PATH"
+      ],
+      "majorNames": [
+        "Pathology"
+      ]
+    },
+    {
+      "subject": "PC",
+      "label": "PC - Procurement & Contracts Mgmt",
+      "schoolCodes": [
+        "SCPS"
+      ],
+      "schoolNames": [
+        "Continuing & Prof Studies"
+      ],
+      "majorCodes": [
+        "SCPSD"
+      ],
+      "majorNames": [
+        "Dean of Continuing & Prof Stds"
+      ]
+    },
+    {
+      "subject": "PERS",
+      "label": "PERS - Persian",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "MESA"
+      ],
+      "majorNames": [
+        "Middle Eastern & South Asian"
+      ]
+    },
+    {
+      "subject": "PETR",
+      "label": "PETR - Persian in Translation",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "MESA"
+      ],
+      "majorNames": [
+        "Middle Eastern & South Asian"
+      ]
+    },
+    {
+      "subject": "PHAR",
+      "label": "PHAR - Pharmacology",
+      "schoolCodes": [
+        "CGAS",
+        "MDS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci",
+        "Medical School - BIMS/PHS"
+      ],
+      "majorCodes": [
+        "PHAR"
+      ],
+      "majorNames": [
+        "Pharmacology"
+      ]
+    },
+    {
+      "subject": "PHIL",
+      "label": "PHIL - Philosophy",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "PHIL"
+      ],
+      "majorNames": [
+        "Philosophy"
+      ]
+    },
+    {
+      "subject": "PHS",
+      "label": "PHS - Public Health Sciences",
+      "schoolCodes": [
+        "CGAS",
+        "MDS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci",
+        "Medical School - BIMS/PHS"
+      ],
+      "majorCodes": [
+        "PHS"
+      ],
+      "majorNames": [
+        "Public Health Sciences"
+      ]
+    },
+    {
+      "subject": "PHY",
+      "label": "PHY - Physiology",
+      "schoolCodes": [
+        "MDS"
+      ],
+      "schoolNames": [
+        "Medical School - BIMS/PHS"
+      ],
+      "majorCodes": [
+        "PHY"
+      ],
+      "majorNames": [
+        "Physiology"
+      ]
+    },
+    {
+      "subject": "PHYS",
+      "label": "PHYS - Physics",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "PHYS"
+      ],
+      "majorNames": [
+        "Physics"
+      ]
+    },
+    {
+      "subject": "PLAC",
+      "label": "PLAC - Planning Application",
+      "schoolCodes": [
+        "ARCH"
+      ],
+      "schoolNames": [
+        "School of Architecture"
+      ],
+      "majorCodes": [
+        "PLAN"
+      ],
+      "majorNames": [
+        "Urban & Environmental Planning"
+      ]
+    },
+    {
+      "subject": "PLAD",
+      "label": "PLAD - Departmental Seminar",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "POLT"
+      ],
+      "majorNames": [
+        "Politics"
+      ]
+    },
+    {
+      "subject": "PLAN",
+      "label": "PLAN - Urban & Environ Planning",
+      "schoolCodes": [
+        "ARCH"
+      ],
+      "schoolNames": [
+        "School of Architecture"
+      ],
+      "majorCodes": [
+        "PLAN"
+      ],
+      "majorNames": [
+        "Urban & Environmental Planning"
+      ]
+    },
+    {
+      "subject": "PLAP",
+      "label": "PLAP - American Politics",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "POLT"
+      ],
+      "majorNames": [
+        "Politics"
+      ]
+    },
+    {
+      "subject": "PLCP",
+      "label": "PLCP - Comparative Politics",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "POLT"
+      ],
+      "majorNames": [
+        "Politics"
+      ]
+    },
+    {
+      "subject": "PLIR",
+      "label": "PLIR - International Relations",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "POLT"
+      ],
+      "majorNames": [
+        "Politics"
+      ]
+    },
+    {
+      "subject": "PLPT",
+      "label": "PLPT - Political Theory",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "POLT"
+      ],
+      "majorNames": [
+        "Politics"
+      ]
+    },
+    {
+      "subject": "POL",
+      "label": "POL - Polish",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "SLLT"
+      ],
+      "majorNames": [
+        "Slavic"
+      ]
+    },
+    {
+      "subject": "PORT",
+      "label": "PORT - Portuguese",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "SPAN"
+      ],
+      "majorNames": [
+        "Spanish, Italian & Portuguese"
+      ]
+    },
+    {
+      "subject": "POTR",
+      "label": "POTR - Portuguese in Translation",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "SPAN"
+      ],
+      "majorNames": [
+        "Spanish, Italian & Portuguese"
+      ]
+    },
+    {
+      "subject": "PPL",
+      "label": "PPL - Politic Phil, Policy & Law",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "PHIL"
+      ],
+      "majorNames": [
+        "Philosophy"
+      ]
+    },
+    {
+      "subject": "PSHM",
+      "label": "PSHM - PS-Health Sciences Management",
+      "schoolCodes": [
+        "SCPS"
+      ],
+      "schoolNames": [
+        "Continuing & Prof Studies"
+      ],
+      "majorCodes": [
+        "SCPSD"
+      ],
+      "majorNames": [
+        "Dean of Continuing & Prof Stds"
+      ]
+    },
+    {
+      "subject": "PSLP",
+      "label": "PSLP - PS-Leadership Program",
+      "schoolCodes": [
+        "SCPS"
+      ],
+      "schoolNames": [
+        "Continuing & Prof Studies"
+      ],
+      "majorCodes": [
+        "SCPSD"
+      ],
+      "majorNames": [
+        "Dean of Continuing & Prof Stds"
+      ]
+    },
+    {
+      "subject": "PSPA",
+      "label": "PSPA - PS-Public Administration",
+      "schoolCodes": [
+        "SCPS"
+      ],
+      "schoolNames": [
+        "Continuing & Prof Studies"
+      ],
+      "majorCodes": [
+        "SCPSD"
+      ],
+      "majorNames": [
+        "Dean of Continuing & Prof Stds"
+      ]
+    },
+    {
+      "subject": "PSPM",
+      "label": "PSPM - PS-Project Management",
+      "schoolCodes": [
+        "SCPS"
+      ],
+      "schoolNames": [
+        "Continuing & Prof Studies"
+      ],
+      "majorCodes": [
+        "SCPSD"
+      ],
+      "majorNames": [
+        "Dean of Continuing & Prof Stds"
+      ]
+    },
+    {
+      "subject": "PSPS",
+      "label": "PSPS - Prof Studies - Public Safety",
+      "schoolCodes": [
+        "SCPS"
+      ],
+      "schoolNames": [
+        "Continuing & Prof Studies"
+      ],
+      "majorCodes": [
+        "SCPSD"
+      ],
+      "majorNames": [
+        "Dean of Continuing & Prof Stds"
+      ]
+    },
+    {
+      "subject": "PST",
+      "label": "PST - Political & Social Thought",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "PST"
+      ],
+      "majorNames": [
+        "Political & Social Thought"
+      ]
+    },
+    {
+      "subject": "PSYC",
+      "label": "PSYC - Psychology",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "PSYC"
+      ],
+      "majorNames": [
+        "Psychology"
+      ]
+    },
+    {
+      "subject": "RELA",
+      "label": "RELA - African Religions",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "RELG"
+      ],
+      "majorNames": [
+        "Religious Studies"
+      ]
+    },
+    {
+      "subject": "RELB",
+      "label": "RELB - Buddhism",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "RELG"
+      ],
+      "majorNames": [
+        "Religious Studies"
+      ]
+    },
+    {
+      "subject": "RELC",
+      "label": "RELC - Christianity",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "RELG"
+      ],
+      "majorNames": [
+        "Religious Studies"
+      ]
+    },
+    {
+      "subject": "RELG",
+      "label": "RELG - General Religion",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "RELG"
+      ],
+      "majorNames": [
+        "Religious Studies"
+      ]
+    },
+    {
+      "subject": "RELH",
+      "label": "RELH - Hinduism",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "RELG"
+      ],
+      "majorNames": [
+        "Religious Studies"
+      ]
+    },
+    {
+      "subject": "RELI",
+      "label": "RELI - Islam",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "RELG"
+      ],
+      "majorNames": [
+        "Religious Studies"
+      ]
+    },
+    {
+      "subject": "RELJ",
+      "label": "RELJ - Judaism",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "RELG"
+      ],
+      "majorNames": [
+        "Religious Studies"
+      ]
+    },
+    {
+      "subject": "RELS",
+      "label": "RELS - Religion-Special Topic",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "RELG"
+      ],
+      "majorNames": [
+        "Religious Studies"
+      ]
+    },
+    {
+      "subject": "RUSS",
+      "label": "RUSS - Russian",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "SLLT"
+      ],
+      "majorNames": [
+        "Slavic"
+      ]
+    },
+    {
+      "subject": "RUTR",
+      "label": "RUTR - Russian in Translation",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "SLLT"
+      ],
+      "majorNames": [
+        "Slavic"
+      ]
+    },
+    {
+      "subject": "SANS",
+      "label": "SANS - Sanskrit",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "MESA"
+      ],
+      "majorNames": [
+        "Middle Eastern & South Asian"
+      ]
+    },
+    {
+      "subject": "SARC",
+      "label": "SARC - Architecture School",
+      "schoolCodes": [
+        "ARCH"
+      ],
+      "schoolNames": [
+        "School of Architecture"
+      ],
+      "majorCodes": [
+        "ARCHD"
+      ],
+      "majorNames": [
+        "Dean of Architecture"
+      ]
+    },
+    {
+      "subject": "SATR",
+      "label": "SATR - South Asian Lit in Trans",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "MESA"
+      ],
+      "majorNames": [
+        "Middle Eastern & South Asian"
+      ]
+    },
+    {
+      "subject": "SEC",
+      "label": "SEC - Cyber Security Analysis",
+      "schoolCodes": [
+        "SCPS"
+      ],
+      "schoolNames": [
+        "Continuing & Prof Studies"
+      ],
+      "majorCodes": [
+        "SCPSD"
+      ],
+      "majorNames": [
+        "Dean of Continuing & Prof Stds"
+      ]
+    },
+    {
+      "subject": "SLAV",
+      "label": "SLAV - Slavic",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "SLLT"
+      ],
+      "majorNames": [
+        "Slavic"
+      ]
+    },
+    {
+      "subject": "SLFK",
+      "label": "SLFK - Slavic Folklore & Oral Lit",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "SLLT"
+      ],
+      "majorNames": [
+        "Slavic"
+      ]
+    },
+    {
+      "subject": "SLTR",
+      "label": "SLTR - Slavic in Translation",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "SLLT"
+      ],
+      "majorNames": [
+        "Slavic"
+      ]
+    },
+    {
+      "subject": "SOC",
+      "label": "SOC - Sociology",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "SOC"
+      ],
+      "majorNames": [
+        "Sociology"
+      ]
+    },
+    {
+      "subject": "SPAN",
+      "label": "SPAN - Spanish",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "SPAN"
+      ],
+      "majorNames": [
+        "Spanish, Italian & Portuguese"
+      ]
+    },
+    {
+      "subject": "STAT",
+      "label": "STAT - Statistics",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "STAT"
+      ],
+      "majorNames": [
+        "Statistics"
+      ]
+    },
+    {
+      "subject": "STS",
+      "label": "STS - Science, Tech & Society",
+      "schoolCodes": [
+        "ENGR"
+      ],
+      "schoolNames": [
+        "Engineering & Applied Science"
+      ],
+      "majorCodes": [
+        "STS"
+      ],
+      "majorNames": [
+        "Engineering & Society"
+      ]
+    },
+    {
+      "subject": "SWAH",
+      "label": "SWAH - Swahili",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "AAS"
+      ],
+      "majorNames": [
+        "African-American & African Std"
+      ]
+    },
+    {
+      "subject": "SYS",
+      "label": "SYS - Systems & Information Engr",
+      "schoolCodes": [
+        "ENGR"
+      ],
+      "schoolNames": [
+        "Engineering & Applied Science"
+      ],
+      "majorCodes": [
+        "SIE"
+      ],
+      "majorNames": [
+        "Systems and Information Engine"
+      ]
+    },
+    {
+      "subject": "TURK",
+      "label": "TURK - Turkish",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "MESA"
+      ],
+      "majorNames": [
+        "Middle Eastern & South Asian"
+      ]
+    },
+    {
+      "subject": "UD",
+      "label": "UD - UD",
+      "schoolCodes": [
+        "ARCH"
+      ],
+      "schoolNames": [
+        "School of Architecture"
+      ],
+      "majorCodes": [
+        "ARCHDP"
+      ],
+      "majorNames": [
+        "Architecture Department"
+      ]
+    },
+    {
+      "subject": "UNST",
+      "label": "UNST - University Studies",
+      "schoolCodes": [
+        "PROV"
+      ],
+      "schoolNames": [
+        "Executive VP & Provost"
+      ],
+      "majorCodes": [
+        "PROVD"
+      ],
+      "majorNames": [
+        "Executive VP & Provost"
+      ]
+    },
+    {
+      "subject": "URDU",
+      "label": "URDU - Urdu",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "MESA"
+      ],
+      "majorNames": [
+        "Middle Eastern & South Asian"
+      ]
+    },
+    {
+      "subject": "USEM",
+      "label": "USEM - University Seminar",
+      "schoolCodes": [
+        "PROV"
+      ],
+      "schoolNames": [
+        "Executive VP & Provost"
+      ],
+      "majorCodes": [
+        "PROVD"
+      ],
+      "majorNames": [
+        "Executive VP & Provost"
+      ]
+    },
+    {
+      "subject": "WGS",
+      "label": "WGS - Women, Gender & Sexuality",
+      "schoolCodes": [
+        "CGAS"
+      ],
+      "schoolNames": [
+        "College & Graduate Arts & Sci"
+      ],
+      "majorCodes": [
+        "SWAG"
+      ],
+      "majorNames": [
+        "Women, Gender & Sexuality"
+      ]
+    }
+  ],
   "additional_programs": {
     "certificates": [
       {

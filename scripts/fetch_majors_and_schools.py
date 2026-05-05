@@ -332,19 +332,47 @@ def build_additional_programs() -> dict[str, list[dict]]:
     }
 
 
+def load_existing_output(output_path: Path) -> dict:
+    if output_path.exists():
+        try:
+            with open(output_path, encoding="utf-8") as f:
+                return json.load(f)
+        except (json.JSONDecodeError, OSError):
+            pass
+    return {}
+
+
 def main() -> None:
     payload = fetch_class_search_bootstrap()
     search_options = payload.get("search_options", {})
 
     schools = sorted_unique_options(search_options.get("acad_groups", []), "acad_group")
     departments = sorted_unique_options(search_options.get("acad_orgs", []), "acad_org")
-    
+
     # Build subjects and get school lookups before building majors
     subjects, school_lookup_by_code, school_lookup_by_name = build_subject_mappings(search_options)
-    
+
     majors = build_major_options(school_lookup_by_code, school_lookup_by_name)
     careers = sorted_unique_options(search_options.get("careers", []), "acad_career")
     additional_programs = build_additional_programs()
+
+    output_path = OUTPUT_DIR / "uva_academic_options.json"
+
+    # If the API returned empty data for critical arrays, fall back to the previously saved values
+    # to avoid wiping out good data from a partial or failed fetch.
+    existing = load_existing_output(output_path)
+    if not schools and existing.get("schools"):
+        print("WARNING: API returned no schools — keeping previously saved schools data")
+        schools = existing["schools"]
+    if not departments and existing.get("departments"):
+        print("WARNING: API returned no departments — keeping previously saved departments data")
+        departments = existing["departments"]
+    if not subjects and existing.get("subjects"):
+        print("WARNING: API returned no subjects — keeping previously saved subjects data")
+        subjects = existing["subjects"]
+    if not careers and existing.get("careers"):
+        print("WARNING: API returned no careers — keeping previously saved careers data")
+        careers = existing["careers"]
 
     output = {
         "metadata": {
@@ -368,7 +396,6 @@ def main() -> None:
         "additional_programs": additional_programs,
     }
 
-    output_path = OUTPUT_DIR / "uva_academic_options.json"
     with open(output_path, "w", encoding="utf-8") as file:
         json.dump(output, file, indent=2, ensure_ascii=False)
 

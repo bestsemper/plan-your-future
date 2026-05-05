@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "total_courses": 9363,
-    "courses_with_prerequisites": 1459,
+    "total_courses": 9368,
+    "courses_with_prerequisites": 1464,
     "courses_without_prerequisites": 7904,
     "courses_with_other_requirements": 862,
     "courses_without_other_requirements": 8575
@@ -1507,6 +1507,46 @@
         }
       ]
     },
+    "ASTR 3410": {
+      "type": "COREQ",
+      "children": [
+        {
+          "type": "OR",
+          "children": [
+            {
+              "type": "course",
+              "code": "ASTR 1000",
+              "level": true
+            },
+            {
+              "type": "course",
+              "code": "ASTR 2000",
+              "level": true
+            }
+          ]
+        }
+      ]
+    },
+    "ASTR 3420": {
+      "type": "COREQ",
+      "children": [
+        {
+          "type": "OR",
+          "children": [
+            {
+              "type": "course",
+              "code": "ASTR 1000",
+              "level": true
+            },
+            {
+              "type": "course",
+              "code": "ASTR 2000",
+              "level": true
+            }
+          ]
+        }
+      ]
+    },
     "ASTR 3490": {
       "type": "AND",
       "children": [
@@ -1892,12 +1932,7 @@
               "type": "course",
               "code": "CHEM 1420",
               "level": false
-            }
-          ]
-        },
-        {
-          "type": "OR",
-          "children": [
+            },
             {
               "type": "course",
               "code": "CHEM 1810",
@@ -2299,22 +2334,17 @@
           "type": "COREQ",
           "children": [
             {
-              "type": "AND",
+              "type": "OR",
               "children": [
                 {
-                  "type": "OR",
-                  "children": [
-                    {
-                      "type": "course",
-                      "code": "BIOL 3000",
-                      "level": false
-                    },
-                    {
-                      "type": "course",
-                      "code": "BIOL 3010",
-                      "level": false
-                    }
-                  ]
+                  "type": "course",
+                  "code": "BIOL 3000",
+                  "level": false
+                },
+                {
+                  "type": "course",
+                  "code": "BIOL 3010",
+                  "level": false
                 },
                 {
                   "type": "course",
@@ -2485,22 +2515,17 @@
           "type": "NOT",
           "children": [
             {
-              "type": "AND",
+              "type": "OR",
               "children": [
                 {
-                  "type": "OR",
-                  "children": [
-                    {
-                      "type": "course",
-                      "code": "NESC 4030",
-                      "level": false
-                    },
-                    {
-                      "type": "course",
-                      "code": "NESC 3450",
-                      "level": false
-                    }
-                  ]
+                  "type": "course",
+                  "code": "NESC 4030",
+                  "level": false
+                },
+                {
+                  "type": "course",
+                  "code": "NESC 3450",
+                  "level": false
                 },
                 {
                   "type": "course",
@@ -2575,15 +2600,15 @@
                       "type": "course",
                       "code": "BIOL 3040",
                       "level": false
+                    },
+                    {
+                      "type": "course",
+                      "code": "BIOL 3050",
+                      "level": false
                     }
                   ]
                 }
               ]
-            },
-            {
-              "type": "course",
-              "code": "BIOL 3050",
-              "level": false
             }
           ]
         },
@@ -2683,15 +2708,15 @@
                   "type": "course",
                   "code": "CHEM 4410",
                   "level": false
+                },
+                {
+                  "type": "course",
+                  "code": "CHEM 4440",
+                  "level": false
                 }
               ]
             }
           ]
-        },
-        {
-          "type": "course",
-          "code": "CHEM 4440",
-          "level": false
         }
       ]
     },
@@ -2866,12 +2891,7 @@
               "type": "course",
               "code": "APMA 1090",
               "level": false
-            }
-          ]
-        },
-        {
-          "type": "OR",
-          "children": [
+            },
             {
               "type": "course",
               "code": "MATH 1320",
@@ -3331,13 +3351,13 @@
               "type": "course",
               "code": "MATH 3250",
               "level": false
+            },
+            {
+              "type": "course",
+              "code": "APMA 2501",
+              "level": false
             }
           ]
-        },
-        {
-          "type": "course",
-          "code": "APMA 2501",
-          "level": false
         },
         {
           "type": "OR",
@@ -4328,62 +4348,32 @@
       ]
     },
     "CE 4610": {
-      "type": "AND",
+      "type": "OR",
       "children": [
         {
-          "type": "OR",
-          "children": [
-            {
-              "type": "course",
-              "code": "CS 1110",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "CS 1111",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "CS 1112",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "CS 1113",
-              "level": false
-            }
-          ]
+          "type": "course",
+          "code": "CS 1110",
+          "level": false
         },
         {
-          "type": "OR",
-          "children": [
-            {
-              "type": "course",
-              "code": "CS 1110",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "CS 1111",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "CS 1112",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "CS 1113",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "CS 2100",
-              "level": false
-            }
-          ]
+          "type": "course",
+          "code": "CS 1111",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "CS 1112",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "CS 1113",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "CS 2100",
+          "level": false
         }
       ]
     },
@@ -4602,31 +4592,6 @@
               "type": "course",
               "code": "CHE 2215",
               "level": false
-            },
-            {
-              "type": "OR",
-              "children": [
-                {
-                  "type": "course",
-                  "code": "CS 1110",
-                  "level": false
-                },
-                {
-                  "type": "course",
-                  "code": "CS 1111",
-                  "level": false
-                },
-                {
-                  "type": "course",
-                  "code": "CS 1112",
-                  "level": false
-                },
-                {
-                  "type": "course",
-                  "code": "CS 1113",
-                  "level": false
-                }
-              ]
             },
             {
               "type": "OR",
@@ -5236,17 +5201,12 @@
       "type": "COREQ",
       "children": [
         {
-          "type": "AND",
+          "type": "OR",
           "children": [
             {
-              "type": "OR",
-              "children": [
-                {
-                  "type": "course",
-                  "code": "CHEM 1410",
-                  "level": false
-                }
-              ]
+              "type": "course",
+              "code": "CHEM 1410",
+              "level": false
             },
             {
               "type": "course",
@@ -5364,22 +5324,17 @@
           "type": "COREQ",
           "children": [
             {
-              "type": "AND",
+              "type": "OR",
               "children": [
                 {
-                  "type": "OR",
-                  "children": [
-                    {
-                      "type": "course",
-                      "code": "CHEM 1821",
-                      "level": false
-                    },
-                    {
-                      "type": "course",
-                      "code": "CHEM 2411",
-                      "level": false
-                    }
-                  ]
+                  "type": "course",
+                  "code": "CHEM 1821",
+                  "level": false
+                },
+                {
+                  "type": "course",
+                  "code": "CHEM 2411",
+                  "level": false
                 },
                 {
                   "type": "course",
@@ -5431,7 +5386,7 @@
       "type": "AND",
       "children": [
         {
-          "type": "AND",
+          "type": "OR",
           "children": [
             {
               "type": "course",
@@ -5526,7 +5481,7 @@
       "type": "AND",
       "children": [
         {
-          "type": "AND",
+          "type": "OR",
           "children": [
             {
               "type": "course",
@@ -5654,22 +5609,17 @@
           "type": "COREQ",
           "children": [
             {
-              "type": "AND",
+              "type": "OR",
               "children": [
                 {
-                  "type": "OR",
-                  "children": [
-                    {
-                      "type": "course",
-                      "code": "CHEM 2811",
-                      "level": false
-                    },
-                    {
-                      "type": "course",
-                      "code": "CHEM 2421",
-                      "level": false
-                    }
-                  ]
+                  "type": "course",
+                  "code": "CHEM 2811",
+                  "level": false
+                },
+                {
+                  "type": "course",
+                  "code": "CHEM 2421",
+                  "level": false
                 },
                 {
                   "type": "course",
@@ -5708,22 +5658,17 @@
       "level": false
     },
     "CHEM 3121": {
-      "type": "AND",
+      "type": "OR",
       "children": [
         {
-          "type": "OR",
-          "children": [
-            {
-              "type": "course",
-              "code": "CHEM 2321",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "CHEM 2421",
-              "level": false
-            }
-          ]
+          "type": "course",
+          "code": "CHEM 2321",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "CHEM 2421",
+          "level": false
         },
         {
           "type": "course",
@@ -5785,13 +5730,13 @@
                   "type": "course",
                   "code": "PHYS 2620",
                   "level": false
+                },
+                {
+                  "type": "course",
+                  "code": "PHYS 2415",
+                  "level": false
                 }
               ]
-            },
-            {
-              "type": "course",
-              "code": "PHYS 2415",
-              "level": false
             }
           ]
         },
@@ -5828,7 +5773,7 @@
       ]
     },
     "CHEM 3721": {
-      "type": "AND",
+      "type": "OR",
       "children": [
         {
           "type": "course",
@@ -5846,7 +5791,7 @@
       "type": "AND",
       "children": [
         {
-          "type": "AND",
+          "type": "OR",
           "children": [
             {
               "type": "course",
@@ -6663,122 +6608,62 @@
       ]
     },
     "CS 2120": {
-      "type": "AND",
+      "type": "OR",
       "children": [
         {
-          "type": "OR",
-          "children": [
-            {
-              "type": "course",
-              "code": "CS 1110",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "CS 1111",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "CS 1112",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "CS 1113",
-              "level": false
-            }
-          ]
+          "type": "course",
+          "code": "CS 1110",
+          "level": false
         },
         {
-          "type": "OR",
-          "children": [
-            {
-              "type": "course",
-              "code": "CS 1110",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "CS 1111",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "CS 1112",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "CS 1113",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "CS 2100",
-              "level": false
-            }
-          ]
+          "type": "course",
+          "code": "CS 1111",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "CS 1112",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "CS 1113",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "CS 2100",
+          "level": false
         }
       ]
     },
     "CS 2130": {
-      "type": "AND",
+      "type": "OR",
       "children": [
         {
-          "type": "OR",
-          "children": [
-            {
-              "type": "course",
-              "code": "CS 1110",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "CS 1111",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "CS 1112",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "CS 1113",
-              "level": false
-            }
-          ]
+          "type": "course",
+          "code": "CS 1110",
+          "level": false
         },
         {
-          "type": "OR",
-          "children": [
-            {
-              "type": "course",
-              "code": "CS 1110",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "CS 1111",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "CS 1112",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "CS 1113",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "CS 2100",
-              "level": false
-            }
-          ]
+          "type": "course",
+          "code": "CS 1111",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "CS 1112",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "CS 1113",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "CS 2100",
+          "level": false
         }
       ]
     },
@@ -6968,62 +6853,52 @@
       ]
     },
     "CS 4414": {
-      "type": "AND",
+      "type": "OR",
       "children": [
         {
-          "type": "OR",
+          "type": "course",
+          "code": "CS 3330",
+          "level": false
+        },
+        {
+          "type": "AND",
           "children": [
             {
               "type": "course",
-              "code": "CS 3330",
+              "code": "CS 2501",
               "level": false
             },
             {
-              "type": "AND",
-              "children": [
-                {
-                  "type": "course",
-                  "code": "CS 2501",
-                  "level": false
-                },
-                {
-                  "type": "course",
-                  "code": "CS 2150",
-                  "level": false
-                }
-              ]
-            },
-            {
-              "type": "AND",
-              "children": [
-                {
-                  "type": "course",
-                  "code": "CS 3130",
-                  "level": false
-                },
-                {
-                  "type": "course",
-                  "code": "CS 3100",
-                  "level": false
-                }
-              ]
+              "type": "course",
+              "code": "CS 2150",
+              "level": false
             }
           ]
         },
         {
-          "type": "OR",
+          "type": "AND",
           "children": [
             {
               "type": "course",
-              "code": "ECE 3430",
+              "code": "CS 3130",
               "level": false
             },
             {
               "type": "course",
-              "code": "ECE 3502",
+              "code": "CS 3100",
               "level": false
             }
           ]
+        },
+        {
+          "type": "course",
+          "code": "ECE 3430",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "ECE 3502",
+          "level": false
         }
       ]
     },
@@ -7617,14 +7492,19 @@
           ]
         },
         {
-          "type": "course",
-          "code": "CS 2110",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "PHYS 1655",
-          "level": false
+          "type": "OR",
+          "children": [
+            {
+              "type": "course",
+              "code": "CS 2110",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "PHYS 1655",
+              "level": false
+            }
+          ]
         }
       ]
     },
@@ -7715,13 +7595,13 @@
               "type": "course",
               "code": "CS 2110",
               "level": false
+            },
+            {
+              "type": "course",
+              "code": "PHYS 1655",
+              "level": false
             }
           ]
-        },
-        {
-          "type": "course",
-          "code": "PHYS 1655",
-          "level": false
         }
       ]
     },
@@ -8978,26 +8858,6 @@
               ]
             }
           ]
-        },
-        {
-          "type": "OR",
-          "children": [
-            {
-              "type": "course",
-              "code": "APMA 2120",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "MATH 2310",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "MATH 2315",
-              "level": false
-            }
-          ]
         }
       ]
     },
@@ -9118,27 +8978,22 @@
       ]
     },
     "ECON 3720": {
-      "type": "AND",
+      "type": "OR",
       "children": [
         {
-          "type": "OR",
-          "children": [
-            {
-              "type": "course",
-              "code": "STAT 2120",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "STAT 3120",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "APMA 3110",
-              "level": false
-            }
-          ]
+          "type": "course",
+          "code": "STAT 2120",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "STAT 3120",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "APMA 3110",
+          "level": false
         },
         {
           "type": "course",
@@ -9566,14 +9421,19 @@
       "type": "AND",
       "children": [
         {
-          "type": "course",
-          "code": "ECON 3020",
-          "level": false
-        },
-        {
-          "type": "course",
-          "code": "ECON 2010",
-          "level": false
+          "type": "OR",
+          "children": [
+            {
+              "type": "course",
+              "code": "ECON 3020",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "ECON 2010",
+              "level": false
+            }
+          ]
         },
         {
           "type": "course",
@@ -10574,6 +10434,46 @@
       "code": "EDLF 8382",
       "level": false
     },
+    "ENCW 3610": {
+      "type": "OR",
+      "children": [
+        {
+          "type": "course",
+          "code": "ENCW 2000",
+          "level": true
+        },
+        {
+          "type": "course",
+          "code": "ENCW 3000",
+          "level": true
+        },
+        {
+          "type": "course",
+          "code": "ENCW 4000",
+          "level": true
+        }
+      ]
+    },
+    "ENCW 4820": {
+      "type": "OR",
+      "children": [
+        {
+          "type": "course",
+          "code": "ENCW 2000",
+          "level": true
+        },
+        {
+          "type": "course",
+          "code": "ENCW 3000",
+          "level": true
+        },
+        {
+          "type": "course",
+          "code": "ENCW 4000",
+          "level": true
+        }
+      ]
+    },
     "ENGL 3750": {
       "type": "NOT",
       "children": [
@@ -11295,7 +11195,7 @@
       ]
     },
     "EVSC 5810": {
-      "type": "AND",
+      "type": "OR",
       "children": [
         {
           "type": "course",
@@ -11455,17 +11355,27 @@
       "level": false
     },
     "FREN 4509": {
-      "type": "OR",
+      "type": "AND",
       "children": [
         {
-          "type": "course",
-          "code": "FREN 3030",
-          "level": false
+          "type": "OR",
+          "children": [
+            {
+              "type": "course",
+              "code": "FREN 3030",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "FREN 3031",
+              "level": false
+            }
+          ]
         },
         {
           "type": "course",
-          "code": "FREN 3031",
-          "level": false
+          "code": "FREN 4000",
+          "level": true
         }
       ]
     },
@@ -11528,6 +11438,11 @@
       "type": "course",
       "code": "FREN 3041",
       "level": false
+    },
+    "FREN 4813": {
+      "type": "course",
+      "code": "FREN 3000",
+      "level": true
     },
     "FREN 4838": {
       "type": "course",
@@ -11813,51 +11728,46 @@
       "type": "COREQ",
       "children": [
         {
-          "type": "AND",
+          "type": "count",
+          "count": 1,
           "children": [
             {
-              "type": "count",
-              "count": 1,
+              "type": "OR",
               "children": [
                 {
-                  "type": "OR",
-                  "children": [
-                    {
-                      "type": "course",
-                      "code": "GNUR 6624",
-                      "level": false
-                    },
-                    {
-                      "type": "course",
-                      "code": "GNUR 6634",
-                      "level": false
-                    },
-                    {
-                      "type": "course",
-                      "code": "GNUR 6643",
-                      "level": false
-                    },
-                    {
-                      "type": "course",
-                      "code": "GNUR 6653",
-                      "level": false
-                    },
-                    {
-                      "type": "course",
-                      "code": "GNUR 7251",
-                      "level": false
-                    },
-                    {
-                      "type": "course",
-                      "code": "GNUR 7311",
-                      "level": false
-                    },
-                    {
-                      "type": "course",
-                      "code": "GNUR 7312",
-                      "level": false
-                    }
-                  ]
+                  "type": "course",
+                  "code": "GNUR 6624",
+                  "level": false
+                },
+                {
+                  "type": "course",
+                  "code": "GNUR 6634",
+                  "level": false
+                },
+                {
+                  "type": "course",
+                  "code": "GNUR 6643",
+                  "level": false
+                },
+                {
+                  "type": "course",
+                  "code": "GNUR 6653",
+                  "level": false
+                },
+                {
+                  "type": "course",
+                  "code": "GNUR 7251",
+                  "level": false
+                },
+                {
+                  "type": "course",
+                  "code": "GNUR 7311",
+                  "level": false
+                },
+                {
+                  "type": "course",
+                  "code": "GNUR 7312",
+                  "level": false
                 }
               ]
             }
@@ -15131,17 +15041,27 @@
           ]
         },
         {
-          "type": "OR",
+          "type": "NOT",
           "children": [
             {
-              "type": "course",
-              "code": "MATH 3310",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "MATH 3354",
-              "level": false
+              "type": "OR",
+              "children": [
+                {
+                  "type": "course",
+                  "code": "MATH 3310",
+                  "level": false
+                },
+                {
+                  "type": "course",
+                  "code": "MATH 3354",
+                  "level": false
+                },
+                {
+                  "type": "course",
+                  "code": "MATH 5000",
+                  "level": true
+                }
+              ]
             }
           ]
         }
@@ -17017,22 +16937,17 @@
           "type": "NOT",
           "children": [
             {
-              "type": "AND",
+              "type": "OR",
               "children": [
                 {
-                  "type": "OR",
-                  "children": [
-                    {
-                      "type": "course",
-                      "code": "BIOL 4030",
-                      "level": false
-                    },
-                    {
-                      "type": "course",
-                      "code": "NESC 3450",
-                      "level": false
-                    }
-                  ]
+                  "type": "course",
+                  "code": "BIOL 4030",
+                  "level": false
+                },
+                {
+                  "type": "course",
+                  "code": "NESC 3450",
+                  "level": false
                 },
                 {
                   "type": "course",
@@ -17721,22 +17636,17 @@
       "level": false
     },
     "PHYS 2660": {
-      "type": "AND",
+      "type": "OR",
       "children": [
         {
-          "type": "OR",
-          "children": [
-            {
-              "type": "course",
-              "code": "PHYS 1420",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "PHYS 1425",
-              "level": false
-            }
-          ]
+          "type": "course",
+          "code": "PHYS 1420",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "PHYS 1425",
+          "level": false
         },
         {
           "type": "course",
@@ -19385,13 +19295,23 @@
           "level": false
         },
         {
-          "type": "course",
-          "code": "SPAN 3010",
-          "level": false
+          "type": "OR",
+          "children": [
+            {
+              "type": "course",
+              "code": "SPAN 3010",
+              "level": false
+            },
+            {
+              "type": "course",
+              "code": "SPAN 3000",
+              "level": false
+            }
+          ]
         },
         {
           "type": "course",
-          "code": "SPAN 3000",
+          "code": "SPAN 3010",
           "level": false
         }
       ]
@@ -20384,13 +20304,13 @@
               "type": "course",
               "code": "APMA 3110",
               "level": false
+            },
+            {
+              "type": "course",
+              "code": "APMA 3120",
+              "level": false
             }
           ]
-        },
-        {
-          "type": "course",
-          "code": "APMA 3120",
-          "level": false
         },
         {
           "type": "OR",
@@ -20917,13 +20837,13 @@
               "type": "course",
               "code": "APMA 3110",
               "level": false
+            },
+            {
+              "type": "course",
+              "code": "APMA 3120",
+              "level": false
             }
           ]
-        },
-        {
-          "type": "course",
-          "code": "APMA 3120",
-          "level": false
         },
         {
           "type": "OR",
@@ -21258,22 +21178,17 @@
       ]
     },
     "STAT 5630": {
-      "type": "AND",
+      "type": "OR",
       "children": [
         {
-          "type": "OR",
-          "children": [
-            {
-              "type": "course",
-              "code": "STAT 5120",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "STAT 6120",
-              "level": false
-            }
-          ]
+          "type": "course",
+          "code": "STAT 5120",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "STAT 6120",
+          "level": false
         },
         {
           "type": "course",
@@ -21932,22 +21847,17 @@
       "level": false
     },
     "SYS 6018": {
-      "type": "AND",
+      "type": "OR",
       "children": [
         {
-          "type": "OR",
-          "children": [
-            {
-              "type": "course",
-              "code": "SYS 6021",
-              "level": false
-            },
-            {
-              "type": "course",
-              "code": "SYS 4021",
-              "level": false
-            }
-          ]
+          "type": "course",
+          "code": "SYS 6021",
+          "level": false
+        },
+        {
+          "type": "course",
+          "code": "SYS 4021",
+          "level": false
         },
         {
           "type": "course",
