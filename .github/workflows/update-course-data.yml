@@ -35,6 +35,29 @@ jobs:
       - name: Extract prerequisites
         run: python scripts/extract_prerequisites.py
 
+      - name: Validate data integrity
+        run: |
+          python3 - <<'EOF'
+          import json, sys
+
+          def check(path, key, min_count, label):
+              try:
+                  data = json.load(open(path))
+              except Exception as e:
+                  print(f"ERROR: could not parse {path}: {e}", file=sys.stderr)
+                  sys.exit(1)
+              items = data.get(key, [])
+              if len(items) < min_count:
+                  print(f"ERROR: {label} has only {len(items)} entries (minimum {min_count})", file=sys.stderr)
+                  sys.exit(1)
+              print(f"OK: {label} = {len(items)} entries")
+
+          check("data/uva_academic_options.json", "subjects",     150, "subjects")
+          check("data/uva_academic_options.json", "schools",       10, "schools")
+          check("data/uva_academic_options.json", "majors",        50, "majors")
+          check("data/uva_prerequisites.json",    "prerequisite_trees", 100, "prerequisite_trees")
+          EOF
+
       - name: Commit and push if data changed
         run: |
           git config user.name "github-actions[bot]"

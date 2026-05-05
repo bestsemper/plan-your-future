@@ -26,11 +26,30 @@ def normalize_text(value: object) -> str:
 
 
 def fetch_class_search_bootstrap() -> dict:
+    """
+    Fetches the SIS class-search bootstrap payload and merges the separately-loaded
+    search options (subjects, schools, etc.) into it under the 'search_options' key.
+
+    The SIS app originally embedded all data in one atob() call. It was later split:
+    the main page now carries only metadata, and the actual search options are loaded
+    via a separate IScript_ClassSearchOptions XHR that fires on page load.
+    """
+    search_options: dict = {}
+
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(headless=True)
         page = browser.new_page()
+
+        def handle_response(response: object) -> None:
+            if "IScript_ClassSearchOptions" in response.url:  # type: ignore[attr-defined]
+                try:
+                    search_options.update(response.json())  # type: ignore[attr-defined]
+                except Exception:
+                    pass
+
+        page.on("response", handle_response)
         try:
-            page.goto(CLASS_SEARCH_MAIN_URL, wait_until="domcontentloaded", timeout=60000)
+            page.goto(CLASS_SEARCH_MAIN_URL, wait_until="networkidle", timeout=60000)
             html = page.content()
         finally:
             browser.close()
@@ -39,8 +58,10 @@ def fetch_class_search_bootstrap() -> dict:
     if not match:
         raise RuntimeError("Could not locate SIS bootstrap payload")
 
-    encoded_payload = match.group(1)
-    return json.loads(base64.b64decode(encoded_payload).decode("utf-8"))
+    payload = json.loads(base64.b64decode(match.group(1)).decode("utf-8"))
+    # Merge the separately-fetched search options into the payload
+    payload["search_options"] = search_options
+    return payload
 
 
 def sorted_unique_options(items: list[dict], code_key: str) -> list[dict]:
@@ -358,20 +379,34 @@ def main() -> None:
 
     output_path = OUTPUT_DIR / "uva_academic_options.json"
 
-    # If the API returned empty data for critical arrays, fall back to the previously saved values
+    # If the API returned empty or suspiciously sparse data, fall back to the previously saved values
     # to avoid wiping out good data from a partial or failed fetch.
     existing = load_existing_output(output_path)
-    if not schools and existing.get("schools"):
-        print("WARNING: API returned no schools — keeping previously saved schools data")
+
+    def should_fallback(new_list: list, key: str, threshold: float = 0.75) -> bool:
+        """Return True if new_list is empty or less than `threshold` of the previous count."""
+        old = existing.get(key, [])
+        if not new_list:
+            return bool(old)
+        if old and len(new_list) < len(old) * threshold:
+            return True
+        return False
+
+    if should_fallback(schools, "schools"):
+        print(f"WARNING: API returned {len(schools)} schools (expected ~{len(existing.get('schools', []))})"
+              " — keeping previously saved schools data")
         schools = existing["schools"]
-    if not departments and existing.get("departments"):
-        print("WARNING: API returned no departments — keeping previously saved departments data")
+    if should_fallback(departments, "departments"):
+        print(f"WARNING: API returned {len(departments)} departments (expected ~{len(existing.get('departments', []))})"
+              " — keeping previously saved departments data")
         departments = existing["departments"]
-    if not subjects and existing.get("subjects"):
-        print("WARNING: API returned no subjects — keeping previously saved subjects data")
+    if should_fallback(subjects, "subjects"):
+        print(f"WARNING: API returned {len(subjects)} subjects (expected ~{len(existing.get('subjects', []))})"
+              " — keeping previously saved subjects data")
         subjects = existing["subjects"]
-    if not careers and existing.get("careers"):
-        print("WARNING: API returned no careers — keeping previously saved careers data")
+    if should_fallback(careers, "careers"):
+        print(f"WARNING: API returned {len(careers)} careers (expected ~{len(existing.get('careers', []))})"
+              " — keeping previously saved careers data")
         careers = existing["careers"]
 
     output = {
